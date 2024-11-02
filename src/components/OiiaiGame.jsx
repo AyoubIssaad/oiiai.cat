@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Play, RotateCw, Volume2, VolumeX, Keyboard } from "lucide-react";
 import { Button } from "./ui/Button";
 
-const BASE_SEQUENCE = "oiiaioooiiai".split("");
+const BASE_SEQUENCE = "oiiaiooiiiai".split("");
 const REPEAT_COUNT = 4;
 const SEQUENCE = Array(REPEAT_COUNT).fill(BASE_SEQUENCE).flat();
 const LETTER_COLORS = {
@@ -25,7 +25,7 @@ const KEYBOARD_MAPPINGS = {
 
 const KeyboardHint = () => (
   <div className="flex items-center justify-center gap-2 text-sm text-blue-700 mt-4 bg-blue-50 px-4 py-2 rounded-lg border-2 border-blue-200">
-    <div className="flex items-center gap-2">
+    <div className="kawaii-text flex items-center gap-2">
       <Keyboard className="w-4 h-4" />
       <span>Use keyboard keys:</span>
       {Object.entries(LETTER_NAMES).map(([letter, name], index) => (
@@ -35,7 +35,9 @@ const KeyboardHint = () => (
         </span>
       ))}
     </div>
-    <div className="text-xs">Complete the sequence 4 times to win!</div>
+    <div className="kawaii-text text-xs">
+      Complete the sequence 4 times to win!
+    </div>
   </div>
 );
 
@@ -43,7 +45,9 @@ const GameOverMessage = ({ success, time, speed }) => {
   if (success) {
     return (
       <div className="kawaii-card p-6 text-center">
-        <h3 className="kawaii-title text-xl mb-4">Perfect Run! ⭐</h3>
+        <h3 className="kawaii-title text-xl mb-4 font-black">
+          Perfect Run! ⭐
+        </h3>
         <div className="space-y-2 text-blue-700">
           <p>Time: {time}s</p>
           <p>Speed: {speed} letters/second</p>
@@ -54,8 +58,10 @@ const GameOverMessage = ({ success, time, speed }) => {
 
   return (
     <div className="kawaii-card p-6 text-center border-yellow-500 bg-yellow-50">
-      <h3 className="text-xl font-bold text-yellow-700">Try Again! 💫</h3>
-      <p className="text-yellow-600 mt-2">
+      <h3 className="kawaii-title font-black text-xl font-bold text-yellow-700">
+        Try Again! 💫
+      </h3>
+      <p className="text-yellow-600 mt-2 font-['Orbitron']">
         Keep practicing to master the sequence
       </p>
     </div>
@@ -288,7 +294,7 @@ export default function OiiaiGame() {
   return (
     <div className="flex flex-col items-center gap-8">
       <div className="flex items-center gap-4">
-        <div className="text-2xl text-blue-700">
+        <div className="kawaii-title text-xl text-blue-700">
           {gameState === "idle" && "Ready to Play?"}
           {gameState === "playing" && (
             <div className="flex flex-col items-center">

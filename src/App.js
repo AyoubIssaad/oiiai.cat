@@ -141,9 +141,11 @@ function App() {
     <div className="min-h-screen kawaii-theme">
       <div className="container mx-auto px-4 py-8">
         {/* Fun emoji header */}
-        <h1 className="text-center mb-8 text-4xl">
+        <h1 className="text-center mb-8">
           {/* <span className="animate-bounce inline-block">🐱</span> */}
-          <span className="kawaii-title ml-2">Oiiai Cat</span>
+          <span className="kawaii-heading ml-2 text-5xl inline-block">
+            Oiiai Cat
+          </span>
           <span className="animate-bounce inline-block delay-100">⭐</span>
         </h1>
 
@@ -206,7 +208,7 @@ function App() {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <label className="text-sm font-medium text-blue-700">
+                    <label className="kawaii-text text-sm font-medium text-blue-700">
                       Speed: {getSpeedLabel(speed)}
                     </label>
                     <div className="flex gap-2">
@@ -231,7 +233,7 @@ function App() {
                       className="w-full"
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-blue-600">
+                  <div className="kawaii-text flex justify-between text-xs text-blue-600">
                     <span>Slow (0.1x)</span>
                     <span>Fast (20x)</span>
                   </div>
@@ -251,7 +253,7 @@ function App() {
       </div>
 
       <footer className="py-4 px-4 text-center text-sm text-blue-700 mt-8">
-        <p>
+        <p className="kawaii-text">
           Made with <span className="animate-pulse inline-block">⭐</span> by{" "}
           <a
             className="text-blue-500 hover:text-blue-600 underline"
