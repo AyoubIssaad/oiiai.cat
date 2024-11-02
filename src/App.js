@@ -243,7 +243,7 @@ function App() {
           {/* Game Section */}
           <div className="kawaii-card p-8">
             <h2 className="kawaii-title text-2xl font-bold text-center mb-8">
-              OIIAI Game
+              Speed Typing Game
             </h2>
             <OiiaiGame />
           </div>
