@@ -18,3 +18,123 @@ body {
 .backface-visible {
   backface-visibility: visible;
 }
+@keyframes rainbow-bg {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes rainbow-text {
+  0% {
+    color: #ff0000;
+  }
+  20% {
+    color: #ff9900;
+  }
+  40% {
+    color: #33cc33;
+  }
+  60% {
+    color: #3399ff;
+  }
+  80% {
+    color: #cc33ff;
+  }
+  100% {
+    color: #ff0000;
+  }
+}
+
+.cosmic-theme {
+  background: linear-gradient(45deg, #000851, #1cb5e0);
+  background-size: 400% 400%;
+  animation: rainbow-bg 15s ease infinite;
+}
+
+.cosmic-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.cosmic-title {
+  font-family: "Comic Sans MS", cursive;
+  animation: rainbow-text 3s linear infinite;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.cosmic-button {
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  border: none;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.cosmic-button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.cosmic-slider {
+  background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+}
+
+.cosmic-cat-container {
+  position: relative;
+}
+
+.cosmic-cat-container::before {
+  content: "";
+  position: absolute;
+  width: 150%;
+  height: 20px;
+  background: linear-gradient(
+    90deg,
+    #ff0000,
+    #ff9900,
+    #33cc33,
+    #3399ff,
+    #cc33ff
+  );
+  filter: blur(8px);
+  opacity: 0.7;
+  animation: float 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  animation: star-twinkle 1.5s ease-in-out infinite;
+}
