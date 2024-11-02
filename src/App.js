@@ -15,6 +15,11 @@ function App() {
   const gainNodeRef = useRef(null);
   const audioBufferRef = useRef(null);
 
+  // Add this useEffect for dynamic title
+  useEffect(() => {
+    document.title = "Oiiai Cat"; // Set your desired title here
+  }, []);
+
   // Initialize Audio Context
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext ||
@@ -119,7 +124,7 @@ function App() {
               className="w-48 h-48 relative backface-visible"
               style={{
                 transform: `rotateY(${rotation}deg)`,
-                transformStyle: 'preserve-3d',
+                transformStyle: "preserve-3d",
               }}
             >
               <img
@@ -139,7 +144,11 @@ function App() {
                 size="lg"
                 className="w-24"
               >
-                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                {isPlaying ? (
+                  <Pause className="w-6 h-6" />
+                ) : (
+                  <Play className="w-6 h-6" />
+                )}
               </Button>
               <Button
                 onClick={() => {
@@ -156,13 +165,19 @@ function App() {
                 variant="outline"
                 size="lg"
               >
-                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                {isMuted ? (
+                  <VolumeX className="w-6 h-6" />
+                ) : (
+                  <Volume2 className="w-6 h-6" />
+                )}
               </Button>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium">Speed: {getSpeedLabel(speed)}</label>
+                <label className="text-sm font-medium">
+                  Speed: {getSpeedLabel(speed)}
+                </label>
                 <div className="flex gap-2">
                   <Button
                     onClick={() => setSpeed(3)}
@@ -209,7 +224,24 @@ function App() {
 
       {/* Footer */}
       <footer className="py-4 px-4 text-center text-sm text-gray-600">
-        <p>Made with ♥ by <a className="text-blue-600 hover:text-blue-800 transition-colors" href="https://aubiss.com">aubiss</a> | <a href="mailto:contact@oiiai.cat" className="text-blue-600 hover:text-blue-800 transition-colors">contact@oiiai.cat</a></p>
+        <p>
+          Made with ♥ by{" "}
+          <a
+            className="text-blue-600 hover:text-blue-800 transition-colors"
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://aubiss.com"
+          >
+            aubiss
+          </a>{" "}
+          |{" "}
+          <a
+            href="mailto:contact@oiiai.cat"
+            className="text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            contact@oiiai.cat
+          </a>
+        </p>
       </footer>
     </div>
   );
