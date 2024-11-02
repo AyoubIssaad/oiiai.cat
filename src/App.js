@@ -111,109 +111,106 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-8 p-8 max-w-md mx-auto">
-        <div className="relative w-64 h-64 flex items-center justify-center bg-gray-100 rounded-full shadow-lg perspective-1000">
-          <div
-            className="w-48 h-48 relative backface-visible"
-            style={{
-              transform: `rotateY(${rotation}deg)`,
-              transformStyle: "preserve-3d",
-            }}
-          >
-            <img
-              src="/cat.png"
-              alt="Spinning Cat"
-              className="w-full h-full object-cover rounded-full"
-              draggable="false"
-            />
-          </div>
-        </div>
-
-        <div className="w-full flex flex-col gap-6">
-          <div className="flex justify-center gap-4">
-            <Button
-              onClick={togglePlay}
-              variant="outline"
-              size="lg"
-              className="w-24"
-            >
-              {isPlaying ? (
-                <Pause className="w-6 h-6" />
-              ) : (
-                <Play className="w-6 h-6" />
-              )}
-            </Button>
-            <Button
-              onClick={() => {
-                setRotation(0);
-                lastTimeRef.current = 0;
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-grow flex items-center justify-center">
+        <div className="flex flex-col items-center gap-8 p-8 max-w-md mx-auto">
+          <div className="relative w-64 h-64 flex items-center justify-center bg-gray-100 rounded-full shadow-lg perspective-1000">
+            <div
+              className="w-48 h-48 relative backface-visible"
+              style={{
+                transform: `rotateY(${rotation}deg)`,
+                transformStyle: 'preserve-3d',
               }}
-              variant="outline"
-              size="lg"
             >
-              <RotateCw className="w-6 h-6" />
-            </Button>
-            <Button
-              onClick={() => setIsMuted(!isMuted)}
-              variant="outline"
-              size="lg"
-            >
-              {isMuted ? (
-                <VolumeX className="w-6 h-6" />
-              ) : (
-                <Volume2 className="w-6 h-6" />
-              )}
-            </Button>
+              <img
+                src="/cat.png"
+                alt="Spinning Cat"
+                className="w-full h-full object-cover rounded-full"
+                draggable="false"
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium">
-                Speed: {getSpeedLabel(speed)}
-              </label>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => setSpeed(3)}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                >
-                  3x
-                </Button>
-                <Button
-                  onClick={() => setSpeed(5)}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                >
-                  5x
-                </Button>
-                <Button
-                  onClick={() => setSpeed(10)}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                >
-                  10x
-                </Button>
-              </div>
+          <div className="w-full flex flex-col gap-6">
+            <div className="flex justify-center gap-4">
+              <Button
+                onClick={togglePlay}
+                variant="outline"
+                size="lg"
+                className="w-24"
+              >
+                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+              </Button>
+              <Button
+                onClick={() => {
+                  setRotation(0);
+                  lastTimeRef.current = 0;
+                }}
+                variant="outline"
+                size="lg"
+              >
+                <RotateCw className="w-6 h-6" />
+              </Button>
+              <Button
+                onClick={() => setIsMuted(!isMuted)}
+                variant="outline"
+                size="lg"
+              >
+                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+              </Button>
             </div>
-            <Slider
-              value={[speed]}
-              onValueChange={([newSpeed]) => setSpeed(newSpeed)}
-              min={0.1}
-              max={20}
-              step={0.1}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-gray-500">
-              <span>Slow (0.1x)</span>
-              <span>Fast (20x)</span>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium">Speed: {getSpeedLabel(speed)}</label>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setSpeed(3)}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    3x
+                  </Button>
+                  <Button
+                    onClick={() => setSpeed(5)}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    5x
+                  </Button>
+                  <Button
+                    onClick={() => setSpeed(10)}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    10x
+                  </Button>
+                </div>
+              </div>
+              <Slider
+                value={[speed]}
+                onValueChange={([newSpeed]) => setSpeed(newSpeed)}
+                min={0.1}
+                max={20}
+                step={0.1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Slow (0.1x)</span>
+                <span>Fast (20x)</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="py-4 px-4 text-center text-sm text-gray-600">
+        <p>Made with ♥ by <a className="text-blue-600 hover:text-blue-800 transition-colors" href="https://aubiss.com">aubiss</a> | <a href="mailto:contact@oiiai.cat" className="text-blue-600 hover:text-blue-800 transition-colors">contact@oiiai.cat</a></p>
+      </footer>
     </div>
   );
 }
