@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -18,123 +20,139 @@ body {
 .backface-visible {
   backface-visibility: visible;
 }
-@keyframes rainbow-bg {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes star-twinkle {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
-}
-
 @keyframes float {
   0%,
   100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-6px);
   }
 }
 
-@keyframes rainbow-text {
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(3deg);
+  }
+  75% {
+    transform: rotate(-3deg);
+  }
+}
+
+@keyframes bubble {
   0% {
-    color: #ff0000;
+    transform: scale(1);
   }
-  20% {
-    color: #ff9900;
-  }
-  40% {
-    color: #33cc33;
-  }
-  60% {
-    color: #3399ff;
-  }
-  80% {
-    color: #cc33ff;
+  50% {
+    transform: scale(1.05);
   }
   100% {
-    color: #ff0000;
+    transform: scale(1);
   }
 }
 
-.cosmic-theme {
-  background: linear-gradient(45deg, #000851, #1cb5e0);
-  background-size: 400% 400%;
-  animation: rainbow-bg 15s ease infinite;
+/* Theme styles */
+.kawaii-theme {
+  background-color: #f0f9ff;
+  background-image: radial-gradient(#93c5fd 0.5px, transparent 0.5px);
+  background-size: 12px 12px;
 }
 
-.cosmic-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+.kawaii-card {
+  background-color: white;
+  border: 3px solid #3b82f6;
+  border-radius: 24px;
+  box-shadow: 8px 8px 0 #2563eb;
+  transition: all 0.2s ease;
 }
 
-.cosmic-title {
-  font-family: "Comic Sans MS", cursive;
-  animation: rainbow-text 3s linear infinite;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+.kawaii-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 10px 10px 0 #2563eb;
 }
 
-.cosmic-button {
-  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-  border: none;
+.kawaii-title {
+  font-family: "Fredoka One", system-ui, sans-serif;
+  color: #1d4ed8;
+  letter-spacing: 0.5px;
+}
+
+.kawaii-button {
+  background-color: #3b82f6;
+  border: 2px solid #1d4ed8;
+  border-radius: 12px;
   color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: 4px 4px 0 #1d4ed8;
+  transition: all 0.2s ease;
 }
 
-.cosmic-button:hover {
-  transform: scale(1.05);
-  filter: brightness(1.1);
+.kawaii-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #1d4ed8;
 }
 
-.cosmic-slider {
-  background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+.kawaii-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #1d4ed8;
 }
 
-.cosmic-cat-container {
-  position: relative;
+.kawaii-button.accent {
+  background-color: #fbbf24;
+  border: 2px solid #d97706;
+  box-shadow: 4px 4px 0 #d97706;
 }
 
-.cosmic-cat-container::before {
-  content: "";
-  position: absolute;
-  width: 150%;
-  height: 20px;
-  background: linear-gradient(
-    90deg,
-    #ff0000,
-    #ff9900,
-    #33cc33,
-    #3399ff,
-    #cc33ff
-  );
-  filter: blur(8px);
-  opacity: 0.7;
-  animation: float 3s ease-in-out infinite;
-  z-index: -1;
+.kawaii-button.accent:hover {
+  box-shadow: 6px 6px 0 #d97706;
 }
 
-.star {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  background: white;
+.kawaii-button.accent:active {
+  box-shadow: 2px 2px 0 #d97706;
+}
+
+.kawaii-slider-track {
+  height: 8px;
+  background-color: #dbeafe;
+  border: 2px solid #3b82f6;
+  border-radius: 4px;
+}
+
+.kawaii-slider-range {
+  background-color: #3b82f6;
+}
+
+.kawaii-slider-thumb {
+  width: 24px;
+  height: 24px;
+  background-color: white;
+  border: 3px solid #3b82f6;
   border-radius: 50%;
-  animation: star-twinkle 1.5s ease-in-out infinite;
+  box-shadow: 4px 4px 0 #1d4ed8;
+}
+
+.kawaii-cat-container {
+  position: relative;
+  animation: float 3s ease-in-out infinite;
+}
+
+.kawaii-cat-container::before {
+  content: "⭐";
+  position: absolute;
+  font-size: 24px;
+  top: -20px;
+  left: -20px;
+  animation: wiggle 3s ease-in-out infinite;
+}
+
+.kawaii-cat-container::after {
+  content: "⭐";
+  position: absolute;
+  font-size: 24px;
+  bottom: -20px;
+  right: -20px;
+  animation: wiggle 3s ease-in-out infinite reverse;
 }

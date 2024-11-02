@@ -138,17 +138,23 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen cosmic-theme">
-      <StarryBackground />
-      <div className="container mx-auto px-4 py-8 relative">
+    <div className="min-h-screen kawaii-theme">
+      <div className="container mx-auto px-4 py-8">
+        {/* Fun emoji header */}
+        <h1 className="text-center mb-8 text-4xl">
+          {/* <span className="animate-bounce inline-block">🐱</span> */}
+          <span className="kawaii-title ml-2">Oiiai Cat</span>
+          <span className="animate-bounce inline-block delay-100">⭐</span>
+        </h1>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Spinning Cat Section */}
-          <div className="cosmic-card rounded-lg p-8">
-            <h2 className="cosmic-title text-3xl font-bold text-center mb-8">
+          <div className="kawaii-card p-8">
+            <h2 className="kawaii-title text-2xl font-bold text-center mb-8">
               Spinning Cat
             </h2>
             <div className="flex flex-col items-center gap-8">
-              <div className="cosmic-cat-container relative w-64 h-64 flex items-center justify-center rounded-full perspective-1000">
+              <div className="kawaii-cat-container relative w-64 h-64 flex items-center justify-center bg-blue-50 rounded-full perspective-1000">
                 <div
                   className="w-48 h-48 relative backface-visible"
                   style={{
@@ -167,7 +173,10 @@ function App() {
 
               <div className="w-full flex flex-col gap-6">
                 <div className="flex justify-center gap-4">
-                  <Button onClick={togglePlay} className="cosmic-button w-24">
+                  <Button
+                    onClick={togglePlay}
+                    className="kawaii-button accent w-24 h-12"
+                  >
                     {isPlaying ? (
                       <Pause className="w-6 h-6" />
                     ) : (
@@ -179,13 +188,13 @@ function App() {
                       setRotation(0);
                       lastTimeRef.current = 0;
                     }}
-                    className="cosmic-button"
+                    className="kawaii-button w-12 h-12"
                   >
                     <RotateCw className="w-6 h-6" />
                   </Button>
                   <Button
                     onClick={() => setIsMuted(!isMuted)}
-                    className="cosmic-button"
+                    className="kawaii-button w-12 h-12"
                   >
                     {isMuted ? (
                       <VolumeX className="w-6 h-6" />
@@ -196,8 +205,8 @@ function App() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center text-white">
-                    <label className="text-sm font-medium">
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-medium text-blue-700">
                       Speed: {getSpeedLabel(speed)}
                     </label>
                     <div className="flex gap-2">
@@ -205,22 +214,24 @@ function App() {
                         <Button
                           key={speedValue}
                           onClick={() => setSpeed(speedValue)}
-                          className="cosmic-button text-xs"
+                          className="kawaii-button text-xs h-8 px-3"
                         >
                           {speedValue}x
                         </Button>
                       ))}
                     </div>
                   </div>
-                  <Slider
-                    value={[speed]}
-                    onValueChange={([newSpeed]) => setSpeed(newSpeed)}
-                    min={0.1}
-                    max={20}
-                    step={0.1}
-                    className="cosmic-slider w-full"
-                  />
-                  <div className="flex justify-between text-xs text-white/80">
+                  <div className="kawaii-slider-track">
+                    <Slider
+                      value={[speed]}
+                      onValueChange={([newSpeed]) => setSpeed(newSpeed)}
+                      min={0.1}
+                      max={20}
+                      step={0.1}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-blue-600">
                     <span>Slow (0.1x)</span>
                     <span>Fast (20x)</span>
                   </div>
@@ -230,8 +241,8 @@ function App() {
           </div>
 
           {/* Game Section */}
-          <div className="cosmic-card rounded-lg p-8">
-            <h2 className="cosmic-title text-3xl font-bold text-center mb-8">
+          <div className="kawaii-card p-8">
+            <h2 className="kawaii-title text-2xl font-bold text-center mb-8">
               OIIAI Game
             </h2>
             <OiiaiGame />
@@ -239,11 +250,11 @@ function App() {
         </div>
       </div>
 
-      <footer className="py-4 px-4 text-center text-sm text-white/80 mt-8">
+      <footer className="py-4 px-4 text-center text-sm text-blue-700 mt-8">
         <p>
-          Made with ♥ by{" "}
+          Made with <span className="animate-pulse inline-block">⭐</span> by{" "}
           <a
-            className="text-pink-300 hover:text-pink-200 transition-colors"
+            className="text-blue-500 hover:text-blue-600 underline"
             target="_blank"
             rel="noopener noreferrer"
             href="https://aubiss.com"
@@ -253,7 +264,7 @@ function App() {
           |{" "}
           <a
             href="mailto:contact@oiiai.cat"
-            className="text-pink-300 hover:text-pink-200 transition-colors"
+            className="text-blue-500 hover:text-blue-600 underline"
           >
             contact@oiiai.cat
           </a>
