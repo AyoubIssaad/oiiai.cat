@@ -194,3 +194,16 @@ body {
   right: -20px;
   animation: wiggle 3s ease-in-out infinite reverse;
 }
+/* Spinning gif CSS */
+@keyframes spin-gif {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.spinning-gif {
+  animation: spin-gif var(--rotation-duration) steps(1) infinite;
+}

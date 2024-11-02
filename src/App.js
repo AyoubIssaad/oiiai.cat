@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Play, Pause, RotateCw, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { Button } from "./components/ui/Button";
 import { Slider } from "./components/ui/Slider";
 import OiiaiGame from "./components/OiiaiGame";
@@ -7,14 +7,25 @@ import OiiaiGame from "./components/OiiaiGame";
 function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(3);
-  const [rotation, setRotation] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
-  const animationFrameRef = useRef();
-  const lastTimeRef = useRef(0);
+  const videoRef = useRef(null);
   const audioContextRef = useRef(null);
   const audioSourceRef = useRef(null);
   const gainNodeRef = useRef(null);
   const audioBufferRef = useRef(null);
+
+  // Constants for playback rates
+  const MIN_PLAYBACK_RATE = 0.25; // Safe minimum playback rate
+  const BASE_SPEED = 3; // Speed at which playbackRate should be 1.0
+
+  // Calculate safe playback rate
+  const calculatePlaybackRate = (speed) => {
+    const rate = speed / BASE_SPEED;
+    // If speed is 0, pause the video instead of trying to set playbackRate to 0
+    if (speed === 0) return MIN_PLAYBACK_RATE;
+    // Ensure rate doesn't go below minimum
+    return Math.max(MIN_PLAYBACK_RATE, rate);
+  };
 
   // Initialize Audio Context
   useEffect(() => {
@@ -42,7 +53,7 @@ function App() {
 
   // Handle audio playback
   useEffect(() => {
-    if (isPlaying && audioBufferRef.current) {
+    if (isPlaying && speed > 0 && audioBufferRef.current) {
       if (audioSourceRef.current) {
         audioSourceRef.current.stop();
       }
@@ -50,7 +61,7 @@ function App() {
       audioSourceRef.current = audioContextRef.current.createBufferSource();
       audioSourceRef.current.buffer = audioBufferRef.current;
       audioSourceRef.current.loop = true;
-      audioSourceRef.current.playbackRate.value = speed / 3;
+      audioSourceRef.current.playbackRate.value = speed / BASE_SPEED;
       audioSourceRef.current.connect(gainNodeRef.current);
       audioSourceRef.current.start();
     } else if (audioSourceRef.current) {
@@ -66,37 +77,29 @@ function App() {
     };
   }, [isPlaying, speed]);
 
+  // Handle video playback
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isPlaying && speed > 0) {
+        videoRef.current.playbackRate = calculatePlaybackRate(speed);
+        videoRef.current
+          .play()
+          .catch((e) => console.error("Video playback failed:", e));
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isPlaying, speed]);
+
   // Handle muting
   useEffect(() => {
     if (gainNodeRef.current) {
       gainNodeRef.current.gain.value = isMuted ? 0 : 1;
     }
-  }, [isMuted]);
-
-  useEffect(() => {
-    if (isPlaying) {
-      const animate = (currentTime) => {
-        if (!lastTimeRef.current) lastTimeRef.current = currentTime;
-        const delta = currentTime - lastTimeRef.current;
-        lastTimeRef.current = currentTime;
-
-        setRotation((prev) => prev + delta * speed * 0.2);
-        animationFrameRef.current = requestAnimationFrame(animate);
-      };
-
-      animationFrameRef.current = requestAnimationFrame(animate);
-    } else {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+    if (videoRef.current) {
+      videoRef.current.muted = true;
     }
-
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [isPlaying, speed]);
+  }, [isMuted]);
 
   const togglePlay = () => {
     if (audioContextRef.current?.state === "suspended") {
@@ -105,44 +108,18 @@ function App() {
     setIsPlaying(!isPlaying);
   };
 
-  const StarryBackground = () => {
-    const stars = Array(50)
-      .fill(null)
-      .map((_, i) => ({
-        id: i,
-        top: `${Math.random() * 100}%`,
-        left: `${Math.random() * 100}%`,
-        delay: `${Math.random() * 2}s`,
-      }));
-
-    return (
-      <div className="fixed inset-0 pointer-events-none">
-        {stars.map((star) => (
-          <div
-            key={star.id}
-            className="star absolute"
-            style={{
-              top: star.top,
-              left: star.left,
-              animationDelay: star.delay,
-            }}
-          />
-        ))}
-      </div>
-    );
-  };
-
   const getSpeedLabel = (speed) => {
+    if (speed === 0) return "Paused";
     if (speed < 1) return `${(speed * 100).toFixed(0)}%`;
     return `${speed.toFixed(1)}x`;
   };
 
+  const speedPresets = [3, 5, 8];
+
   return (
     <div className="min-h-screen kawaii-theme">
       <div className="container mx-auto px-4 py-8">
-        {/* Fun emoji header */}
         <h1 className="text-center mb-8">
-          {/* <span className="animate-bounce inline-block">🐱</span> */}
           <span className="kawaii-heading ml-2 text-5xl inline-block">
             Oiiai Cat
           </span>
@@ -150,27 +127,28 @@ function App() {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Spinning Cat Section */}
           <div className="kawaii-card p-8">
             <h2 className="kawaii-title text-2xl font-bold text-center mb-8">
               Spinning Cat
             </h2>
             <div className="flex flex-col items-center gap-8">
-              <div className="kawaii-cat-container relative w-64 h-64 flex items-center justify-center bg-blue-50 rounded-full perspective-1000">
-                <div
-                  className="w-48 h-48 relative backface-visible"
-                  style={{
-                    transform: `rotateY(${rotation}deg)`,
-                    transformStyle: "preserve-3d",
-                  }}
-                >
+              <div className="kawaii-cat-container relative w-64 h-64 flex items-center justify-center bg-blue-50 rounded-full overflow-hidden">
+                {isPlaying ? (
+                  <video
+                    ref={videoRef}
+                    src="/cat.webm"
+                    className="w-48 h-48 rounded-full object-cover"
+                    playsInline
+                    loop
+                    muted
+                  />
+                ) : (
                   <img
                     src="/cat.png"
-                    alt="Spinning Cat"
-                    className="w-full h-full object-cover rounded-full"
-                    draggable="false"
+                    alt="Static Cat"
+                    className="w-48 h-48 rounded-full"
                   />
-                </div>
+                )}
               </div>
 
               <div className="w-full flex flex-col gap-6">
@@ -184,15 +162,6 @@ function App() {
                     ) : (
                       <Play className="w-6 h-6" />
                     )}
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setRotation(0);
-                      lastTimeRef.current = 0;
-                    }}
-                    className="kawaii-button w-12 h-12"
-                  >
-                    <RotateCw className="w-6 h-6" />
                   </Button>
                   <Button
                     onClick={() => setIsMuted(!isMuted)}
@@ -212,7 +181,7 @@ function App() {
                       Speed: {getSpeedLabel(speed)}
                     </label>
                     <div className="flex gap-2">
-                      {[3, 5, 10].map((speedValue) => (
+                      {speedPresets.map((speedValue) => (
                         <Button
                           key={speedValue}
                           onClick={() => setSpeed(speedValue)}
@@ -227,15 +196,15 @@ function App() {
                     <Slider
                       value={[speed]}
                       onValueChange={([newSpeed]) => setSpeed(newSpeed)}
-                      min={0.1}
-                      max={20}
+                      min={0}
+                      max={10}
                       step={0.1}
                       className="w-full"
                     />
                   </div>
                   <div className="kawaii-text flex justify-between text-xs text-blue-600">
-                    <span>Slow (0.1x)</span>
-                    <span>Fast (20x)</span>
+                    <span>Paused</span>
+                    <span>Fast (10x)</span>
                   </div>
                 </div>
               </div>
