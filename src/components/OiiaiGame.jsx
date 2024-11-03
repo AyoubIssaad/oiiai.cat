@@ -108,7 +108,7 @@ const GameOverMessage = ({
   );
 };
 
-export default function OiiaiGame() {
+export default function OiiaiGame({ onShowLeaderboard }) {
   const [gameState, setGameState] = useState("idle");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mistakes, setMistakes] = useState(0);
@@ -217,7 +217,8 @@ export default function OiiaiGame() {
       }
 
       // Show leaderboard after successful submission
-      setShowLeaderboard(true);
+      // setShowLeaderboard(true);
+      onShowLeaderboard();
     } catch (error) {
       console.error("Detailed error:", error);
       console.error("Error submitting score:", {
@@ -402,15 +403,7 @@ export default function OiiaiGame() {
             <Volume2 className="w-4 h-4" />
           )}
         </Button>
-        <Button
-          onClick={() => setShowLeaderboard(true)}
-          className="kawaii-button"
-        >
-          <Trophy className="w-4 h-4 mr-2" />
-          Leaderboard
-        </Button>
       </div>
-
       {/* Sequence display */}
       <div className="flex flex-col items-center gap-4">
         <div className="flex gap-2 flex-wrap justify-center max-w-2xl">
@@ -459,7 +452,6 @@ export default function OiiaiGame() {
           </div>
         )}
       </div>
-
       {/* Game controls */}
       <div className="flex flex-col items-center gap-4">
         <div className="flex gap-4 flex-wrap justify-center">
@@ -493,7 +485,6 @@ export default function OiiaiGame() {
           to {gameState === "playing" ? "restart" : "start"}
         </div>
       </div>
-
       {/* Game Over Message */}
       {gameState === "gameOver" && (
         <GameOverMessage
@@ -504,7 +495,6 @@ export default function OiiaiGame() {
           submitting={submittingScore}
         />
       )}
-
       {/* Start/Restart button */}
       <Button
         onClick={startGame}
@@ -522,36 +512,6 @@ export default function OiiaiGame() {
           </>
         )}
       </Button>
-
-      {/* Leaderboard Modal */}
-      {showLeaderboard && (
-  <div
-    className="fixed inset-0 z-50 overflow-y-auto"
-    aria-labelledby="leaderboard-modal"
-    role="dialog"
-    aria-modal="true"
-    onClick={(e) => {
-      if (e.target === e.currentTarget) {
-        setShowLeaderboard(false);
-      }
-    }}
-  >
-    {/* Overlay */}
-    <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
-
-    {/* Modal position container */}
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div
-          className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Leaderboard onClose={() => setShowLeaderboard(false)} />
-        </div>
-      </div>
-    </div>
-  </div>
-)}
     </div>
   );
 }
