@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { API_URL } from "../config";
 import {
   Play,
   RotateCw,
@@ -10,7 +11,7 @@ import {
 import { Button } from "./ui/Button";
 import { Leaderboard } from "./Leaderboard";
 
-const API_URL = process.env.REACT_APP_API_URL || "/api";
+// const API_URL = process.env.REACT_APP_API_URL || "/api";
 const BASE_SEQUENCE = "oiiaiooiiiai".split("");
 const REPEAT_COUNT = 4;
 const SEQUENCE = Array(REPEAT_COUNT).fill(BASE_SEQUENCE).flat();
@@ -187,28 +188,43 @@ export default function OiiaiGame() {
     if (!playerName.trim()) return;
 
     setSubmittingScore(true);
+    const scoreData = {
+      playerName: playerName.trim(),
+      score: Number(score.speed) * 1000, // Convert to points
+      time: Number(score.time),
+      lettersPerSecond: Number(score.speed),
+      mistakes: mistakes,
+    };
+
+    console.log("Submitting score data:", scoreData);
+    console.log("API URL:", `${API_URL}/scores`);
+
     try {
-      const response = await fetch(`${API_URL}/api/scores`, {
+      const response = await fetch(`${API_URL}/scores`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          playerName: playerName.trim(),
-          score: Number(score.speed) * 1000, // Convert to points
-          time: Number(score.time),
-          lettersPerSecond: Number(score.speed),
-          mistakes: mistakes,
-        }),
+        body: JSON.stringify(scoreData),
       });
 
-      if (!response.ok) throw new Error("Failed to submit score");
+      console.log("Response status:", response.status);
+      const responseData = await response.json();
+      console.log("Response data:", responseData);
+
+      if (!response.ok) {
+        throw new Error(responseData.error || "Failed to submit score");
+      }
 
       // Show leaderboard after successful submission
       setShowLeaderboard(true);
     } catch (error) {
-      console.error("Error submitting score:", error);
-      alert("Failed to submit score. Please try again.");
+      console.error("Detailed error:", error);
+      console.error("Error submitting score:", {
+        message: error.message,
+        stack: error.stack,
+      });
+      alert(`Failed to submit score: ${error.message}`);
     } finally {
       setSubmittingScore(false);
     }
