@@ -18,7 +18,7 @@ export default function TermsOfUse() {
         description="Review Oiiai Cat's terms of use, user guidelines, and legal information. Clear and fair terms for enjoying our interactive cat animation and games."
         path="/terms"
       />
-      <div className="min-h-screen kawaii-theme py-8">
+      <div className="py-8">
         <div className="container mx-auto px-4 max-w-4xl">
           <Link to="/">
             <Button className="kawaii-button mb-8">
