@@ -53,83 +53,87 @@ export function Leaderboard({ onClose }) {
   };
 
   return (
-    <div className="kawaii-card p-8 relative">
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"
-        aria-label="Close leaderboard"
-      >
-        <X className="w-6 h-6" />
-      </button>
+    <div className="kawaii-card rounded-none sm:rounded-lg">
+      {/* Header section */}
+      <div className="flex items-center justify-between p-6 border-b border-blue-100">
+        <h2 className="kawaii-title text-2xl">Top Players</h2>
+        <button
+          onClick={onClose}
+          className="rounded-full p-2 hover:bg-blue-50 transition-colors"
+          aria-label="Close leaderboard"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
 
-      <h2 className="kawaii-title text-2xl mb-6 text-center">Top Players</h2>
+      {/* Content section */}
+      <div className="p-6">
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <p className="mt-4 text-blue-600">Loading scores...</p>
+          </div>
+        )}
 
-      {loading && (
-        <div className="flex flex-col items-center justify-center p-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          <p className="mt-4 text-blue-600">Loading scores...</p>
-        </div>
-      )}
+        {error && (
+          <div className="text-center p-6 bg-red-50 rounded-lg">
+            <p className="text-red-600 mb-4">
+              Error loading leaderboard: {error}
+            </p>
+            <Button onClick={fetchLeaderboard} className="kawaii-button">
+              Try Again
+            </Button>
+          </div>
+        )}
 
-      {error && (
-        <div className="text-center p-6 bg-red-50 rounded-lg">
-          <p className="text-red-600 mb-4">
-            Error loading leaderboard: {error}
-          </p>
-          <Button onClick={fetchLeaderboard} className="kawaii-button">
-            Try Again
-          </Button>
-        </div>
-      )}
+        {!loading && !error && leaderboard.length === 0 && (
+          <div className="text-center p-6 bg-blue-50 rounded-lg">
+            <p className="text-blue-600 mb-2">No scores yet!</p>
+            <p className="text-blue-500">Be the first to submit a score.</p>
+          </div>
+        )}
 
-      {!loading && !error && leaderboard.length === 0 && (
-        <div className="text-center p-6 bg-blue-50 rounded-lg">
-          <p className="text-blue-600 mb-2">No scores yet!</p>
-          <p className="text-blue-500">Be the first to submit a score.</p>
-        </div>
-      )}
-
-      {!loading && !error && leaderboard.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-left border-b-2 border-blue-200">
-                <th className="p-2">Rank</th>
-                <th className="p-2">Player</th>
-                <th className="p-2">Score</th>
-                <th className="p-2">Time</th>
-                <th className="p-2">Speed</th>
-                <th className="p-2">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaderboard.map((entry, index) => (
-                <tr
-                  key={entry.id}
-                  className={`
-                    border-b border-blue-100
-                    ${index < 3 ? "font-bold" : ""}
-                    hover:bg-blue-50 transition-colors
-                  `}
-                >
-                  <td className="p-2 flex items-center gap-2">
-                    {getRankIcon(index)}
-                    {index + 1}
-                  </td>
-                  <td className="p-2">{entry.player_name}</td>
-                  <td className="p-2">
-                    {Math.round(entry.score).toLocaleString()}
-                  </td>
-                  <td className="p-2">{entry.time}s</td>
-                  <td className="p-2">{entry.letters_per_second}/s</td>
-                  <td className="p-2">{formatDate(entry.created_at)}</td>
+        {!loading && !error && leaderboard.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-left border-b-2 border-blue-200">
+                  <th className="p-3">Rank</th>
+                  <th className="p-3">Player</th>
+                  <th className="p-3">Score</th>
+                  <th className="p-3">Time</th>
+                  <th className="p-3">Speed</th>
+                  <th className="p-3">Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {leaderboard.map((entry, index) => (
+                  <tr
+                    key={entry.id}
+                    className={`
+                      border-b border-blue-100
+                      ${index < 3 ? "font-bold" : ""}
+                      hover:bg-blue-50 transition-colors
+                    `}
+                  >
+                    <td className="p-3 flex items-center gap-2">
+                      {getRankIcon(index)}
+                      {index + 1}
+                    </td>
+                    <td className="p-3">{entry.player_name}</td>
+                    <td className="p-3">
+                      {Math.round(entry.score).toLocaleString()}
+                    </td>
+                    <td className="p-3">{entry.time}s</td>
+                    <td className="p-3">{entry.letters_per_second}/s</td>
+                    <td className="p-3">{formatDate(entry.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -525,20 +525,33 @@ export default function OiiaiGame() {
 
       {/* Leaderboard Modal */}
       {showLeaderboard && (
+  <div
+    className="fixed inset-0 z-50 overflow-y-auto"
+    aria-labelledby="leaderboard-modal"
+    role="dialog"
+    aria-modal="true"
+    onClick={(e) => {
+      if (e.target === e.currentTarget) {
+        setShowLeaderboard(false);
+      }
+    }}
+  >
+    {/* Overlay */}
+    <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+    {/* Modal position container */}
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-          onClick={(e) => {
-            // Close when clicking the backdrop
-            if (e.target === e.currentTarget) {
-              setShowLeaderboard(false);
-            }
-          }}
+          className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl"
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className="max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <Leaderboard onClose={() => setShowLeaderboard(false)} />
-          </div>
+          <Leaderboard onClose={() => setShowLeaderboard(false)} />
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
