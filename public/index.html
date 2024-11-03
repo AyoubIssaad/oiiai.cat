@@ -4,7 +4,25 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#3B82F6" />
+    <!-- Updated to match your blue theme -->
+
+    <!-- Preload critical assets -->
+    <link rel="preload" href="/cat.webm" as="video" />
+    <link rel="preload" href="/oiiai.mp3" as="audio" />
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap"
+      as="style"
+    />
+
+    <!-- Performance optimization -->
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+
+    <!-- PWA support -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <!-- Primary Meta Tags -->
     <title>Oiiai Cat - Interactive Spinning Cat Animation & Typing Game</title>
@@ -14,7 +32,7 @@
     />
     <meta
       name="description"
-      content="Play with the viral spinning cat meme! Control the cat's spinning speed, enjoy synchronized music, and challenge yourself with a fun typing game. Perfect for cat lovers and meme enthusiasts."
+      content="Experience the viral Oiiai Cat meme come to life! Control the spinning cat animation, sync with music, and challenge yourself with our typing game. The perfect dose of daily joy!"
     />
 
     <!-- Open Graph / Facebook -->
@@ -29,6 +47,10 @@
       content="Play with the viral spinning cat meme! Control the cat's spinning speed, enjoy synchronized music, and challenge yourself with a fun typing game."
     />
     <meta property="og:image" content="%PUBLIC_URL%/og-image.jpg" />
+    <meta property="og:site_name" content="Oiiai Cat" />
+    <!-- Added site name -->
+    <meta property="og:locale" content="en_US" />
+    <!-- Added locale -->
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
@@ -54,13 +76,25 @@
     <meta name="author" content="aubiss" />
     <link rel="canonical" href="https://oiiai.cat" />
 
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!-- Mobile app capability -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Oiiai Cat" />
+    <meta name="format-detection" content="telephone=no" />
 
-    <!-- Google tag (gtag.js) -->
+    <!-- Additional SEO improvements -->
+    <meta name="application-name" content="Oiiai Cat" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+
+    <!-- Security headers -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <!-- Google Analytics -->
     <script
       async
-      src="https://www.googletagmanager.com/gtag/js?id=REPLACE_WITH_YOUR_GA4_ID"
+      src="https://www.googletagmanager.com/gtag/js?id=G-MTTT40LQV7"
     ></script>
     <script>
       window.dataLayer = window.dataLayer || [];
