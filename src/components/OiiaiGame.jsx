@@ -1,7 +1,16 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Play, RotateCw, Volume2, VolumeX, Keyboard } from "lucide-react";
+import {
+  Play,
+  RotateCw,
+  Volume2,
+  VolumeX,
+  Keyboard,
+  Trophy,
+} from "lucide-react";
 import { Button } from "./ui/Button";
+import { Leaderboard } from "./Leaderboard";
 
+const API_URL = process.env.REACT_APP_API_URL || "/api";
 const BASE_SEQUENCE = "oiiaiooiiiai".split("");
 const REPEAT_COUNT = 4;
 const SEQUENCE = Array(REPEAT_COUNT).fill(BASE_SEQUENCE).flat();
@@ -41,7 +50,15 @@ const KeyboardHint = () => (
   </div>
 );
 
-const GameOverMessage = ({ success, time, speed }) => {
+const GameOverMessage = ({
+  success,
+  time,
+  speed,
+  onSubmitScore,
+  submitting,
+}) => {
+  const [playerName, setPlayerName] = useState("");
+
   if (success) {
     return (
       <div className="kawaii-card p-6 text-center">
@@ -51,6 +68,28 @@ const GameOverMessage = ({ success, time, speed }) => {
         <div className="space-y-2 text-blue-700">
           <p>Time: {time}s</p>
           <p>Speed: {speed} letters/second</p>
+
+          {!submitting ? (
+            <div className="mt-4">
+              <input
+                type="text"
+                placeholder="Enter your name"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                className="kawaii-input mb-2 p-2 border-2 border-blue-300 rounded w-full max-w-xs"
+                maxLength={50}
+              />
+              <Button
+                onClick={() => onSubmitScore(playerName)}
+                className="kawaii-button mt-2"
+                disabled={!playerName.trim()}
+              >
+                Submit Score
+              </Button>
+            </div>
+          ) : (
+            <p className="animate-pulse">Submitting score...</p>
+          )}
         </div>
       </div>
     );
@@ -79,6 +118,8 @@ export default function OiiaiGame() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [lastPressedKey, setLastPressedKey] = useState(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [submittingScore, setSubmittingScore] = useState(false);
 
   const audioContextRef = useRef(null);
   const audioBuffersRef = useRef({});
@@ -90,7 +131,7 @@ export default function OiiaiGame() {
     return Math.floor(currentIndex / BASE_SEQUENCE.length) + 1;
   }, [currentIndex]);
 
-  // Initialize audio context and load all sounds
+  // Initialize audio context and load sounds
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext ||
       window.webkitAudioContext)();
@@ -141,6 +182,37 @@ export default function OiiaiGame() {
       }
     };
   }, []);
+
+  const submitScore = async (playerName) => {
+    if (!playerName.trim()) return;
+
+    setSubmittingScore(true);
+    try {
+      const response = await fetch(`${API_URL}/api/scores`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          playerName: playerName.trim(),
+          score: Number(score.speed) * 1000, // Convert to points
+          time: Number(score.time),
+          lettersPerSecond: Number(score.speed),
+          mistakes: mistakes,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to submit score");
+
+      // Show leaderboard after successful submission
+      setShowLeaderboard(true);
+    } catch (error) {
+      console.error("Error submitting score:", error);
+      alert("Failed to submit score. Please try again.");
+    } finally {
+      setSubmittingScore(false);
+    }
+  };
 
   const playFeedbackSound = useCallback(
     (isCorrect) => {
@@ -220,7 +292,7 @@ export default function OiiaiGame() {
       } else {
         // Play error sound and end game immediately
         playFeedbackSound(false);
-
+        setMistakes((prev) => prev + 1);
         setGameState("gameOver");
         setScore({ success: false });
       }
@@ -314,6 +386,13 @@ export default function OiiaiGame() {
             <Volume2 className="w-4 h-4" />
           )}
         </Button>
+        <Button
+          onClick={() => setShowLeaderboard(true)}
+          className="kawaii-button"
+        >
+          <Trophy className="w-4 h-4 mr-2" />
+          Leaderboard
+        </Button>
       </div>
 
       {/* Sequence display */}
@@ -330,7 +409,11 @@ export default function OiiaiGame() {
                     ? "ring-4 ring-yellow-300 animate-pulse"
                     : ""
                 }
-                ${currentIndex % BASE_SEQUENCE.length > index ? "opacity-50" : "opacity-100"}
+                ${
+                  currentIndex % BASE_SEQUENCE.length > index
+                    ? "opacity-50"
+                    : "opacity-100"
+                }
                 transition-all duration-200 transform hover:scale-105`}
             >
               {letter.toUpperCase()}
@@ -345,8 +428,15 @@ export default function OiiaiGame() {
                 <div
                   key={index}
                   className={`w-3 h-3 rounded-full
-                    ${index < getCurrentRepetition() - 1 ? "bg-blue-500" : "bg-blue-200"}
-                    ${index === getCurrentRepetition() - 1 && "animate-pulse bg-yellow-400"}
+                    ${
+                      index < getCurrentRepetition() - 1
+                        ? "bg-blue-500"
+                        : "bg-blue-200"
+                    }
+                    ${
+                      index === getCurrentRepetition() - 1 &&
+                      "animate-pulse bg-yellow-400"
+                    }
                   `}
                 />
               ))}
@@ -363,7 +453,12 @@ export default function OiiaiGame() {
               className={`w-20 h-20 ${LETTER_COLORS[letter]} text-white text-2xl font-bold
                 rounded-lg border-2 border-blue-700 shadow-lg
                 transform transition-all duration-200
-                ${gameState !== "playing" ? "opacity-50 cursor-not-allowed" : "hover:scale-105"}
+                ${
+                  gameState !== "playing"
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:scale-105"
+                }
+                ${lastPressedKey === letter ? "scale-95" : ""}
                 disabled:opacity-50 disabled:cursor-not-allowed
               `}
               onClick={() => handleLetterClick(letter)}
@@ -389,6 +484,8 @@ export default function OiiaiGame() {
           success={score.success}
           time={score.time}
           speed={score.speed}
+          onSubmitScore={submitScore}
+          submitting={submittingScore}
         />
       )}
 
@@ -409,6 +506,15 @@ export default function OiiaiGame() {
           </>
         )}
       </Button>
+
+      {/* Leaderboard Modal */}
+      {showLeaderboard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <Leaderboard onClose={() => setShowLeaderboard(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
