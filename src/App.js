@@ -8,6 +8,7 @@ import TermsOfUse from "./components/TermsOfUse";
 import ScrollToTop from "./components/ScrollToTop";
 import { MainLayout } from "./components/MainLayout";
 import KawaiiNav from "./components/KawaiiNav";
+import SecretMessagePage from "./components/pages/SecretMessagePage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/games" element={<GamesPage />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfUse />} />
+          <Route path="/secret" element={<SecretMessagePage />} />
         </Routes>
       </MainLayout>
     </>
