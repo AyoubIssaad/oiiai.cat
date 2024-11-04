@@ -18,7 +18,7 @@ export default function PrivacyPolicy() {
         description="Learn about how Oiiai Cat protects your privacy and handles your data. Our comprehensive privacy policy ensures transparency and security for all users."
         path="/privacy"
       />
-      <div className="py-8">
+      <div className="pt-20 sm:pt-24 py-8">
         <div className="container mx-auto px-4 max-w-4xl">
           <Link to="/">
             <Button className="kawaii-button mb-8">

@@ -247,7 +247,7 @@ export function CatPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="kawaii-text text-sm font-medium text-blue-700">
-                    Spinny Speed: {getSpeedLabel(speed)}
+                    Speed: {getSpeedLabel(speed)}
                   </label>
                   <div className="flex gap-2">
                     {speedPresets.map((speedValue) => (
@@ -272,8 +272,8 @@ export function CatPage() {
                   />
                 </div>
                 <div className="kawaii-text flex justify-between text-xs text-blue-600">
-                  <span>Cat Taking a Break</span>
-                  <span>Maximum Spinny! (10x)</span>
+                  <span>Pause</span>
+                  <span>Max Speed (10x)</span>
                 </div>
               </div>
             </div>
