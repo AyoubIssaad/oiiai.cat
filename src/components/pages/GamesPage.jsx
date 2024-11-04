@@ -38,51 +38,6 @@ export function GamesPage() {
             View Leaderboard
           </Button>
         </div>
-
-        {/* Game Selection */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="kawaii-card p-6">
-            <h2 className="kawaii-title text-xl mb-4">Available Games</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                onClick={() => setSelectedGame("typing")}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  selectedGame === "typing"
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-blue-200 hover:border-blue-300"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Keyboard className="w-6 h-6 text-blue-600" />
-                  <div className="text-left">
-                    <h3 className="kawaii-subtitle text-lg">
-                      Typing Challenge
-                    </h3>
-                    <p className="text-sm text-blue-600">
-                      Master the "oiiai" sequence
-                    </p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Placeholder for future games */}
-              <div className="p-4 rounded-lg border-2 border-gray-200 opacity-50 cursor-not-allowed">
-                <div className="flex items-center gap-3">
-                  <Gamepad2 className="w-6 h-6 text-gray-500" />
-                  <div className="text-left">
-                    <h3 className="kawaii-subtitle text-lg">
-                      More Coming Soon!
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Stay tuned for new games
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Game Container */}
         <div className="max-w-4xl mx-auto">
           {selectedGame === "typing" && (
@@ -94,7 +49,6 @@ export function GamesPage() {
             </div>
           )}
         </div>
-
         {/* Quick Tips */}
         <div className="max-w-4xl mx-auto mt-8">
           <div className="kawaii-card p-6">
