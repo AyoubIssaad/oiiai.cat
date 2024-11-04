@@ -167,7 +167,7 @@ export function CatPage() {
   return (
     <>
       <SEO
-        title="🌪️ Make Banana Cat Go Spinny! - Control the Spinning Cat Animation"
+        title="🌪️ Make Oiiai Cat Go Spinny! - Control the Spinning Cat Animation"
         description="Control the legendary spinning Banana Cat! Adjust spinny speeds, add magical tunes, and create the perfect loop. Make the internet's favorite cat go round and round! ⭐"
         path="/cat-goes-spin"
       />
