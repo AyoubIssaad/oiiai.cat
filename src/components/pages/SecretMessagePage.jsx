@@ -247,7 +247,7 @@ export function SecretMessagePage() {
             <span className="animate-bounce text-4xl bg-transparent">🔮</span>
           </h1>
           <p className="text-lg text-blue-700">
-            Transform your messages into mysterious Banana Cat patterns!
+            Transform your messages into mysterious OIIAI Cat patterns!
           </p>
         </div>
 
