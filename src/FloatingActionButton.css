@@ -1,0 +1,23 @@
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-4deg); }
+  75% { transform: rotate(4deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.fab-enter {
+  animation: float 3s ease-in-out infinite;
+}
+
+.fab-wiggle {
+  animation: wiggle 1s ease-in-out infinite;
+}
+
+/* Add hover state animation */
+.fab-container:hover .fab-icon {
+  animation: wiggle 1s ease-in-out infinite;
+}

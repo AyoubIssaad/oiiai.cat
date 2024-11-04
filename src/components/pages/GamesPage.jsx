@@ -17,14 +17,12 @@ export function GamesPage() {
         path="/games"
       />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-20 sm:pt24">
         {/* Header Section */}
         <div className="text-center mb-12">
-          <h1 className="kawaii-heading text-4xl mb-4">
-            Oiiai Games
-            <span className="animate-bounce inline-block ml-4 delay-100">
-              🎮
-            </span>
+          <h1 className="relative flex items-center justify-center gap-2">
+            <span className="kawaii-heading text-4xl mb-4">Oiiai Games</span>
+            <span className="animate-bounce text-4xl bg-transparent">🎮</span>
           </h1>
           <p className="text-lg text-blue-700 mb-6">
             Test your skills, set high scores, and have fun with our collection
@@ -38,6 +36,7 @@ export function GamesPage() {
             View Leaderboard
           </Button>
         </div>
+
         {/* Game Container */}
         <div className="max-w-4xl mx-auto">
           {selectedGame === "typing" && (

@@ -14,7 +14,7 @@ import {
 import { Button } from "../ui/Button";
 import SEO from "../SEO";
 
-export function HomePage() {
+export function AboutPage() {
   // Analytics tracking function
   const trackEvent = (eventName, eventParams = {}) => {
     if (window.gtag) {
@@ -274,4 +274,4 @@ export function HomePage() {
   );
 }
 
-export default HomePage;
+export default AboutPage;

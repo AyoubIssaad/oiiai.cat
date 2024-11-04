@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Cat, Gamepad2, MessageSquare, Menu, X } from "lucide-react";
+import { Home, MessageSquare, Gamepad2, Info, Menu, X } from "lucide-react";
 import { cn } from "../lib/utils";
 
 const NavLink = ({ to, children, icon: Icon, label, onClick }) => {
@@ -67,57 +67,57 @@ export function KawaiiNav() {
             )}
           </button>
 
-          {/* Desktop Navigation - Updated Fun Titles */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-2 md:gap-4">
             <NavLink to="/" icon={Home} label="Home">
-              Home
-            </NavLink>
-            <NavLink to="/cat-goes-spin" icon={Cat} label="Make Cat Spin">
               Make Cat Spin!
             </NavLink>
             <NavLink
-              to="/secret-cat-messages"
+              to="/secret-messages"
               icon={MessageSquare}
               label="Secret Messages"
             >
-              Cat Secrets
+              Encode Messages!
             </NavLink>
-            <NavLink to="/banana-cat-games" icon={Gamepad2} label="Play Games">
-              Cat Games
+            <NavLink to="/games" icon={Gamepad2} label="Play Games">
+              Play Games
+            </NavLink>
+            <NavLink to="/about" icon={Info} label="About">
+              About
             </NavLink>
           </div>
         </nav>
 
-        {/* Mobile Menu - Updated Fun Titles */}
+        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden absolute top-16 left-0 right-0 bg-white/95 backdrop-blur-md border-b-2 border-blue-200 py-4 px-4">
             <div className="flex flex-col gap-2">
               <NavLink to="/" icon={Home} label="Home" onClick={closeMenu}>
-                Home Base
-              </NavLink>
-              <NavLink
-                to="/cat-goes-spin"
-                icon={Cat}
-                label="Make Cat Spin"
-                onClick={closeMenu}
-              >
                 Make Cat Spin!
               </NavLink>
               <NavLink
-                to="/secret-cat-messages"
+                to="/secret-messages"
                 icon={MessageSquare}
                 label="Secret Messages"
                 onClick={closeMenu}
               >
-                Cat Secrets
+                Encode Messages!
               </NavLink>
               <NavLink
-                to="/banana-cat-games"
+                to="/games"
                 icon={Gamepad2}
                 label="Play Games"
                 onClick={closeMenu}
               >
-                Cat Games
+                Play Games
+              </NavLink>
+              <NavLink
+                to="/about"
+                icon={Info}
+                label="About"
+                onClick={closeMenu}
+              >
+                About
               </NavLink>
             </div>
           </div>

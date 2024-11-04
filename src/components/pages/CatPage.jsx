@@ -1,7 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX, Share2, Sparkles } from "lucide-react";
+import {
+  MessageSquare,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Share2,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "../ui/Button";
 import { Slider } from "../ui/Slider";
+import { Link } from "react-router-dom";
 import SEO from "../SEO";
 
 export function CatPage() {
@@ -163,24 +172,21 @@ export function CatPage() {
         path="/cat-goes-spin"
       />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-20 sm:pt24">
         {/* Fun Header Section */}
-        <div className="text-center mb-12">
-          <h1 className="kawaii-heading text-4xl mb-4">
-            Ultimate Spin Controller
-            <span className="animate-bounce inline-block ml-4 delay-100">
-              🌪️
+        <div className="text-center mb-8">
+          <h1 className="relative flex items-center justify-center gap-2">
+            <span className="kawaii-heading text-4xl mb-4">
+              Ultimate Spin Controller
             </span>
+            <span className="animate-bounce text-4xl bg-transparent">🌀</span>
           </h1>
-          <p className="text-lg text-blue-700 mb-6">
-            Welcome to the sacred art of cat spinning! Control the legendary Oiiai Cat's
-            rotations and create spinning magic!
+          <p className="text-lg text-blue-700">
+            Welcome to the sacred art of cat spinning! Control the legendary
+            Oiiai Cat's rotations and create spinning magic!
           </p>
-          <Button onClick={handleShare} className="kawaii-button">
-            <Share2 className="w-4 h-4 mr-2" />
-            Share the Spinny Joy!
-          </Button>
         </div>
+        <div className="flex justify-center mb-8"></div>
 
         {/* Main Controller Section */}
         <div className="kawaii-card p-8 max-w-2xl mx-auto">
@@ -283,16 +289,20 @@ export function CatPage() {
             </h2>
             <ul className="space-y-3 text-blue-700">
               <li className="flex items-center gap-2">
-                <span className="text-xl">🎮</span> Use the magical slider to control Banana Cat's spin velocity
+                <span className="text-xl">🎮</span> Use the magical slider to
+                control Banana Cat's spin velocity
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-xl">🎵</span> Toggle the mystical Oiiai tunes for maximum effect
+                <span className="text-xl">🎵</span> Toggle the mystical Oiiai
+                tunes for maximum effect
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-xl">⚡</span> Try the preset speeds for perfect spinning harmony
+                <span className="text-xl">⚡</span> Try the preset speeds for
+                perfect spinning harmony
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-xl">🌟</span> Share your favorite spin settings with fellow cat enthusiasts
+                <span className="text-xl">🌟</span> Share your favorite spin
+                settings with fellow cat enthusiasts
               </li>
             </ul>
 
@@ -301,7 +311,9 @@ export function CatPage() {
               <h3 className="kawaii-subtitle text-lg mb-3">Spinning Wisdom:</h3>
               <ul className="space-y-2 text-blue-700">
                 <li>💫 Legend says the more spins, the more luck you get!</li>
-                <li>🎪 The original Banana Cat has spun over a million times</li>
+                <li>
+                  🎪 The original Banana Cat has spun over a million times
+                </li>
                 <li>🌈 Each spin creates a tiny bit of internet magic</li>
                 <li>⭐ Join thousands of daily spinny cat enthusiasts</li>
               </ul>
@@ -309,7 +321,9 @@ export function CatPage() {
 
             {/* Pro Tips Section */}
             <div className="mt-6 pt-6 border-t border-blue-100">
-              <h3 className="kawaii-subtitle text-lg mb-3">Pro Spinner Tips:</h3>
+              <h3 className="kawaii-subtitle text-lg mb-3">
+                Pro Spinner Tips:
+              </h3>
               <ul className="space-y-2 text-blue-700">
                 <li>🎯 3x speed: Perfect for casual spinning</li>
                 <li>🚀 5x speed: The legendary original spin rate</li>

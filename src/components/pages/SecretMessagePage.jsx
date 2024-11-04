@@ -48,7 +48,7 @@ const ENCODER_MAP = {
 };
 
 const DECODER_MAP = Object.fromEntries(
-  Object.entries(ENCODER_MAP).map(([key, value]) => [value, key])
+  Object.entries(ENCODER_MAP).map(([key, value]) => [value, key]),
 );
 
 export function SecretMessagePage() {
@@ -82,9 +82,8 @@ export function SecretMessagePage() {
           const response = await fetch(`/sounds/${letter}.wav`);
           const arrayBuffer = await response.arrayBuffer();
           if (!mounted) return null;
-          const audioBuffer = await audioContextRef.current.decodeAudioData(
-            arrayBuffer
-          );
+          const audioBuffer =
+            await audioContextRef.current.decodeAudioData(arrayBuffer);
           return [letter, audioBuffer];
         };
 
@@ -191,7 +190,9 @@ export function SecretMessagePage() {
     return words
       .map((word) => {
         let letters = word.split("A");
-        return letters.map((pattern) => DECODER_MAP[pattern] || pattern).join("");
+        return letters
+          .map((pattern) => DECODER_MAP[pattern] || pattern)
+          .join("");
       })
       .join(" ");
   };
@@ -236,12 +237,14 @@ export function SecretMessagePage() {
         path="/secret-cat-messages"
       />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-20 sm:pt24">
         {/* Header Section */}
-        <div className="text-center mb-8">
-          <h1 className="kawaii-heading text-4xl mb-4">
-            The Ultimate Cat Translator
-            <span className="animate-bounce inline-block ml-4 delay-100">🔮</span>
+        <div className="text-center mb-12">
+          <h1 className="relative flex items-center justify-center gap-2">
+            <span className="kawaii-heading text-4xl mb-4">
+              The Ultimate Cat Translator
+            </span>
+            <span className="animate-bounce text-4xl bg-transparent">🔮</span>
           </h1>
           <p className="text-lg text-blue-700">
             Transform your messages into mysterious Banana Cat patterns!
@@ -278,7 +281,10 @@ export function SecretMessagePage() {
                     rows="3"
                   />
                   <div className="flex justify-end">
-                    <Button onClick={handleEncode} className="kawaii-button w-full sm:w-auto">
+                    <Button
+                      onClick={handleEncode}
+                      className="kawaii-button w-full sm:w-auto"
+                    >
                       Transform to Cat Speak!
                     </Button>
                   </div>
@@ -287,7 +293,9 @@ export function SecretMessagePage() {
                 {/* Encoded Output */}
                 {encodedMessage && (
                   <div className="space-y-4 pt-4 border-t-2 border-blue-100">
-                    <h3 className="kawaii-subtitle text-lg">Your Cat Pattern ✨</h3>
+                    <h3 className="kawaii-subtitle text-lg">
+                      Your Cat Pattern ✨
+                    </h3>
                     <div className="font-mono bg-blue-50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap">
                       {encodedMessage.split("").map((char, index) => (
                         <span
@@ -327,7 +335,9 @@ export function SecretMessagePage() {
                           ) : (
                             <span className="flex items-center">
                               <Play className="w-4 h-4 mr-2" />
-                              <span className="hidden sm:inline">Make it Sing!</span>
+                              <span className="hidden sm:inline">
+                                Make it Sing!
+                              </span>
                               <span className="sm:hidden">Play</span>
                             </span>
                           )}
@@ -386,7 +396,9 @@ export function SecretMessagePage() {
                         ) : (
                           <span className="flex items-center">
                             <Play className="w-4 h-4 mr-2" />
-                            <span className="hidden sm:inline">Play Pattern</span>
+                            <span className="hidden sm:inline">
+                              Play Pattern
+                            </span>
                             <span className="sm:hidden">Play</span>
                           </span>
                         )}
@@ -396,7 +408,9 @@ export function SecretMessagePage() {
                       onClick={handleDecode}
                       className="kawaii-button w-full sm:w-auto"
                     >
-                      <span className="hidden sm:inline">Reveal Cat Secrets!</span>
+                      <span className="hidden sm:inline">
+                        Reveal Cat Secrets!
+                      </span>
                       <span className="sm:hidden">Decode</span>
                     </Button>
                   </div>
@@ -405,7 +419,9 @@ export function SecretMessagePage() {
                 {/* Decoded Output */}
                 {decodedMessage && (
                   <div className="space-y-4 pt-4 border-t-2 border-blue-100">
-                    <h3 className="kawaii-subtitle text-lg">The Cat Has Spoken! 📜</h3>
+                    <h3 className="kawaii-subtitle text-lg">
+                      The Cat Has Spoken! 📜
+                    </h3>
                     <div className="bg-blue-50 p-4 rounded-lg">
                       {decodedMessage}
                     </div>
@@ -432,7 +448,9 @@ export function SecretMessagePage() {
             onClick={() => setShowMoreInfo(!showMoreInfo)}
             className="kawaii-button"
           >
-            {showMoreInfo ? "Hide Cat Knowledge" : "Learn More About Cat Secrets"}
+            {showMoreInfo
+              ? "Hide Cat Knowledge"
+              : "Learn More About Cat Secrets"}
             <ArrowDown
               className={`w-4 h-4 ml-2 transform transition-transform ${
                 showMoreInfo ? "rotate-180" : ""
@@ -452,10 +470,12 @@ export function SecretMessagePage() {
                     <MessageSquare className="w-8 h-8 text-blue-600" />
                   </div>
                 </div>
-                <h3 className="kawaii-subtitle text-lg mb-2">Ancient Cat Wisdom</h3>
+                <h3 className="kawaii-subtitle text-lg mb-2">
+                  Ancient Cat Wisdom
+                </h3>
                 <p className="text-blue-700">
-                  Uses the sacred Banana Cat dialect, passed down through generations
-                  of spinning cats! Much mysterious, very secret! 🐱
+                  Uses the sacred Banana Cat dialect, passed down through
+                  generations of spinning cats! Much mysterious, very secret! 🐱
                 </p>
               </div>
 
@@ -465,10 +485,12 @@ export function SecretMessagePage() {
                     <Music className="w-8 h-8 text-blue-600" />
                   </div>
                 </div>
-                <h3 className="kawaii-subtitle text-lg mb-2">Musical Meowgic</h3>
+                <h3 className="kawaii-subtitle text-lg mb-2">
+                  Musical Meowgic
+                </h3>
                 <p className="text-blue-700">
-                  Every message becomes a unique Banana Cat tune! It's like your words
-                  are doing a little spinny dance! 🎵
+                  Every message becomes a unique Banana Cat tune! It's like your
+                  words are doing a little spinny dance! 🎵
                 </p>
               </div>
 
@@ -478,10 +500,12 @@ export function SecretMessagePage() {
                     <Lock className="w-8 h-8 text-blue-600" />
                   </div>
                 </div>
-                <h3 className="kawaii-subtitle text-lg mb-2">Top Secret Cat Club</h3>
+                <h3 className="kawaii-subtitle text-lg mb-2">
+                  Top Secret Cat Club
+                </h3>
                 <p className="text-blue-700">
-                  Share encoded messages with fellow cat enthusiasts! Like a secret
-                  clubhouse, but with more spinning! 🔒
+                  Share encoded messages with fellow cat enthusiasts! Like a
+                  secret clubhouse, but with more spinning! 🔒
                 </p>
               </div>
             </div>
@@ -499,16 +523,20 @@ export function SecretMessagePage() {
                   </h3>
                   <ul className="space-y-2 text-blue-700">
                     <li className="flex items-center gap-2">
-                      <span className="text-xl">🎭</span> Write your super secret message
+                      <span className="text-xl">🎭</span> Write your super
+                      secret message
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-xl">✨</span> Watch it transform into cat magic
+                      <span className="text-xl">✨</span> Watch it transform
+                      into cat magic
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-xl">🎵</span> Listen to your message go "oiiai"
+                      <span className="text-xl">🎵</span> Listen to your message
+                      go "oiiai"
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-xl">🚀</span> Share with fellow cat enthusiasts
+                      <span className="text-xl">🚀</span> Share with fellow cat
+                      enthusiasts
                     </li>
                   </ul>
                 </div>
@@ -518,16 +546,20 @@ export function SecretMessagePage() {
                   </h3>
                   <ul className="space-y-2 text-blue-700">
                     <li className="flex items-center gap-2">
-                      <span className="text-xl">📝</span> Pop in the mysterious cat code
+                      <span className="text-xl">📝</span> Pop in the mysterious
+                      cat code
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-xl">👂</span> Listen to the secret cat tune
+                      <span className="text-xl">👂</span> Listen to the secret
+                      cat tune
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-xl">🔮</span> Click the magic decode button
+                      <span className="text-xl">🔮</span> Click the magic decode
+                      button
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-xl">🎉</span> Reveal the hidden message!
+                      <span className="text-xl">🎉</span> Reveal the hidden
+                      message!
                     </li>
                   </ul>
                 </div>

@@ -1,11 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { FloatingActionButton } from "./FloatingActionButton";
 
 export function MainLayout({ children }) {
   return (
     <div className="min-h-screen kawaii-theme">
       {children}
 
+      <FloatingActionButton />
       {/* Enhanced Footer */}
       <footer className="bg-blue-50 py-12 px-4">
         <div className="container mx-auto max-w-4xl">

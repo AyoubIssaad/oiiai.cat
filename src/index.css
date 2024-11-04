@@ -104,6 +104,7 @@ body {
   text-transform: uppercase;
   background: linear-gradient(135deg, #1d4ed8, #3b82f6);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
