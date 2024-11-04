@@ -215,7 +215,6 @@ export function SecretMessagePage() {
       console.error("Failed to copy:", err);
     }
   };
-
   const TabButton = ({ id, label, active }) => (
     <button
       onClick={() => setActiveTab(id)}
@@ -253,7 +252,7 @@ export function SecretMessagePage() {
         <div className="max-w-2xl mx-auto mb-8">
           <div className="kawaii-card p-6">
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-blue-200">
+            <div className="flex gap-2 mb-6 border-b border-blue-200 overflow-x-auto">
               <TabButton
                 id="encode"
                 label="Create Secret Message 🔒"
@@ -279,7 +278,7 @@ export function SecretMessagePage() {
                     rows="3"
                   />
                   <div className="flex justify-end">
-                    <Button onClick={handleEncode} className="kawaii-button">
+                    <Button onClick={handleEncode} className="kawaii-button w-full sm:w-auto">
                       Transform to Cat Speak!
                     </Button>
                   </div>
@@ -301,11 +300,11 @@ export function SecretMessagePage() {
                         </span>
                       ))}
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:justify-between">
                       <div className="flex gap-2">
                         <Button
                           onClick={() => setIsMuted(!isMuted)}
-                          className="kawaii-button"
+                          className="kawaii-button w-12"
                           disabled={isLoading}
                         >
                           {isMuted ? (
@@ -316,28 +315,31 @@ export function SecretMessagePage() {
                         </Button>
                         <Button
                           onClick={isPlaying ? stopPlayback : playMessage}
-                          className="kawaii-button"
+                          className="kawaii-button flex-grow sm:flex-grow-0"
                           disabled={isLoading}
                         >
                           {isPlaying ? (
-                            <>
+                            <span className="flex items-center">
                               <Pause className="w-4 h-4 mr-2" />
-                              Shhh!
-                            </>
+                              <span className="hidden sm:inline">Shhh!</span>
+                              <span className="sm:hidden">Stop</span>
+                            </span>
                           ) : (
-                            <>
+                            <span className="flex items-center">
                               <Play className="w-4 h-4 mr-2" />
-                              Make it Sing!
-                            </>
+                              <span className="hidden sm:inline">Make it Sing!</span>
+                              <span className="sm:hidden">Play</span>
+                            </span>
                           )}
                         </Button>
                       </div>
                       <Button
                         onClick={() => copyToClipboard(encodedMessage)}
-                        className="kawaii-button"
+                        className="kawaii-button w-full sm:w-auto"
                       >
                         <Copy className="w-4 h-4 mr-2" />
-                        Copy Cat Code
+                        <span className="hidden sm:inline">Copy Cat Code</span>
+                        <span className="sm:hidden">Copy</span>
                       </Button>
                     </div>
                   </div>
@@ -357,11 +359,11 @@ export function SecretMessagePage() {
                     className="w-full p-4 border-2 border-blue-200 rounded-lg focus:border-blue-400 focus:outline-none font-mono"
                     rows="3"
                   />
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:justify-between">
                     <div className="flex gap-2">
                       <Button
                         onClick={() => setIsMuted(!isMuted)}
-                        className="kawaii-button"
+                        className="kawaii-button w-12"
                         disabled={isLoading}
                       >
                         {isMuted ? (
@@ -372,14 +374,30 @@ export function SecretMessagePage() {
                       </Button>
                       <Button
                         onClick={isPlaying ? stopPlayback : playMessage}
-                        className="kawaii-button"
+                        className="kawaii-button flex-grow sm:flex-grow-0"
                         disabled={isLoading}
                       >
-                        {isPlaying ? "Shhh!" : "Play Pattern"}
+                        {isPlaying ? (
+                          <span className="flex items-center">
+                            <Pause className="w-4 h-4 mr-2" />
+                            <span className="hidden sm:inline">Shhh!</span>
+                            <span className="sm:hidden">Stop</span>
+                          </span>
+                        ) : (
+                          <span className="flex items-center">
+                            <Play className="w-4 h-4 mr-2" />
+                            <span className="hidden sm:inline">Play Pattern</span>
+                            <span className="sm:hidden">Play</span>
+                          </span>
+                        )}
                       </Button>
                     </div>
-                    <Button onClick={handleDecode} className="kawaii-button">
-                      Reveal Cat Secrets!
+                    <Button
+                      onClick={handleDecode}
+                      className="kawaii-button w-full sm:w-auto"
+                    >
+                      <span className="hidden sm:inline">Reveal Cat Secrets!</span>
+                      <span className="sm:hidden">Decode</span>
                     </Button>
                   </div>
                 </div>
@@ -387,19 +405,18 @@ export function SecretMessagePage() {
                 {/* Decoded Output */}
                 {decodedMessage && (
                   <div className="space-y-4 pt-4 border-t-2 border-blue-100">
-                    <h3 className="kawaii-subtitle text-lg">
-                      The Cat Has Spoken! 📜
-                    </h3>
+                    <h3 className="kawaii-subtitle text-lg">The Cat Has Spoken! 📜</h3>
                     <div className="bg-blue-50 p-4 rounded-lg">
                       {decodedMessage}
                     </div>
                     <div className="flex justify-end">
                       <Button
                         onClick={() => copyToClipboard(decodedMessage)}
-                        className="kawaii-button"
+                        className="kawaii-button w-full sm:w-auto"
                       >
                         <Copy className="w-4 h-4 mr-2" />
-                        Copy Message
+                        <span className="hidden sm:inline">Copy Message</span>
+                        <span className="sm:hidden">Copy</span>
                       </Button>
                     </div>
                   </div>
@@ -415,7 +432,7 @@ export function SecretMessagePage() {
             onClick={() => setShowMoreInfo(!showMoreInfo)}
             className="kawaii-button"
           >
-            {showMoreInfo ? "Hide Info" : "Learn More About Cat Secrets"}
+            {showMoreInfo ? "Hide Cat Knowledge" : "Learn More About Cat Secrets"}
             <ArrowDown
               className={`w-4 h-4 ml-2 transform transition-transform ${
                 showMoreInfo ? "rotate-180" : ""
@@ -433,7 +450,7 @@ export function SecretMessagePage() {
                 <div className="flex justify-center mb-4">
                   <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
                     <MessageSquare className="w-8 h-8 text-blue-600" />
-                    </div>
+                  </div>
                 </div>
                 <h3 className="kawaii-subtitle text-lg mb-2">Ancient Cat Wisdom</h3>
                 <p className="text-blue-700">
