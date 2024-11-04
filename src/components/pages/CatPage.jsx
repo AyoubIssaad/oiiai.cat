@@ -179,7 +179,7 @@ export function CatPage() {
             <span className="kawaii-heading text-4xl mb-4">
               Ultimate Spin Controller
             </span>
-            <span className="animate-bounce text-4xl bg-transparent">🌀</span>
+            <span className="animate-bounce text-4xl bg-transparent">🌪️</span>
           </h1>
           <p className="text-lg text-blue-700">
             Welcome to the sacred art of cat spinning! Control the legendary

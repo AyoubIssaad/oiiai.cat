@@ -397,7 +397,7 @@ export function SecretMessagePage() {
                           <span className="flex items-center">
                             <Play className="w-4 h-4 mr-2" />
                             <span className="hidden sm:inline">
-                              Play Pattern
+                              Play
                             </span>
                             <span className="sm:hidden">Play</span>
                           </span>
@@ -409,7 +409,7 @@ export function SecretMessagePage() {
                       className="kawaii-button w-full sm:w-auto"
                     >
                       <span className="hidden sm:inline">
-                        Reveal Cat Secrets!
+                        Reveal Secrets!
                       </span>
                       <span className="sm:hidden">Decode</span>
                     </Button>
