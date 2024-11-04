@@ -1,6 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Cat, Gamepad2, Share2 } from "lucide-react";
+import {
+  Cat,
+  Gamepad2,
+  MessageSquare,
+  Sparkles,
+  Send,
+  Keyboard,
+  Users,
+  Rocket,
+  Share2,
+} from "lucide-react";
 import { Button } from "../ui/Button";
 import SEO from "../SEO";
 
@@ -36,8 +46,8 @@ export function HomePage() {
   return (
     <>
       <SEO
-        title="Oiiai Cat - Interactive Spinning Cat Animation & Games"
-        description="Welcome to Oiiai Cat! Experience the viral sensation with our interactive spinning cat animation, fun games, and more. The perfect dose of daily joy!"
+        title="🐱 Oiiai and Banana Cat Goes Spin! - The Official Oiiai Cat Playground"
+        description="Witness the legendary Oiiai Cat (aka Banana Cat) in action! Make the cat go spinny spin, send secret cat messages, and spread joy across the internet. The most purrfect cat meme experience! 🌟"
         path="/"
       />
 
@@ -54,17 +64,80 @@ export function HomePage() {
               Experience the viral sensation! Control the famous spinning cat,
               play fun games, and discover more joy every day.
             </p>
-            <Button onClick={handleShare} className="kawaii-button">
-              <Share2 className="w-4 h-4 mr-2" />
-              Share Joy
-            </Button>
+          </div>
+        </div>
+      </section>
+      <section className="container mx-auto px-4 mb-16">
+        <div className="max-w-4xl mx-auto">
+          <div className="kawaii-card p-8 bg-gradient-to-br from-blue-50 to-white">
+            <h2 className="kawaii-title text-2xl text-center mb-8 flex items-center justify-center gap-2">
+              <Sparkles className="w-6 h-6 text-blue-500" />
+              Awesome Features
+              <Sparkles className="w-6 h-6 text-blue-500" />
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <Cat className="w-8 h-8 text-blue-500 animate-[bounce_2s_ease-in-out_infinite]" />
+                  <p className="text-blue-700 font-medium">
+                    Make Banana Cat go spinny spin!
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <MessageSquare className="w-8 h-8 text-blue-500" />
+                  <p className="text-blue-700 font-medium">
+                    Send secret messages in cat language
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Keyboard className="w-8 h-8 text-blue-500" />
+                  <p className="text-blue-700 font-medium">
+                    Play typing games with Oiiai patterns
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <Send className="w-8 h-8 text-blue-500" />
+                  <p className="text-blue-700 font-medium">
+                    Share the joy with other cat fans
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Users className="w-8 h-8 text-blue-500" />
+                  <p className="text-blue-700 font-medium">
+                    Join the spinning cat community
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Rocket className="w-8 h-8 text-blue-500" />
+                  <p className="text-blue-700 font-medium">
+                    Discover new ways to play with Banana Cat
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 text-center">
+              <Button onClick={handleShare} className="kawaii-button accent">
+                <Share2 className="w-4 h-4 mr-2" />
+                Share the Fun!
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Feature Cards Section */}
       <section className="container mx-auto px-4 mb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          {/* Interactive Cat Card */}
           <Link
             to="/cat"
             className="kawaii-card p-8 text-center hover:scale-105 transition-transform"
@@ -72,13 +145,31 @@ export function HomePage() {
             <Cat className="w-12 h-12 mx-auto mb-4 text-blue-600" />
             <h2 className="kawaii-title text-2xl mb-4">Interactive Cat</h2>
             <p className="text-blue-700 mb-4">
-              Control the iconic spinning cat animation with perfect music sync!
+              Make Banana Cat go spinny spin! Control the iconic animation with
+              perfect music sync.
             </p>
             <span className="kawaii-text text-sm text-blue-500">
               Try it now →
             </span>
           </Link>
 
+          {/* Secret Messages Card */}
+          <Link
+            to="/secret"
+            className="kawaii-card p-8 text-center hover:scale-105 transition-transform"
+          >
+            <MessageSquare className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+            <h2 className="kawaii-title text-2xl mb-4">Secret Messages</h2>
+            <p className="text-blue-700 mb-4">
+              Send mysterious cat-coded messages using the ancient Oiiai
+              language!
+            </p>
+            <span className="kawaii-text text-sm text-blue-500">
+              Send now →
+            </span>
+          </Link>
+
+          {/* Games Card */}
           <Link
             to="/games"
             className="kawaii-card p-8 text-center hover:scale-105 transition-transform"
@@ -86,7 +177,8 @@ export function HomePage() {
             <Gamepad2 className="w-12 h-12 mx-auto mb-4 text-blue-600" />
             <h2 className="kawaii-title text-2xl mb-4">Fun Games</h2>
             <p className="text-blue-700 mb-4">
-              Test your skills with our collection of entertaining games!
+              Test your skills with our collection of Banana Cat games and
+              challenges!
             </p>
             <span className="kawaii-text text-sm text-blue-500">
               Play now →
@@ -98,22 +190,62 @@ export function HomePage() {
       {/* About Section */}
       <section className="container mx-auto px-4 mb-16">
         <div className="kawaii-card p-8 max-w-4xl mx-auto">
-          <h2 className="kawaii-title text-2xl text-center mb-6">
-            About Oiiai Cat
+          <h2 className="kawaii-title text-2xl text-center mb-8">
+            About Banana Cat
           </h2>
-          <div className="space-y-4 text-blue-700">
-            <p>
-              The Oiiai Cat phenomenon started as a simple video of a spinning
-              cat synchronized with a catchy tune. It quickly captured hearts
-              worldwide, becoming one of the most beloved wholesome memes.
-            </p>
-            <p>
-              Our interactive version lets you control the iconic spinning
-              animation while staying true to the original's charm. Whether
-              you're here to perfect the spin speed, master the typing
-              challenge, or just need a moment of pure joy, Oiiai Cat is here
-              for you!
-            </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="space-y-4">
+              <div className="flex items-start gap-2">
+                <span className="text-2xl">🐱</span>
+                <div>
+                  <h3 className="kawaii-subtitle text-xl mb-2">
+                    What's a Oiiai Cat ?
+                  </h3>
+                  <p className="text-blue-700">
+                    The tale of the spinning sensation that broke the internet!
+                    Also known as Banana Cat, this adorable feline has been
+                    spinning its way into hearts worldwide with its mesmerizing
+                    rotations and catchy tune.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-start gap-2">
+                <span className="text-2xl">🔮</span>
+                <div>
+                  <h3 className="kawaii-subtitle text-xl mb-2">
+                    Secret Cat Language
+                  </h3>
+                  <p className="text-blue-700">
+                    Send covert messages in the ancient tongue of the spinning
+                    cat! Our special Oiiai translator turns your words into
+                    mysterious cat patterns. Perfect for secret communications
+                    with fellow Banana Cat enthusiasts!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-blue-700 mt-6">
+            <h3 className="kawaii-subtitle text-xl mb-4">Fun Facts:</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>
+                The original meme gained millions of views across social
+                platforms
+              </li>
+              <li>
+                Our interactive version adds new ways to enjoy the beloved cat
+              </li>
+              <li>
+                The secret message feature uses actual cat sounds for
+                authenticity
+              </li>
+              <li>Perfect for short breaks and instant mood boosts</li>
+            </ul>
           </div>
         </div>
       </section>

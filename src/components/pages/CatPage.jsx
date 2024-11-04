@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX, Share2 } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Share2, Sparkles } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Slider } from "../ui/Slider";
 import SEO from "../SEO";
@@ -158,34 +158,34 @@ export function CatPage() {
   return (
     <>
       <SEO
-        title="Interactive Spinning Cat - Control the Oiiai Cat Animation"
-        description="Control the famous spinning cat animation! Adjust speed, sync with music, and create the perfect loop with our interactive controller."
-        path="/cat"
+        title="🌪️ Make Banana Cat Go Spinny! - Control the Spinning Cat Animation"
+        description="Control the legendary spinning Banana Cat! Adjust spinny speeds, add magical tunes, and create the perfect loop. Make the internet's favorite cat go round and round! ⭐"
+        path="/cat-goes-spin"
       />
 
       <div className="container mx-auto px-4 py-8">
-        {/* Header Section */}
+        {/* Fun Header Section */}
         <div className="text-center mb-12">
           <h1 className="kawaii-heading text-4xl mb-4">
-            Interactive Cat Controller
+            Ultimate Spin Controller
             <span className="animate-bounce inline-block ml-4 delay-100">
-              ⭐
+              🌪️
             </span>
           </h1>
           <p className="text-lg text-blue-700 mb-6">
-            Control the iconic spinning cat animation and sync it with the
-            music!
+            Welcome to the sacred art of cat spinning! Control the legendary Oiiai Cat's
+            rotations and create spinning magic!
           </p>
           <Button onClick={handleShare} className="kawaii-button">
             <Share2 className="w-4 h-4 mr-2" />
-            Share Controller
+            Share the Spinny Joy!
           </Button>
         </div>
 
         {/* Main Controller Section */}
         <div className="kawaii-card p-8 max-w-2xl mx-auto">
-          {/* Cat Animation Container */}
           <div className="flex flex-col items-center gap-8 mb-8">
+            {/* Cat Animation Container */}
             <div className="kawaii-cat-container relative w-64 h-64 flex items-center justify-center bg-blue-50 rounded-full overflow-hidden">
               {isPlaying ? (
                 <video
@@ -199,85 +199,124 @@ export function CatPage() {
               ) : (
                 <img
                   src="/cat.png"
-                  alt="Static Cat"
+                  alt="Static Banana Cat"
                   className="w-48 h-48 rounded-full"
                 />
               )}
             </div>
-          </div>
 
-          {/* Controls */}
-          <div className="space-y-8">
-            {/* Play/Pause and Mute Controls */}
-            <div className="flex justify-center gap-4">
-              <Button
-                onClick={togglePlay}
-                className="kawaii-button accent w-24 h-12"
-              >
-                {isPlaying ? (
-                  <Pause className="w-6 h-6" />
-                ) : (
-                  <Play className="w-6 h-6" />
-                )}
-              </Button>
-              <Button
-                onClick={() => setIsMuted(!isMuted)}
-                className="kawaii-button w-12 h-12"
-              >
-                {isMuted ? (
-                  <VolumeX className="w-6 h-6" />
-                ) : (
-                  <Volume2 className="w-6 h-6" />
-                )}
-              </Button>
-            </div>
+            {/* Controls Section */}
+            <div className="w-full space-y-8">
+              {/* Play/Pause and Mute Controls */}
+              <div className="flex justify-center gap-4">
+                <Button
+                  onClick={togglePlay}
+                  className="kawaii-button accent w-24 h-12"
+                  aria-label={isPlaying ? "Pause rotation" : "Start rotation"}
+                >
+                  {isPlaying ? (
+                    <>
+                      <Pause className="w-6 h-6" />
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-6 h-6" />
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => setIsMuted(!isMuted)}
+                  className="kawaii-button w-12 h-12"
+                  aria-label={isMuted ? "Unmute music" : "Mute music"}
+                >
+                  {isMuted ? (
+                    <VolumeX className="w-6 h-6" />
+                  ) : (
+                    <Volume2 className="w-6 h-6" />
+                  )}
+                </Button>
+              </div>
 
-            {/* Speed Controls */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label className="kawaii-text text-sm font-medium text-blue-700">
-                  Speed: {getSpeedLabel(speed)}
-                </label>
-                <div className="flex gap-2">
-                  {speedPresets.map((speedValue) => (
-                    <Button
-                      key={speedValue}
-                      onClick={() => handleSpeedChange(speedValue)}
-                      className="kawaii-button text-xs h-8 px-3"
-                    >
-                      {speedValue}x
-                    </Button>
-                  ))}
+              {/* Speed Controls with Fun Labels */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="kawaii-text text-sm font-medium text-blue-700">
+                    Spinny Speed: {getSpeedLabel(speed)}
+                  </label>
+                  <div className="flex gap-2">
+                    {speedPresets.map((speedValue) => (
+                      <Button
+                        key={speedValue}
+                        onClick={() => handleSpeedChange(speedValue)}
+                        className="kawaii-button text-xs h-8 px-3"
+                      >
+                        {speedValue}x Magic
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="kawaii-slider-track">
-                <Slider
-                  value={[speed]}
-                  onValueChange={([newSpeed]) => handleSpeedChange(newSpeed)}
-                  min={0}
-                  max={10}
-                  step={0.1}
-                  className="w-full"
-                />
-              </div>
-              <div className="kawaii-text flex justify-between text-xs text-blue-600">
-                <span>Paused</span>
-                <span>Fast (10x)</span>
+                <div className="kawaii-slider-track">
+                  <Slider
+                    value={[speed]}
+                    onValueChange={([newSpeed]) => handleSpeedChange(newSpeed)}
+                    min={0}
+                    max={10}
+                    step={0.1}
+                    className="w-full"
+                  />
+                </div>
+                <div className="kawaii-text flex justify-between text-xs text-blue-600">
+                  <span>Cat Taking a Break</span>
+                  <span>Maximum Spinny! (10x)</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Tips Section */}
+        {/* Fun Info Section */}
         <div className="max-w-2xl mx-auto mt-8">
           <div className="kawaii-card p-6">
-            <h2 className="kawaii-subtitle text-xl mb-4">Quick Tips:</h2>
-            <ul className="space-y-2 text-blue-700">
-              <li>🎮 Use the slider to find your perfect spin speed</li>
-              <li>🎵 Toggle music to enhance the experience</li>
-              <li>⚡ Try the preset speeds for perfect sync</li>
-              <li>📱 Share your favorite settings with friends</li>
+            <h2 className="kawaii-subtitle text-xl mb-4 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-blue-600" />
+              Spinning Secrets
+            </h2>
+            <ul className="space-y-3 text-blue-700">
+              <li className="flex items-center gap-2">
+                <span className="text-xl">🎮</span> Use the magical slider to control Banana Cat's spin velocity
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-xl">🎵</span> Toggle the mystical Oiiai tunes for maximum effect
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-xl">⚡</span> Try the preset speeds for perfect spinning harmony
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-xl">🌟</span> Share your favorite spin settings with fellow cat enthusiasts
+              </li>
             </ul>
+
+            {/* Fun Facts */}
+            <div className="mt-6 pt-6 border-t border-blue-100">
+              <h3 className="kawaii-subtitle text-lg mb-3">Spinning Wisdom:</h3>
+              <ul className="space-y-2 text-blue-700">
+                <li>💫 Legend says the more spins, the more luck you get!</li>
+                <li>🎪 The original Banana Cat has spun over a million times</li>
+                <li>🌈 Each spin creates a tiny bit of internet magic</li>
+                <li>⭐ Join thousands of daily spinny cat enthusiasts</li>
+              </ul>
+            </div>
+
+            {/* Pro Tips Section */}
+            <div className="mt-6 pt-6 border-t border-blue-100">
+              <h3 className="kawaii-subtitle text-lg mb-3">Pro Spinner Tips:</h3>
+              <ul className="space-y-2 text-blue-700">
+                <li>🎯 3x speed: Perfect for casual spinning</li>
+                <li>🚀 5x speed: The legendary original spin rate</li>
+                <li>⚡ 8x speed: For experienced spin masters</li>
+                <li>✨ 10x speed: Maximum spinny power (use with caution!)</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

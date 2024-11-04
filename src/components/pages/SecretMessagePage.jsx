@@ -1,9 +1,22 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Share2, Play, Pause, Copy, VolumeX, Volume2 } from "lucide-react";
+import {
+  Share2,
+  Play,
+  Pause,
+  Copy,
+  VolumeX,
+  Volume2,
+  MessageSquare,
+  Sparkles,
+  Lock,
+  Music,
+  Lightbulb,
+  ArrowDown,
+} from "lucide-react";
 import { Button } from "../ui/Button";
 import SEO from "../SEO";
 
-// Encoding map stays the same
+// Encoding map
 const ENCODER_MAP = {
   A: "OI",
   B: "IOOO",
@@ -35,10 +48,11 @@ const ENCODER_MAP = {
 };
 
 const DECODER_MAP = Object.fromEntries(
-  Object.entries(ENCODER_MAP).map(([key, value]) => [value, key]),
+  Object.entries(ENCODER_MAP).map(([key, value]) => [value, key])
 );
 
 export function SecretMessagePage() {
+  const [activeTab, setActiveTab] = useState("encode");
   const [inputText, setInputText] = useState("");
   const [encodedMessage, setEncodedMessage] = useState("");
   const [decodedMessage, setDecodedMessage] = useState("");
@@ -46,6 +60,7 @@ export function SecretMessagePage() {
   const [isMuted, setIsMuted] = useState(false);
   const [playbackIndex, setPlaybackIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(true);
+  const [showMoreInfo, setShowMoreInfo] = useState(true);
 
   const audioContextRef = useRef(null);
   const audioBuffersRef = useRef({});
@@ -67,8 +82,9 @@ export function SecretMessagePage() {
           const response = await fetch(`/sounds/${letter}.wav`);
           const arrayBuffer = await response.arrayBuffer();
           if (!mounted) return null;
-          const audioBuffer =
-            await audioContextRef.current.decodeAudioData(arrayBuffer);
+          const audioBuffer = await audioContextRef.current.decodeAudioData(
+            arrayBuffer
+          );
           return [letter, audioBuffer];
         };
 
@@ -102,7 +118,7 @@ export function SecretMessagePage() {
   // Handle muting
   useEffect(() => {
     if (gainNodeRef.current) {
-      gainNodeRef.current.gain.value = isMuted ? 0 : 0.5; // Reduced volume to 0.5
+      gainNodeRef.current.gain.value = isMuted ? 0 : 0.5; // Reduced volume
     }
   }, [isMuted]);
 
@@ -145,7 +161,7 @@ export function SecretMessagePage() {
 
         setPlaybackIndex(i);
         await playSound(letters[i]);
-        await new Promise((resolve) => setTimeout(resolve, 150)); // Reduced from 300ms to 150ms
+        await new Promise((resolve) => setTimeout(resolve, 150));
       }
     } catch (error) {
       console.error("Playback error:", error);
@@ -162,7 +178,6 @@ export function SecretMessagePage() {
     setPlaybackIndex(-1);
   };
 
-  // Rest of the component functions stay the same
   const encodeMessage = (text) => {
     return text
       .toUpperCase()
@@ -176,9 +191,7 @@ export function SecretMessagePage() {
     return words
       .map((word) => {
         let letters = word.split("A");
-        return letters
-          .map((pattern) => DECODER_MAP[pattern] || pattern)
-          .join("");
+        return letters.map((pattern) => DECODER_MAP[pattern] || pattern).join("");
       })
       .join(" ");
   };
@@ -203,155 +216,323 @@ export function SecretMessagePage() {
     }
   };
 
+  const TabButton = ({ id, label, active }) => (
+    <button
+      onClick={() => setActiveTab(id)}
+      className={`px-6 py-3 font-['Orbitron'] font-bold text-sm transition-all duration-300 ${
+        active
+          ? "bg-blue-100 text-blue-700 shadow-md rounded-t-lg border-t-2 border-x-2 border-blue-200"
+          : "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <>
       <SEO
-        title="Secret Oiiai Messages - Encode and Decode"
-        description="Transform your messages into secret Oiiai patterns! Create and decode mysterious messages using the power of O, I, and A."
-        path="/secret"
+        title="🔮 Super Secret Banana Cat Translator - Make Messages Go Spinny!"
+        description="Psst! Transform your boring human words into mysterious Banana Cat speak! Our special cat-powered encoder makes messages that only true spinning cat fans can decode. It's purrfectly secret! 🐱"
+        path="/secret-cat-messages"
       />
 
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
+        {/* Header Section */}
+        <div className="text-center mb-8">
           <h1 className="kawaii-heading text-4xl mb-4">
-            Secret Oiiai Messages
-            <span className="animate-bounce inline-block ml-4 delay-100">
-              🔮
-            </span>
+            The Ultimate Cat Translator
+            <span className="animate-bounce inline-block ml-4 delay-100">🔮</span>
           </h1>
-          <p className="text-lg text-blue-700 mb-6">
-            Transform your messages into mysterious Oiiai patterns!
+          <p className="text-lg text-blue-700">
+            Transform your messages into mysterious Banana Cat patterns!
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto space-y-8">
-          {/* Encoder Section */}
+        {/* Main Functionality Section */}
+        <div className="max-w-2xl mx-auto mb-8">
           <div className="kawaii-card p-6">
-            <h2 className="kawaii-subtitle text-xl mb-4">
-              Create Secret Message
-            </h2>
-            <div className="space-y-4">
-              <textarea
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Enter your message..."
-                className="w-full p-4 border-2 border-blue-200 rounded-lg focus:border-blue-400 focus:outline-none"
-                rows="3"
+            {/* Tabs */}
+            <div className="flex gap-2 mb-6 border-b border-blue-200">
+              <TabButton
+                id="encode"
+                label="Create Secret Message 🔒"
+                active={activeTab === "encode"}
               />
-              <div className="flex justify-end gap-2">
-                <Button onClick={handleEncode} className="kawaii-button">
-                  Transform to Oiiai
-                </Button>
-              </div>
+              <TabButton
+                id="decode"
+                label="Reveal Cat Secrets 🔍"
+                active={activeTab === "decode"}
+              />
             </div>
-          </div>
 
-          {/* Encoded Message Section */}
-          {encodedMessage && (
-            <div className="kawaii-card p-6">
-              <h2 className="kawaii-subtitle text-xl mb-4">Oiiai Pattern</h2>
-              <div className="relative">
-                <div className="font-mono bg-blue-50 p-4 rounded-lg mb-4 overflow-x-auto whitespace-pre-wrap">
-                  {encodedMessage.split("").map((char, index) => (
-                    <span
-                      key={index}
-                      className={`inline-block ${
-                        playbackIndex === index ? "bg-yellow-200" : ""
-                      }`}
-                    >
-                      {char}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex justify-between">
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => setIsMuted(!isMuted)}
-                      className="kawaii-button"
-                      disabled={isLoading}
-                    >
-                      {isMuted ? (
-                        <VolumeX className="w-4 h-4" />
-                      ) : (
-                        <Volume2 className="w-4 h-4" />
-                      )}
-                    </Button>
-                    <Button
-                      onClick={isPlaying ? stopPlayback : playMessage}
-                      className="kawaii-button"
-                      disabled={isLoading}
-                    >
-                      {isPlaying ? (
-                        <Pause className="w-4 h-4" />
-                      ) : (
-                        <Play className="w-4 h-4" />
-                      )}
+            {/* Encode Tab Content */}
+            {activeTab === "encode" && (
+              <div className="space-y-6">
+                {/* Input Area */}
+                <div className="space-y-4">
+                  <textarea
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    placeholder="Type your human words here... They will become cat wisdom! 🐱"
+                    className="w-full p-4 border-2 border-blue-200 rounded-lg focus:border-blue-400 focus:outline-none"
+                    rows="3"
+                  />
+                  <div className="flex justify-end">
+                    <Button onClick={handleEncode} className="kawaii-button">
+                      Transform to Cat Speak!
                     </Button>
                   </div>
-                  <Button
-                    onClick={() => copyToClipboard(encodedMessage)}
-                    className="kawaii-button"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy
-                  </Button>
+                </div>
+
+                {/* Encoded Output */}
+                {encodedMessage && (
+                  <div className="space-y-4 pt-4 border-t-2 border-blue-100">
+                    <h3 className="kawaii-subtitle text-lg">Your Cat Pattern ✨</h3>
+                    <div className="font-mono bg-blue-50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap">
+                      {encodedMessage.split("").map((char, index) => (
+                        <span
+                          key={index}
+                          className={`inline-block ${
+                            playbackIndex === index ? "bg-yellow-200" : ""
+                          }`}
+                        >
+                          {char}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => setIsMuted(!isMuted)}
+                          className="kawaii-button"
+                          disabled={isLoading}
+                        >
+                          {isMuted ? (
+                            <VolumeX className="w-4 h-4" />
+                          ) : (
+                            <Volume2 className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <Button
+                          onClick={isPlaying ? stopPlayback : playMessage}
+                          className="kawaii-button"
+                          disabled={isLoading}
+                        >
+                          {isPlaying ? (
+                            <>
+                              <Pause className="w-4 h-4 mr-2" />
+                              Shhh!
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-4 h-4 mr-2" />
+                              Make it Sing!
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <Button
+                        onClick={() => copyToClipboard(encodedMessage)}
+                        className="kawaii-button"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Cat Code
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Decode Tab Content */}
+            {activeTab === "decode" && (
+              <div className="space-y-6">
+                {/* Input Area */}
+                <div className="space-y-4">
+                  <textarea
+                    value={encodedMessage}
+                    onChange={(e) => setEncodedMessage(e.target.value)}
+                    placeholder="Paste the mysterious cat patterns here... What secrets do they hold? 🔍"
+                    className="w-full p-4 border-2 border-blue-200 rounded-lg focus:border-blue-400 focus:outline-none font-mono"
+                    rows="3"
+                  />
+                  <div className="flex justify-between">
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setIsMuted(!isMuted)}
+                        className="kawaii-button"
+                        disabled={isLoading}
+                      >
+                        {isMuted ? (
+                          <VolumeX className="w-4 h-4" />
+                        ) : (
+                          <Volume2 className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        onClick={isPlaying ? stopPlayback : playMessage}
+                        className="kawaii-button"
+                        disabled={isLoading}
+                      >
+                        {isPlaying ? "Shhh!" : "Play Pattern"}
+                      </Button>
+                    </div>
+                    <Button onClick={handleDecode} className="kawaii-button">
+                      Reveal Cat Secrets!
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Decoded Output */}
+                {decodedMessage && (
+                  <div className="space-y-4 pt-4 border-t-2 border-blue-100">
+                    <h3 className="kawaii-subtitle text-lg">
+                      The Cat Has Spoken! 📜
+                    </h3>
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      {decodedMessage}
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={() => copyToClipboard(decodedMessage)}
+                        className="kawaii-button"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Message
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Show More Information Button */}
+        <div className="text-center mb-8">
+          <Button
+            onClick={() => setShowMoreInfo(!showMoreInfo)}
+            className="kawaii-button"
+          >
+            {showMoreInfo ? "Hide Info" : "Learn More About Cat Secrets"}
+            <ArrowDown
+              className={`w-4 h-4 ml-2 transform transition-transform ${
+                showMoreInfo ? "rotate-180" : ""
+              }`}
+            />
+          </Button>
+        </div>
+
+        {/* Additional Information (Collapsible) */}
+        {showMoreInfo && (
+          <>
+            {/* Info Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+              <div className="kawaii-card p-6 text-center bg-gradient-to-br from-blue-50 to-white">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                    <MessageSquare className="w-8 h-8 text-blue-600" />
+                    </div>
+                </div>
+                <h3 className="kawaii-subtitle text-lg mb-2">Ancient Cat Wisdom</h3>
+                <p className="text-blue-700">
+                  Uses the sacred Banana Cat dialect, passed down through generations
+                  of spinning cats! Much mysterious, very secret! 🐱
+                </p>
+              </div>
+
+              <div className="kawaii-card p-6 text-center bg-gradient-to-br from-blue-50 to-white">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Music className="w-8 h-8 text-blue-600" />
+                  </div>
+                </div>
+                <h3 className="kawaii-subtitle text-lg mb-2">Musical Meowgic</h3>
+                <p className="text-blue-700">
+                  Every message becomes a unique Banana Cat tune! It's like your words
+                  are doing a little spinny dance! 🎵
+                </p>
+              </div>
+
+              <div className="kawaii-card p-6 text-center bg-gradient-to-br from-blue-50 to-white">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Lock className="w-8 h-8 text-blue-600" />
+                  </div>
+                </div>
+                <h3 className="kawaii-subtitle text-lg mb-2">Top Secret Cat Club</h3>
+                <p className="text-blue-700">
+                  Share encoded messages with fellow cat enthusiasts! Like a secret
+                  clubhouse, but with more spinning! 🔒
+                </p>
+              </div>
+            </div>
+
+            {/* How It Works Section */}
+            <div className="kawaii-card p-8 max-w-4xl mx-auto mb-12 bg-gradient-to-br from-blue-50 to-white">
+              <h2 className="kawaii-subtitle text-2xl mb-6 text-center flex items-center justify-center gap-2">
+                <Lightbulb className="w-6 h-6 text-blue-600" />
+                How To Be A Cat Whisperer
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h3 className="kawaii-text font-bold text-blue-700 mb-2">
+                    Making Messages Go Spinny:
+                  </h3>
+                  <ul className="space-y-2 text-blue-700">
+                    <li className="flex items-center gap-2">
+                      <span className="text-xl">🎭</span> Write your super secret message
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-xl">✨</span> Watch it transform into cat magic
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-xl">🎵</span> Listen to your message go "oiiai"
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-xl">🚀</span> Share with fellow cat enthusiasts
+                    </li>
+                  </ul>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="kawaii-text font-bold text-blue-700 mb-2">
+                    Reading Cat Secrets:
+                  </h3>
+                  <ul className="space-y-2 text-blue-700">
+                    <li className="flex items-center gap-2">
+                      <span className="text-xl">📝</span> Pop in the mysterious cat code
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-xl">👂</span> Listen to the secret cat tune
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-xl">🔮</span> Click the magic decode button
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-xl">🎉</span> Reveal the hidden message!
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Decoder Section */}
-          <div className="kawaii-card p-6">
-            <h2 className="kawaii-subtitle text-xl mb-4">
-              Decode Secret Message
-            </h2>
-            <div className="space-y-4">
-              <textarea
-                value={encodedMessage}
-                onChange={(e) => setEncodedMessage(e.target.value)}
-                placeholder="Paste an Oiiai pattern here..."
-                className="w-full p-4 border-2 border-blue-200 rounded-lg focus:border-blue-400 focus:outline-none font-mono"
-                rows="3"
-              />
-              <div className="flex justify-end">
-                <Button onClick={handleDecode} className="kawaii-button">
-                  Reveal Message
-                </Button>
-              </div>
+            {/* Fun Facts Card */}
+            <div className="kawaii-card p-6 max-w-4xl mx-auto bg-gradient-to-br from-blue-50 to-white">
+              <h3 className="kawaii-subtitle text-xl mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-blue-600" />
+                Super Secret Cat Facts
+              </h3>
+              <ul className="space-y-2 text-blue-700">
+                <li>🎵 Created by studying hours of Banana Cat spins!</li>
+                <li>🔮 Uses real cat sounds for maximum authenticity</li>
+                <li>💫 Each message creates a unique spinning melody</li>
+                <li>⭐ Trusted by thousands of cat message enthusiasts</li>
+                <li>✨ Powered by pure cat magic (and some code)</li>
+              </ul>
             </div>
-          </div>
-
-          {/* Decoded Message Section */}
-          {decodedMessage && (
-            <div className="kawaii-card p-6">
-              <h2 className="kawaii-subtitle text-xl mb-4">Revealed Message</h2>
-              <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                {decodedMessage}
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => copyToClipboard(decodedMessage)}
-                  className="kawaii-button"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Instructions */}
-          <div className="kawaii-card p-6 bg-blue-50 border-blue-200">
-            <h2 className="kawaii-subtitle text-xl mb-4">How It Works</h2>
-            <ul className="space-y-2 text-blue-700">
-              <li>✨ Type your message in the first box</li>
-              <li>🎵 Transform it into an Oiiai pattern</li>
-              <li>🔊 Play the pattern to hear its melody</li>
-              <li>📋 Copy and share the pattern with friends</li>
-              <li>🎯 Paste received patterns to decode them</li>
-            </ul>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </>
   );

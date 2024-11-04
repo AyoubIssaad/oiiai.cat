@@ -12,8 +12,8 @@ export function GamesPage() {
   return (
     <>
       <SEO
-        title="Oiiai Games - Fun Typing Challenge and More"
-        description="Play the Oiiai typing challenge and other fun games! Test your skills, compete on leaderboards, and enjoy our growing collection of games."
+        title="🎮 Oiiai Cat / Banana Cat Games - Test Your Cat-Like Reflexes!"
+        description="Challenge yourself with our collection of Banana Cat games! Type like the spinning cat, set high scores, and become a true Oiiai Cat champion. Endless feline fun awaits! 🏆"
         path="/games"
       />
 
