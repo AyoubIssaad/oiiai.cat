@@ -256,7 +256,7 @@ export function CatPage() {
                         onClick={() => handleSpeedChange(speedValue)}
                         className="kawaii-button text-xs h-8 px-3"
                       >
-                        {speedValue}x Magic
+                        {speedValue}x
                       </Button>
                     ))}
                   </div>
