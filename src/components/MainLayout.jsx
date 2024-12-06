@@ -69,6 +69,9 @@ export function MainLayout({ children }) {
                 aubiss
               </a>
             </p>
+            <p className="text-s text-blue-600">
+              <a href="mailto:contact@oiiai.cat">✉ contact@oiiai.cat</a>
+            </p>
             <p className="text-xs text-blue-600">
               © {new Date().getFullYear()} Oiiai Cat. All rights reserved.
             </p>
