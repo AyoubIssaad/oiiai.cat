@@ -55,10 +55,12 @@ const GameOverMessage = ({
   success,
   time,
   speed,
+  score,
   onSubmitScore,
   submitting,
 }) => {
   const [playerName, setPlayerName] = useState("");
+  const [hasShared, setHasShared] = useState(false);
 
   if (success) {
     return (

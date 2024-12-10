@@ -11,6 +11,7 @@ import {
 import { Button } from "../ui/Button";
 import { Slider } from "../ui/Slider";
 import { Link } from "react-router-dom";
+import {ShareButton} from "../ShareButton"
 import SEO from "../SEO";
 
 export function CatPage() {
@@ -241,6 +242,10 @@ export function CatPage() {
                     <Volume2 className="w-6 h-6" />
                   )}
                 </Button>
+                <ShareButton
+                  speed={speed}
+                  type="speed"
+                />
               </div>
 
               {/* Speed Controls with Fun Labels */}
