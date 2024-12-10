@@ -94,6 +94,21 @@ app.post("/api/scores", async (req, res) => {
 app.get("/api/leaderboard", async (req, res) => {
   try {
     const result = await pool.query(`
+      WITH RankedScores AS (
+        SELECT
+          id,
+          player_name,
+          score,
+          time,
+          letters_per_second,
+          mistakes,
+          created_at,
+          ROW_NUMBER() OVER (
+            PARTITION BY player_name
+            ORDER BY score DESC, time ASC
+          ) as rank
+        FROM scores
+      )
       SELECT
         id,
         player_name,
@@ -102,7 +117,8 @@ app.get("/api/leaderboard", async (req, res) => {
         letters_per_second,
         mistakes,
         created_at
-      FROM scores
+      FROM RankedScores
+      WHERE rank = 1
       ORDER BY score DESC, time ASC
       LIMIT 50
     `);

@@ -114,13 +114,31 @@ export function Leaderboard({ onClose }) {
                       border-b border-blue-100
                       ${index < 3 ? "font-bold" : ""}
                       hover:bg-blue-50 transition-colors
+                      group
                     `}
+                    title={`Best score by ${entry.player_name}\nSpeed: ${entry.letters_per_second}/s\nMistakes: ${entry.mistakes}\nPlayed on: ${formatDate(entry.created_at)}`}
                   >
                     <td className="p-3 flex items-center gap-2">
                       {getRankIcon(index)}
                       {index + 1}
                     </td>
-                    <td className="p-3">{entry.player_name}</td>
+                    <td className="p-3 relative">
+                      <span className="group-hover:text-blue-700 transition-colors">
+                        {entry.player_name}
+                      </span>
+                      <div className="absolute hidden group-hover:block z-10 bg-white p-4 rounded-lg shadow-lg border-2 border-blue-200 w-64 left-0 mt-2">
+                        <div className="text-sm space-y-2">
+                          <p className="font-bold text-blue-700">Player Stats:</p>
+                          <p>🎯 Best Score: {Math.round(entry.score).toLocaleString()}</p>
+                          <p>⚡ Top Speed: {entry.letters_per_second}/s</p>
+                          <p>⏱️ Time: {entry.time}s</p>
+                          <p>❌ Mistakes: {entry.mistakes}</p>
+                          <p className="text-xs text-blue-500 mt-2">
+                            Achieved on {formatDate(entry.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
                     <td className="p-3">
                       {Math.round(entry.score).toLocaleString()}
                     </td>
