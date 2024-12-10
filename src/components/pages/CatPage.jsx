@@ -242,10 +242,10 @@ export function CatPage() {
                     <Volume2 className="w-6 h-6" />
                   )}
                 </Button>
-                <ShareButton
-                  speed={speed}
-                  type="speed"
-                />
+                {/* <ShareButton */}
+                {/*   speed={speed} */}
+                {/*   type="speed" */}
+                {/* /> */}
               </div>
 
               {/* Speed Controls with Fun Labels */}
