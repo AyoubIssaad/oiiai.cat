@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { API_URL } from "../config";
+import GameOverMessage from "./GameOverMessage";
 import {
   Play,
   RotateCw,
@@ -50,65 +51,6 @@ const KeyboardHint = () => (
     </div>
   </div>
 );
-
-const GameOverMessage = ({
-  success,
-  time,
-  speed,
-  score,
-  onSubmitScore,
-  submitting,
-}) => {
-  const [playerName, setPlayerName] = useState("");
-  const [hasShared, setHasShared] = useState(false);
-
-  if (success) {
-    return (
-      <div className="kawaii-card p-6 text-center">
-        <h3 className="kawaii-title text-xl mb-4 font-black">
-          Perfect Run! ⭐
-        </h3>
-        <div className="space-y-2 text-blue-700">
-          <p>Time: {time}s</p>
-          <p>Speed: {speed} letters/second</p>
-
-          {!submitting ? (
-            <div className="mt-4">
-              <input
-                type="text"
-                placeholder="Enter your name"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                className="kawaii-input mb-2 p-2 border-2 border-blue-300 rounded w-full max-w-xs"
-                maxLength={50}
-              />
-              <Button
-                onClick={() => onSubmitScore(playerName)}
-                className="kawaii-button mt-2"
-                disabled={!playerName.trim()}
-              >
-                Submit Score
-              </Button>
-            </div>
-          ) : (
-            <p className="animate-pulse">Submitting score...</p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="kawaii-card p-6 text-center border-yellow-500 bg-yellow-50">
-      <h3 className="kawaii-title font-black text-xl font-bold text-yellow-700">
-        Try Again! 💫
-      </h3>
-      <p className="text-yellow-600 mt-2 font-['Orbitron']">
-        Keep practicing to master the sequence
-      </p>
-    </div>
-  );
-};
 
 export default function OiiaiGame({ onShowLeaderboard }) {
   const [gameState, setGameState] = useState("idle");
@@ -300,6 +242,7 @@ export default function OiiaiGame({ onShowLeaderboard }) {
           setScore({
             time: timeElapsed.toFixed(2),
             speed: speed.toFixed(2),
+            points: Math.round(speed * 1000), // Calculate points based on speed
             success: true,
           });
 

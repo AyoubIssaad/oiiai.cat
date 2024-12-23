@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Trophy, Share2, Copy } from "lucide-react";
+import { Trophy, Share2 } from "lucide-react";
 import { Button } from "./ui/Button";
 
 const GameOverMessage = ({
@@ -13,11 +13,22 @@ const GameOverMessage = ({
   const [playerName, setPlayerName] = useState("");
   const [hasShared, setHasShared] = useState(false);
 
+  // Calculate score from speed if not provided directly
+  const calculateScore = () => {
+    if (typeof score === "object" && score !== null && "points" in score) {
+      return score.points;
+    }
+    // Fallback calculation based on speed
+    return Math.round(parseFloat(speed) * 1000);
+  };
+
   const handleShare = async () => {
     try {
+      const calculatedScore = calculateScore();
+
       const shareData = {
         title: "Oiiai Cat Achievement!",
-        text: `I just scored ${Math.round(score).toLocaleString()} points in Oiiai Cat! Can you beat my speed of ${speed} letters/second?`,
+        text: `I just scored ${calculatedScore.toLocaleString()} points in Oiiai Cat! Can you beat my speed of ${speed} letters/second?`,
         url: "https://oiiai.cat/games",
       };
 
@@ -49,6 +60,8 @@ const GameOverMessage = ({
     );
   }
 
+  const finalScore = calculateScore();
+
   return (
     <div className="kawaii-card p-6 text-center">
       <h3 className="kawaii-title text-xl mb-4 font-black">Perfect Run! ⭐</h3>
@@ -56,7 +69,7 @@ const GameOverMessage = ({
         <div className="flex flex-col items-center gap-2">
           <Trophy className="w-12 h-12 text-yellow-500" />
           <p className="text-2xl font-bold">
-            {Math.round(score).toLocaleString()} points
+            {finalScore.toLocaleString()} points
           </p>
         </div>
 
