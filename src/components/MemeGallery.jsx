@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Trophy,
   Share2,
@@ -52,11 +52,10 @@ const MemeGallery = () => {
   const [newMemeUrl, setNewMemeUrl] = useState("");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const observerTarget = useRef(null);
   const [submitting, setSubmitting] = useState(false);
+  const observerTarget = useRef(null);
 
-  // Fetch memes from the backend
-  const fetchMemes = async (pageNum) => {
+  const fetchMemes = useCallback(async (pageNum) => {
     try {
       setLoading(true);
       const response = await fetch(`/api/memes?page=${pageNum}`);
@@ -72,15 +71,13 @@ const MemeGallery = () => {
       }
 
       const data = await response.json();
-      console.log("Fetched memes:", data); // Debug log
+      console.log("Fetched memes:", data);
 
-      // Check if we got any new data
       if (!data || data.length === 0) {
         setHasMore(false);
         return;
       }
 
-      // Process the memes to include extracted video IDs
       const processedMemes = data.map((meme) => ({
         ...meme,
         extractedVideoId: extractVideoId(meme.url, meme.platform),
@@ -97,12 +94,12 @@ const MemeGallery = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Initial load
   useEffect(() => {
     fetchMemes(1);
-  }, []);
+  }, [fetchMemes]);
 
   // Detect platform and extract video ID
   const detectPlatform = (url) => {
@@ -133,7 +130,6 @@ const MemeGallery = () => {
         return;
       }
 
-      // Check for duplicates
       const isDuplicate = memes.some(
         (meme) =>
           meme.extractedVideoId === videoId && meme.platform === platform,
@@ -158,7 +154,6 @@ const MemeGallery = () => {
 
       if (!response.ok) throw new Error("Failed to add meme");
 
-      // Refresh memes list
       fetchMemes(1);
       setNewMemeUrl("");
       setShowAddForm(false);
@@ -198,47 +193,39 @@ const MemeGallery = () => {
     }
   };
 
-  // Improved infinite scroll handler with debounce
+  // Infinite scroll handler
   useEffect(() => {
-    let timeoutId;
-    let isLoadingMore = false;
-
     const observer = new IntersectionObserver(
       (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          !loading &&
-          !error &&
-          hasMore &&
-          !isLoadingMore
-        ) {
-          isLoadingMore = true;
-          timeoutId = setTimeout(() => {
+        if (entries[0].isIntersecting && !loading && !error && hasMore) {
+          window.requestAnimationFrame(() => {
             setPage((prev) => prev + 1);
-            fetchMemes(page + 1).finally(() => {
-              isLoadingMore = false;
-            });
-          }, 1500); // Increased delay to prevent rapid firing
+          });
         }
       },
-      {
-        threshold: 0,
-        rootMargin: "200px",
-      },
+      { threshold: 0, rootMargin: "200px" },
     );
 
-    if (observerTarget.current && hasMore) {
+    if (observerTarget.current) {
       observer.observe(observerTarget.current);
     }
 
     return () => {
-      observer.disconnect();
-      if (timeoutId) clearTimeout(timeoutId);
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
     };
-  }, [loading, page, error, hasMore]);
+  }, [loading, error, hasMore]);
+
+  // Fetch more memes when page changes
+  useEffect(() => {
+    if (page > 1) {
+      fetchMemes(page);
+    }
+  }, [page, fetchMemes]);
 
   return (
-    <div className="container mx-auto px-4 pt-20 sm:pt-24 pb-8">
+    <div className="container mx-auto px-4 pt-20 sm:pt-24 pb-8 min-h-screen bg-white">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-2xl font-bold text-blue-700">Community Memes</h2>
@@ -312,13 +299,6 @@ const MemeGallery = () => {
                 platform={meme.platform}
                 videoId={meme.extractedVideoId || meme.video_id}
               />
-            </div>
-
-            {/* Debug info - remove in production */}
-            <div className="p-2 text-xs text-gray-500">
-              <p>Platform: {meme.platform}</p>
-              <p>Video ID: {meme.extractedVideoId || meme.video_id}</p>
-              <p>URL: {meme.url}</p>
             </div>
 
             {/* Interaction Bar */}

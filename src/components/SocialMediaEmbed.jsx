@@ -90,11 +90,13 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
           className="tiktok-embed"
           cite={`https://www.tiktok.com/@user/video/${videoId}`}
           data-video-id={videoId}
+          data-autoplay="false"
           style={{
             maxWidth: "325px",
             width: "100%",
           }}
         >
+          >
           <section>
             <a
               target="_blank"
