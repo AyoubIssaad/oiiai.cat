@@ -14,16 +14,17 @@ import {
   ThumbsUp,
   ThumbsDown,
   Link as LinkIcon,
+  Play,
 } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Alert, AlertDescription } from "./ui/Alert";
 import SocialMediaEmbed from "./SocialMediaEmbed";
 
 const CATEGORIES = [
-  { id: "all", label: "All Memes", icon: Star },
+  { id: "popular", label: "Most Popular", icon: Flame },
   { id: "trending", label: "Trending", icon: TrendingUp },
   { id: "newest", label: "Latest", icon: Calendar },
-  { id: "popular", label: "Most Popular", icon: Flame },
+  { id: "all", label: "All Memes", icon: Star },
 ];
 
 const PLATFORMS = [
@@ -65,7 +66,7 @@ const MemeDiscoveryPage = () => {
   const [memes, setMemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("popular");
   const [selectedPlatform, setSelectedPlatform] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -77,6 +78,17 @@ const MemeDiscoveryPage = () => {
   const [newMemeUrl, setNewMemeUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const observerTarget = useRef(null);
+
+  // Detect platform from URL
+  const detectPlatform = (url) => {
+    const instagramPattern = /instagram\.com/;
+    const tiktokPattern = /tiktok\.com/;
+
+    if (instagramPattern.test(url)) return "INSTAGRAM";
+    if (tiktokPattern.test(url)) return "TIKTOK";
+
+    return null;
+  };
 
   const fetchMemes = useCallback(
     async (pageNum) => {
@@ -152,17 +164,6 @@ const MemeDiscoveryPage = () => {
     setHasMore(true);
     fetchMemes(1);
   }, [selectedCategory, selectedPlatform, dateRange, searchQuery, fetchMemes]);
-
-  // Detect platform
-  const detectPlatform = (url) => {
-    const instagramPattern = /instagram\.com/;
-    const tiktokPattern = /tiktok\.com/;
-
-    if (instagramPattern.test(url)) return "INSTAGRAM";
-    if (tiktokPattern.test(url)) return "TIKTOK";
-
-    return null;
-  };
 
   // Handle new meme submission
   const handleSubmit = async (e) => {
@@ -479,36 +480,42 @@ const MemeDiscoveryPage = () => {
               <SocialMediaEmbed
                 platform={meme.platform}
                 videoId={meme.extractedVideoId || meme.video_id}
+                autoplay={false}
               />
-            </div>
 
-            {/* Interaction Bar */}
-            <div className="p-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleVote(meme.id, "up")}
-                  className="p-2 hover:bg-blue-50 rounded-full"
-                >
-                  <ThumbsUp size={20} className="text-blue-600" />
-                </button>
-                <span className="font-bold">{meme.votes}</span>
-                <button
-                  onClick={() => handleVote(meme.id, "down")}
-                  className="p-2 hover:bg-blue-50 rounded-full"
-                >
-                  <ThumbsDown size={20} className="text-blue-600" />
-                </button>
-              </div>
-
-              <a
-                href={meme.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+              {/* Interaction Bar - Always visible */}
+              <div
+                className="p-4 flex justify-between items-center bg-white bg-opacity-90 backdrop-blur-sm"
+                style={{ zIndex: 10, position: "relative" }}
               >
-                <LinkIcon size={16} />
-                <span className="text-sm">Original</span>
-              </a>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleVote(meme.id, "up")}
+                    className="p-2 hover:bg-blue-50 rounded-full bg-white shadow-sm"
+                  >
+                    <ThumbsUp size={20} className="text-blue-600" />
+                  </button>
+                  <span className="font-bold bg-white px-2 py-1 rounded">
+                    {meme.votes}
+                  </span>
+                  <button
+                    onClick={() => handleVote(meme.id, "down")}
+                    className="p-2 hover:bg-blue-50 rounded-full bg-white shadow-sm"
+                  >
+                    <ThumbsDown size={20} className="text-blue-600" />
+                  </button>
+                </div>
+
+                <a
+                  href={meme.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800 bg-white px-3 py-1 rounded shadow-sm"
+                >
+                  <LinkIcon size={16} />
+                  <span className="text-sm">Original</span>
+                </a>
+              </div>
             </div>
           </div>
         ))}
@@ -529,7 +536,7 @@ const MemeDiscoveryPage = () => {
           <Button
             onClick={() => {
               setSearchQuery("");
-              setSelectedCategory("all");
+              setSelectedCategory("popular");
               setSelectedPlatform("all");
               setDateRange("all");
               fetchMemes(1);

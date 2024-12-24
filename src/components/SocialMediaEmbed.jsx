@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { Play } from "lucide-react";
 
-const SocialMediaEmbed = ({ platform, videoId }) => {
+const SocialMediaEmbed = ({ platform, videoId, autoplay = false }) => {
   const [loading, setLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(autoplay);
 
   useEffect(() => {
     let scriptElement = null;
@@ -83,20 +85,29 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
   if (platform === "TIKTOK") {
     return (
       <div
-        className="tiktok-embed-container flex justify-center overflow-hidden"
+        className="tiktok-embed-container relative flex justify-center overflow-hidden"
         style={{ minHeight: "500px" }}
       >
+        {!isPlaying && (
+          <div
+            className="absolute inset-0 z-10 bg-black bg-opacity-50 flex items-center justify-center cursor-pointer"
+            onClick={() => setIsPlaying(true)}
+          >
+            <div className="bg-white p-4 rounded-full">
+              <Play className="w-12 h-12 text-blue-600" />
+            </div>
+          </div>
+        )}
         <blockquote
           className="tiktok-embed"
           cite={`https://www.tiktok.com/@user/video/${videoId}`}
           data-video-id={videoId}
-          data-autoplay="false"
+          data-autoplay={isPlaying.toString()}
           style={{
             maxWidth: "325px",
             width: "100%",
           }}
         >
-          >
           <section>
             <a
               target="_blank"
