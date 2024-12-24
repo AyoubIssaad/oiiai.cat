@@ -65,7 +65,7 @@ const SocialMediaEmbed = ({ platform, videoId, autoplay = false }) => {
         style={{ paddingBottom: "120%" }}
       >
         <blockquote
-          className="instagram-media absolute inset-0 w-full"
+          className="instagram-media absolute top-0 left-0 h-full"
           data-instgrm-permalink={`https://www.instagram.com/reel/${videoId}/`}
           data-instgrm-version="14"
           style={{
