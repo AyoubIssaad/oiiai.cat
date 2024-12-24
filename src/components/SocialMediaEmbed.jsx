@@ -106,18 +106,17 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
     return (
       <div
         className="tiktok-embed-container relative w-full"
-        style={{ paddingBottom: "177.77%" }}
+        style={{ paddingBottom: "138.2%" }}
       >
         <blockquote
           className="tiktok-embed absolute inset-0"
           cite={`https://www.tiktok.com/@user/video/${videoId}`}
           data-video-id={videoId}
           style={{
-            maxWidth: "605px",
-            minWidth: "325px",
+            maxWidth: "325px",
             width: "100%",
             height: "100%",
-            margin: "0",
+            margin: "0 auto",
           }}
         >
           <section>
