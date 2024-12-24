@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ThumbsUp,
   ThumbsDown,
@@ -7,9 +7,8 @@ import {
   X,
   Link as LinkIcon,
 } from "lucide-react";
-// import { Button } from "@/components/ui/button";
-import { Button } from "../components/ui/Button";
-import { Alert, AlertDescription } from "../components/ui/Alert";
+import { Button } from "./ui/Button";
+import { Alert, AlertDescription } from "./ui/Alert";
 
 const SUPPORTED_PLATFORMS = {
   INSTAGRAM: {
@@ -33,6 +32,7 @@ const MemeGallery = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newMemeUrl, setNewMemeUrl] = useState("");
   const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const observerTarget = useRef(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -61,8 +61,8 @@ const MemeGallery = () => {
       const data = await response.json();
 
       // Check if we got any new data
-      if (data.length === 0) {
-        setError("No more memes to load");
+      if (!data || data.length === 0) {
+        setHasMore(false);
         return;
       }
 
@@ -78,25 +78,6 @@ const MemeGallery = () => {
       setLoading(false);
     }
   };
-
-  // Infinite scroll handler using Intersection Observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !loading) {
-          setPage((prev) => prev + 1);
-          fetchMemes(page + 1);
-        }
-      },
-      { threshold: 1.0 },
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => observer.disconnect();
-  }, [loading, page]);
 
   // Detect platform and extract video ID
   const detectPlatform = (url) => {
@@ -189,6 +170,32 @@ const MemeGallery = () => {
     }
   };
 
+  // Infinite scroll handler using Intersection Observer
+  useEffect(() => {
+    let timeoutId;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loading && !error && hasMore) {
+          // Add delay between requests to prevent rate limiting
+          timeoutId = setTimeout(() => {
+            setPage((prev) => prev + 1);
+            fetchMemes(page + 1);
+          }, 1000); // 1 second delay
+        }
+      },
+      { threshold: 0.5 },
+    );
+
+    if (observerTarget.current && hasMore) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      observer.disconnect();
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [loading, page, error, hasMore]);
+
   return (
     <div className="container mx-auto px-4 pt-20 sm:pt-24 pb-8">
       {/* Header */}
@@ -248,6 +255,36 @@ const MemeGallery = () => {
                 </p>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && memes.length === 0 && (
+        <div className="text-center py-12 max-w-lg mx-auto">
+          <div className="kawaii-card p-8">
+            <h3 className="kawaii-title text-xl mb-4">
+              Welcome to the Meme Gallery! 🎉
+            </h3>
+            <p className="text-blue-700 mb-6">
+              Looks like our gallery is just getting started! Be one of the
+              first to add your favorite spinning cat memes.
+            </p>
+            <div className="space-y-4 text-blue-700 mb-6">
+              <p>You can add:</p>
+              <ul className="list-disc pl-6 text-left">
+                <li>Instagram Reels featuring spinning cats</li>
+                <li>TikTok videos of Oiiai Cat</li>
+                <li>YouTube Shorts of Banana Cat</li>
+              </ul>
+            </div>
+            <Button
+              onClick={() => setShowAddForm(true)}
+              className="kawaii-button accent w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add First Meme
+            </Button>
           </div>
         </div>
       )}
@@ -313,7 +350,7 @@ const MemeGallery = () => {
       </div>
 
       {/* Loading State */}
-      {loading && (
+      {loading && hasMore && (
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
           <p className="mt-4 text-blue-600">Loading more memes...</p>
