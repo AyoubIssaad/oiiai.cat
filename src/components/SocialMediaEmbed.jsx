@@ -1,43 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 const SocialMediaEmbed = ({ platform, videoId }) => {
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     // Load Instagram embed script
-    // Helper function to extract video ID from URL
-    const extractVideoId = (url, platform) => {
-      if (!url) return null;
-
-      try {
-        const urlObj = new URL(url);
-        const pathParts = urlObj.pathname.split("/").filter(Boolean);
-
-        if (platform === "INSTAGRAM") {
-          // Look for ID after /p/ or /reel/
-          const idIndex = pathParts.findIndex(
-            (part) => part === "p" || part === "reel",
-          );
-          return idIndex !== -1 ? pathParts[idIndex + 1] : null;
-        }
-
-        if (platform === "TIKTOK") {
-          // Get last part of the path for TikTok
-          const videoIndex = pathParts.findIndex((part) => part === "video");
-          return videoIndex !== -1
-            ? pathParts[videoIndex + 1]
-            : pathParts[pathParts.length - 1];
-        }
-
-        return null;
-      } catch (error) {
-        console.error("Error extracting video ID:", error);
-        return null;
-      }
-    };
-
-    // Update videoId using the URL if necessary
-    const effectiveVideoId =
-      videoId || extractVideoId(window.location.href, platform);
-
     if (platform === "INSTAGRAM") {
       const script = document.createElement("script");
       script.src = "//www.instagram.com/embed.js";
@@ -46,7 +13,6 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
 
       return () => {
         document.body.removeChild(script);
-        // Clean up existing embeds
         if (window.instgrm) {
           window.instgrm.Embeds.process();
         }
@@ -66,11 +32,7 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
     }
   }, [platform, videoId]);
 
-  // Debug log to help identify issues
-  console.log("Embedding media:", { platform, videoId });
-
   if (!videoId) {
-    console.warn("No videoId provided for platform:", platform);
     return (
       <div className="flex items-center justify-center h-48 bg-gray-100 rounded-lg">
         <p className="text-gray-500">Media not available</p>
@@ -105,18 +67,16 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
   if (platform === "TIKTOK") {
     return (
       <div
-        className="tiktok-embed-container relative w-full"
-        style={{ paddingBottom: "138.2%" }}
+        className="tiktok-embed-container flex justify-center overflow-hidden"
+        style={{ minHeight: "500px" }}
       >
         <blockquote
-          className="tiktok-embed absolute inset-0"
+          className="tiktok-embed"
           cite={`https://www.tiktok.com/@user/video/${videoId}`}
           data-video-id={videoId}
           style={{
             maxWidth: "325px",
             width: "100%",
-            height: "100%",
-            margin: "0 auto",
           }}
         >
           <section>
