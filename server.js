@@ -7,13 +7,23 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Rate limiting to prevent abuse
-const limiter = rateLimit({
+// Rate limiting configurations
+const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
 });
 
-app.use("/api/", limiter);
+const voteLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // limit each IP to 50 votes per window
+});
+
+const submissionLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // limit each IP to 5 submissions per hour
+});
+
+app.use("/api/", apiLimiter);
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -24,10 +34,11 @@ const pool = new Pool({
       : false,
 });
 
-// Initialize database
+// Initialize database tables
 async function initDB() {
   const client = await pool.connect();
   try {
+    // Create scores table
     await client.query(`
       CREATE TABLE IF NOT EXISTS scores (
         id SERIAL PRIMARY KEY,
@@ -40,6 +51,23 @@ async function initDB() {
       );
 
       CREATE INDEX IF NOT EXISTS idx_scores_score ON scores(score DESC);
+
+      -- Create memes table
+      CREATE TABLE IF NOT EXISTS memes (
+        id SERIAL PRIMARY KEY,
+        url TEXT NOT NULL,
+        platform VARCHAR(20) NOT NULL,
+        video_id VARCHAR(100) NOT NULL,
+        votes INTEGER DEFAULT 0,
+        description TEXT,
+        tags TEXT[] DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(platform, video_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_memes_votes ON memes(votes DESC);
+      CREATE INDEX IF NOT EXISTS idx_memes_platform_video ON memes(platform, video_id);
+      CREATE INDEX IF NOT EXISTS idx_memes_tags ON memes USING GIN (tags);
     `);
   } finally {
     client.release();
@@ -49,6 +77,8 @@ async function initDB() {
 initDB().catch(console.error);
 
 // API Endpoints
+
+// Scores endpoints
 app.post("/api/scores", async (req, res) => {
   console.log("Received score submission:", req.body);
 
@@ -130,77 +160,10 @@ app.get("/api/leaderboard", async (req, res) => {
   }
 });
 
-// In server.js
-app.get("/api/health", async (req, res) => {
-  try {
-    // Test database connection
-    await pool.query("SELECT 1");
-    res.json({
-      status: "healthy",
-      database: "connected",
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "unhealthy",
-      error: error.message,
-      timestamp: new Date().toISOString(),
-    });
-  }
-});
-
-const port = process.env.PORT || 3001;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
-
-//New Code
-// Add to server.js
-
-const rateLimit = require("express-rate-limit");
-
-// Rate limiting for votes and submissions
-const voteLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // limit each IP to 50 votes per window
-});
-
-const submissionLimit = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // limit each IP to 5 submissions per hour
-});
-
-// Initialize database tables
-async function initMemesDB() {
-  const client = await pool.connect();
-  try {
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS memes (
-        id SERIAL PRIMARY KEY,
-        url TEXT NOT NULL,
-        platform VARCHAR(20) NOT NULL,
-        video_id VARCHAR(100) NOT NULL,
-        votes INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(platform, video_id)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_memes_votes ON memes(votes DESC);
-      CREATE INDEX IF NOT EXISTS idx_memes_platform_video ON memes(platform, video_id);
-    `);
-  } finally {
-    client.release();
-  }
-}
-
-initMemesDB().catch(console.error);
-
-// Endpoints
-
-// Get memes with pagination
+// Memes endpoints
 app.get("/api/memes", async (req, res) => {
   const page = parseInt(req.query.page) || 1;
-  const limit = 12; // memes per page
+  const limit = 12;
   const offset = (page - 1) * limit;
 
   try {
@@ -218,17 +181,14 @@ app.get("/api/memes", async (req, res) => {
   }
 });
 
-// Add new meme
 app.post("/api/memes", submissionLimit, async (req, res) => {
   const { url, platform, videoId } = req.body;
 
-  // Validate input
   if (!url || !platform || !videoId) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
   try {
-    // Check for duplicates
     const existingMeme = await pool.query(
       "SELECT id FROM memes WHERE platform = $1 AND video_id = $2",
       [platform, videoId],
@@ -238,7 +198,6 @@ app.post("/api/memes", submissionLimit, async (req, res) => {
       return res.status(409).json({ error: "Meme already exists" });
     }
 
-    // Insert new meme
     const result = await pool.query(
       `INSERT INTO memes (url, platform, video_id)
        VALUES ($1, $2, $3)
@@ -253,7 +212,6 @@ app.post("/api/memes", submissionLimit, async (req, res) => {
   }
 });
 
-// Handle votes
 app.post("/api/memes/:id/vote", voteLimit, async (req, res) => {
   const { id } = req.params;
   const { type } = req.body;
@@ -282,7 +240,6 @@ app.post("/api/memes/:id/vote", voteLimit, async (req, res) => {
   }
 });
 
-// Get memes with advanced filtering
 app.get("/api/memes/discover", async (req, res) => {
   const {
     category,
@@ -298,14 +255,12 @@ app.get("/api/memes/discover", async (req, res) => {
     const params = [];
     let paramCount = 1;
 
-    // Platform filter
     if (platform && platform !== "all") {
       query += ` AND platform = $${paramCount}`;
       params.push(platform.toUpperCase());
       paramCount++;
     }
 
-    // Date range filter
     if (dateRange && dateRange !== "all") {
       const now = new Date();
       let dateFilter;
@@ -329,7 +284,6 @@ app.get("/api/memes/discover", async (req, res) => {
       }
     }
 
-    // Search filter
     if (search) {
       query += ` AND (
         description ILIKE $${paramCount} OR
@@ -339,7 +293,6 @@ app.get("/api/memes/discover", async (req, res) => {
       paramCount += 2;
     }
 
-    // Category sorting
     switch (category) {
       case "trending":
         query +=
@@ -355,7 +308,6 @@ app.get("/api/memes/discover", async (req, res) => {
         query += " ORDER BY created_at DESC";
     }
 
-    // Add pagination
     query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
     params.push(limit, (page - 1) * limit);
 
@@ -367,7 +319,6 @@ app.get("/api/memes/discover", async (req, res) => {
   }
 });
 
-// Get trending tags
 app.get("/api/memes/trending-tags", async (req, res) => {
   try {
     const result = await pool.query(`
@@ -388,42 +339,25 @@ app.get("/api/memes/trending-tags", async (req, res) => {
   }
 });
 
-// Add tags field to memes table
-async function addTagsSupport() {
-  const client = await pool.connect();
+// Health check endpoint
+app.get("/api/health", async (req, res) => {
   try {
-    await client.query(`
-      -- Add tags array if it doesn't exist
-      DO $
-      BEGIN
-        IF NOT EXISTS (
-          SELECT column_name
-          FROM information_schema.columns
-          WHERE table_name='memes' AND column_name='tags'
-        ) THEN
-          ALTER TABLE memes ADD COLUMN tags TEXT[] DEFAULT '{}';
-        END IF;
-      END $;
-
-      -- Add description if it doesn't exist
-      DO $
-      BEGIN
-        IF NOT EXISTS (
-          SELECT column_name
-          FROM information_schema.columns
-          WHERE table_name='memes' AND column_name='description'
-        ) THEN
-          ALTER TABLE memes ADD COLUMN description TEXT;
-        END IF;
-      END $;
-
-      -- Create GIN index for faster tag searches
-      CREATE INDEX IF NOT EXISTS idx_memes_tags ON memes USING GIN (tags);
-    `);
-  } finally {
-    client.release();
+    await pool.query("SELECT 1");
+    res.json({
+      status: "healthy",
+      database: "connected",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "unhealthy",
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    });
   }
-}
+});
 
-// Initialize tags support
-addTagsSupport().catch(console.error);
+const port = process.env.PORT || 3001;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
