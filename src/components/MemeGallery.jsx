@@ -46,7 +46,25 @@ const MemeGallery = () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/memes?page=${pageNum}`);
+
+      // Check if response is ok before trying to parse JSON
+      if (!response.ok) {
+        if (response.status === 429) {
+          setError(
+            "Rate limit reached. Please wait a moment before loading more.",
+          );
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
+
+      // Check if we got any new data
+      if (data.length === 0) {
+        setError("No more memes to load");
+        return;
+      }
 
       if (pageNum === 1) {
         setMemes(data);
