@@ -4,32 +4,48 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load Instagram embed script
-    if (platform === "INSTAGRAM") {
-      const script = document.createElement("script");
-      script.src = "//www.instagram.com/embed.js";
-      script.async = true;
-      document.body.appendChild(script);
+    let scriptElement = null;
+    const loadScript = async () => {
+      // Check if script is already loaded
+      const existingScript = document.querySelector(
+        `script[src*="${platform.toLowerCase()}"]`,
+      );
 
-      return () => {
-        document.body.removeChild(script);
-        if (window.instgrm) {
+      if (existingScript) {
+        if (platform === "INSTAGRAM" && window.instgrm) {
           window.instgrm.Embeds.process();
         }
-      };
-    }
+        return;
+      }
 
-    // Load TikTok embed script
-    if (platform === "TIKTOK") {
-      const script = document.createElement("script");
-      script.src = "https://www.tiktok.com/embed.js";
-      script.async = true;
-      document.body.appendChild(script);
+      // Create and load script if not already present
+      scriptElement = document.createElement("script");
+      scriptElement.async = true;
 
-      return () => {
-        document.body.removeChild(script);
-      };
-    }
+      if (platform === "INSTAGRAM") {
+        scriptElement.src = "//www.instagram.com/embed.js";
+        scriptElement.onload = () => {
+          if (window.instgrm) {
+            window.instgrm.Embeds.process();
+          }
+        };
+      } else if (platform === "TIKTOK") {
+        scriptElement.src = "https://www.tiktok.com/embed.js";
+      }
+
+      document.body.appendChild(scriptElement);
+    };
+
+    // Delay script loading slightly to prevent flickering
+    const timeoutId = setTimeout(loadScript, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      // Only remove the script if we created it
+      if (scriptElement) {
+        scriptElement.remove();
+      }
+    };
   }, [platform, videoId]);
 
   if (!videoId) {

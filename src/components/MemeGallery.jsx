@@ -198,21 +198,32 @@ const MemeGallery = () => {
     }
   };
 
-  // Infinite scroll handler with improved detection
+  // Improved infinite scroll handler with debounce
   useEffect(() => {
     let timeoutId;
+    let isLoadingMore = false;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loading && !error && hasMore) {
+        if (
+          entries[0].isIntersecting &&
+          !loading &&
+          !error &&
+          hasMore &&
+          !isLoadingMore
+        ) {
+          isLoadingMore = true;
           timeoutId = setTimeout(() => {
             setPage((prev) => prev + 1);
-            fetchMemes(page + 1);
-          }, 1000);
+            fetchMemes(page + 1).finally(() => {
+              isLoadingMore = false;
+            });
+          }, 1500); // Increased delay to prevent rapid firing
         }
       },
       {
-        threshold: 0.1,
-        rootMargin: "100px",
+        threshold: 0,
+        rootMargin: "200px",
       },
     );
 
