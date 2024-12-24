@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
+  Trophy,
+  Share2,
   ThumbsUp,
   ThumbsDown,
   Plus,
@@ -9,26 +11,42 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Alert, AlertDescription } from "./ui/Alert";
-import SocialMediaEmbed from "./SocialMediaEmbed"; // Add this import
+import SocialMediaEmbed from "./SocialMediaEmbed";
 
-const SUPPORTED_PLATFORMS = {
-  INSTAGRAM: {
-    pattern: /instagram.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/,
-    embedUrl: "https://www.instagram.com/embed.js",
-  },
-  TIKTOK: {
-    pattern: /tiktok.com\/@[\w.-]+\/video\/(\d+)/,
-    embedUrl: "https://www.tiktok.com/embed.js",
-  },
-  YOUTUBE: {
-    pattern: /(?:youtube.com\/shorts\/|youtu.be\/)([A-Za-z0-9_-]+)/,
-    embedUrl: "",
-  },
+// Helper function to extract video ID from URL
+const extractVideoId = (url, platform) => {
+  if (!url) return null;
+
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split("/").filter(Boolean);
+
+    if (platform.toUpperCase() === "INSTAGRAM") {
+      // Look for ID after /p/ or /reel/
+      const idIndex = pathParts.findIndex(
+        (part) => part === "p" || part === "reel",
+      );
+      return idIndex !== -1 ? pathParts[idIndex + 1] : null;
+    }
+
+    if (platform.toUpperCase() === "TIKTOK") {
+      // Get last part of the path for TikTok
+      const videoIndex = pathParts.findIndex((part) => part === "video");
+      return videoIndex !== -1
+        ? pathParts[videoIndex + 1]
+        : pathParts[pathParts.length - 1];
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error extracting video ID:", error, { url, platform });
+    return null;
+  }
 };
 
 const MemeGallery = () => {
   const [memes, setMemes] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newMemeUrl, setNewMemeUrl] = useState("");
@@ -37,18 +55,12 @@ const MemeGallery = () => {
   const observerTarget = useRef(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Load initial memes
-  useEffect(() => {
-    fetchMemes(1);
-  }, []);
-
   // Fetch memes from the backend
   const fetchMemes = async (pageNum) => {
     try {
       setLoading(true);
       const response = await fetch(`/api/memes?page=${pageNum}`);
 
-      // Check if response is ok before trying to parse JSON
       if (!response.ok) {
         if (response.status === 429) {
           setError(
@@ -60,6 +72,7 @@ const MemeGallery = () => {
       }
 
       const data = await response.json();
+      console.log("Fetched memes:", data); // Debug log
 
       // Check if we got any new data
       if (!data || data.length === 0) {
@@ -67,27 +80,38 @@ const MemeGallery = () => {
         return;
       }
 
+      // Process the memes to include extracted video IDs
+      const processedMemes = data.map((meme) => ({
+        ...meme,
+        extractedVideoId: extractVideoId(meme.url, meme.platform),
+      }));
+
       if (pageNum === 1) {
-        setMemes(data);
+        setMemes(processedMemes);
       } else {
-        setMemes((prev) => [...prev, ...data]);
+        setMemes((prev) => [...prev, ...processedMemes]);
       }
     } catch (err) {
-      setError("Failed to load memes");
       console.error("Error fetching memes:", err);
+      setError("Failed to load memes");
     } finally {
       setLoading(false);
     }
   };
 
+  // Initial load
+  useEffect(() => {
+    fetchMemes(1);
+  }, []);
+
   // Detect platform and extract video ID
   const detectPlatform = (url) => {
-    for (const [platform, { pattern }] of Object.entries(SUPPORTED_PLATFORMS)) {
-      const match = url.match(pattern);
-      if (match) {
-        return { platform, videoId: match[1] };
-      }
-    }
+    const instagramPattern = /instagram\.com/;
+    const tiktokPattern = /tiktok\.com/;
+
+    if (instagramPattern.test(url)) return "INSTAGRAM";
+    if (tiktokPattern.test(url)) return "TIKTOK";
+
     return null;
   };
 
@@ -97,18 +121,22 @@ const MemeGallery = () => {
     setSubmitting(true);
 
     try {
-      const platformInfo = detectPlatform(newMemeUrl);
-
-      if (!platformInfo) {
+      const platform = detectPlatform(newMemeUrl);
+      if (!platform) {
         setError("Unsupported platform or invalid URL");
+        return;
+      }
+
+      const videoId = extractVideoId(newMemeUrl, platform);
+      if (!videoId) {
+        setError("Could not extract video ID from URL");
         return;
       }
 
       // Check for duplicates
       const isDuplicate = memes.some(
         (meme) =>
-          meme.videoId === platformInfo.videoId &&
-          meme.platform === platformInfo.platform,
+          meme.extractedVideoId === videoId && meme.platform === platform,
       );
 
       if (isDuplicate) {
@@ -123,8 +151,8 @@ const MemeGallery = () => {
         },
         body: JSON.stringify({
           url: newMemeUrl,
-          platform: platformInfo.platform,
-          videoId: platformInfo.videoId,
+          platform,
+          videoId,
         }),
       });
 
@@ -154,7 +182,6 @@ const MemeGallery = () => {
 
       if (!response.ok) throw new Error("Failed to vote");
 
-      // Update local state
       setMemes((prev) =>
         prev.map((meme) => {
           if (meme.id === memeId) {
@@ -171,17 +198,16 @@ const MemeGallery = () => {
     }
   };
 
-  // Infinite scroll handler using Intersection Observer
+  // Infinite scroll handler
   useEffect(() => {
     let timeoutId;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !loading && !error && hasMore) {
-          // Add delay between requests to prevent rate limiting
           timeoutId = setTimeout(() => {
             setPage((prev) => prev + 1);
             fetchMemes(page + 1);
-          }, 1000); // 1 second delay
+          }, 1000);
         }
       },
       { threshold: 0.5 },
@@ -243,7 +269,7 @@ const MemeGallery = () => {
                     type="url"
                     value={newMemeUrl}
                     onChange={(e) => setNewMemeUrl(e.target.value)}
-                    placeholder="Paste Instagram Reel, TikTok, or YouTube Shorts URL"
+                    placeholder="Paste Instagram Reel or TikTok URL"
                     className="flex-1 p-2 border rounded"
                     required
                   />
@@ -252,40 +278,10 @@ const MemeGallery = () => {
                   </Button>
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
-                  Supports Instagram Reels, TikTok videos, and YouTube Shorts
+                  Supports Instagram Reels and TikTok videos
                 </p>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!loading && memes.length === 0 && (
-        <div className="text-center py-12 max-w-lg mx-auto">
-          <div className="kawaii-card p-8">
-            <h3 className="kawaii-title text-xl mb-4">
-              Welcome to the Meme Gallery! 🎉
-            </h3>
-            <p className="text-blue-700 mb-6">
-              Looks like our gallery is just getting started! Be one of the
-              first to add your favorite spinning cat memes.
-            </p>
-            <div className="space-y-4 text-blue-700 mb-6">
-              <p>You can add:</p>
-              <ul className="list-disc pl-6 text-left">
-                <li>Instagram Reels featuring spinning cats</li>
-                <li>TikTok videos of Oiiai Cat</li>
-                <li>YouTube Shorts of Banana Cat</li>
-              </ul>
-            </div>
-            <Button
-              onClick={() => setShowAddForm(true)}
-              className="kawaii-button accent w-full"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add First Meme
-            </Button>
           </div>
         </div>
       )}
@@ -297,12 +293,18 @@ const MemeGallery = () => {
             key={meme.id}
             className="bg-white rounded-lg shadow-lg overflow-hidden"
           >
-            {/* This is the updated video embed section */}
             <div className="relative">
               <SocialMediaEmbed
                 platform={meme.platform}
-                videoId={meme.videoId}
+                videoId={meme.extractedVideoId || meme.video_id}
               />
+            </div>
+
+            {/* Debug info - remove in production */}
+            <div className="p-2 text-xs text-gray-500">
+              <p>Platform: {meme.platform}</p>
+              <p>Video ID: {meme.extractedVideoId || meme.video_id}</p>
+              <p>URL: {meme.url}</p>
             </div>
 
             {/* Interaction Bar */}
@@ -338,10 +340,10 @@ const MemeGallery = () => {
       </div>
 
       {/* Loading State */}
-      {loading && hasMore && (
+      {loading && (
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-blue-600">Loading more memes...</p>
+          <p className="mt-4 text-blue-600">Loading memes...</p>
         </div>
       )}
 
