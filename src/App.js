@@ -9,7 +9,6 @@ import TermsOfUse from "./components/TermsOfUse";
 import ScrollToTop from "./components/ScrollToTop";
 import { MainLayout } from "./components/MainLayout";
 import KawaiiNav from "./components/KawaiiNav";
-import MemeGallery from "./components/MemeGallery";
 import MemeDiscoveryPage from "./components/MemeDiscoveryPage";
 
 function App() {
@@ -26,8 +25,7 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/secret-messages" element={<SecretMessagePage />} />
           <Route path="/games" element={<GamesPage />} />
-          <Route path="/memes" element={<MemeGallery />} />
-          <Route path="/memes/discover" element={<MemeDiscoveryPage />} />
+          <Route path="/memes" element={<MemeDiscoveryPage />} />
 
           {/* Legacy routes with redirects */}
           <Route path="/cat" element={<Navigate to="/" replace />} />

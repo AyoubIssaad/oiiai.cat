@@ -81,10 +81,7 @@ export function KawaiiNav() {
             <NavLink to="/" icon={Home} label="Home">
               Make Cat Spin!
             </NavLink>
-            <NavLink to="/memes" icon={Film} label="Meme Gallery">
-              Meme Gallery
-            </NavLink>
-            <NavLink to="/memes/discover" icon={Search} label="Discover">
+            <NavLink to="/memes" icon={Search} label="Discover">
               Discover Memes
             </NavLink>
             <NavLink
@@ -117,6 +114,14 @@ export function KawaiiNav() {
                 onClick={closeMenu}
               >
                 Encode Messages!
+              </NavLink>
+              <NavLink
+                to="/memes"
+                icon={Search}
+                label="Discover Memes"
+                onClick={closeMenu}
+              >
+                Discover Memes
               </NavLink>
               <NavLink
                 to="/games"
