@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Play } from "lucide-react";
 
 const SocialMediaEmbed = ({ platform, videoId, autoplay = false }) => {
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(autoplay);
+  const [iframeHeight, setIframeHeight] = useState(0);
+  const instagramEmbedContainerRef = useRef(null);
 
   useEffect(() => {
     let scriptElement = null;
@@ -41,8 +43,36 @@ const SocialMediaEmbed = ({ platform, videoId, autoplay = false }) => {
     // Delay script loading slightly to prevent flickering
     const timeoutId = setTimeout(loadScript, 100);
 
+    // Function to calculate and set the height
+    const setEmbedHeight = () => {
+      if (
+        instagramEmbedContainerRef.current &&
+        window.innerWidth >= 768 && // For medium screens and above (md breakpoint)
+        platform === "INSTAGRAM"
+      ) {
+        // Find the actual height of the content, fallback to default if needed
+        const height =
+          instagramEmbedContainerRef.current.offsetHeight ||
+          instagramEmbedContainerRef.current.scrollHeight ||
+          500; // Default height
+        setIframeHeight(height);
+        console.log("Setting iframe height:", height); // Debugging
+      } else {
+        // Reset to 0 for smaller screens or TikTok
+        setIframeHeight(0);
+      }
+    };
+
+    // Initial height calculation
+    const timeoutId2 = setTimeout(setEmbedHeight, 500); // Delay after initial render
+
+    // Recalculate on window resize
+    window.addEventListener("resize", setEmbedHeight);
+
     return () => {
       clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      window.removeEventListener("resize", setEmbedHeight);
       // Only remove the script if we created it
       if (scriptElement) {
         scriptElement.remove();
@@ -62,7 +92,10 @@ const SocialMediaEmbed = ({ platform, videoId, autoplay = false }) => {
     return (
       <div
         className="instagram-embed-container relative w-full"
-        style={{ paddingBottom: "120%" }}
+        style={{
+          minHeight: iframeHeight > 0 ? iframeHeight + "px" : undefined, // Use calculated height or undefined
+        }}
+        ref={instagramEmbedContainerRef}
       >
         <blockquote
           className="instagram-media absolute top-0 left-0 h-full"

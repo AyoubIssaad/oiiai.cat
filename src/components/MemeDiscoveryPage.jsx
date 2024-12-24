@@ -474,20 +474,27 @@ const MemeDiscoveryPage = () => {
         {memes.map((meme) => (
           <div
             key={meme.id}
-            className="bg-white rounded-lg shadow-lg overflow-hidden max-w-xl mx-auto w-full"
+            className="bg-white rounded-lg shadow-lg overflow-hidden max-w-xl mx-auto w-full flex flex-col"
           >
-            <div className="relative">
-              <div className="instagram-embed-container">
+            <div className="relative grow">
+              {" "}
+              {/* Add grow here */}
+              <div
+                className={
+                  meme.platform === "INSTAGRAM"
+                    ? "instagram-embed-container"
+                    : ""
+                }
+              >
                 <SocialMediaEmbed
                   platform={meme.platform}
                   videoId={meme.extractedVideoId || meme.video_id}
                   autoplay={false}
                 />
               </div>
-
               {/* Interaction Bar - Always visible */}
               <div
-                className="absolute bottom-0 left-0 w-full p-4 flex justify-between items-center bg-white bg-opacity-90 backdrop-blur-sm"
+                className="p-4 flex justify-between items-center bg-white bg-opacity-90 backdrop-blur-sm"
                 style={{ zIndex: 10 }}
               >
                 <div className="flex items-center gap-2">

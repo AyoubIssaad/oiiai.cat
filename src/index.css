@@ -212,6 +212,7 @@ body {
   position: relative; /* Make this container a positioning reference */
   width: 100%; /* Ensure it takes up full width */
   overflow: hidden; /* Hide any overflowing content from the iframe */
+  min-height: 500px; /* Minimum height for the container */
 }
 
 /* Optional: Adjust padding-bottom if needed */
