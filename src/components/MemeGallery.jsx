@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Alert, AlertDescription } from "./ui/Alert";
+import SocialMediaEmbed from "./SocialMediaEmbed"; // Add this import
 
 const SUPPORTED_PLATFORMS = {
   INSTAGRAM: {
@@ -296,25 +297,12 @@ const MemeGallery = () => {
             key={meme.id}
             className="bg-white rounded-lg shadow-lg overflow-hidden"
           >
-            {/* Video Embed Container */}
-            <div className="relative pt-[177.77%]">
-              {meme.platform === "YOUTUBE" ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${meme.videoId}`}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                />
-              ) : (
-                <div
-                  className="absolute inset-0"
-                  dangerouslySetInnerHTML={{
-                    __html: `<blockquote
-                      class="instagram-media"
-                      data-instgrm-permalink="https://www.instagram.com/p/${meme.videoId}/"
-                    ></blockquote>`,
-                  }}
-                />
-              )}
+            {/* This is the updated video embed section */}
+            <div className="relative">
+              <SocialMediaEmbed
+                platform={meme.platform}
+                videoId={meme.videoId}
+              />
             </div>
 
             {/* Interaction Bar */}

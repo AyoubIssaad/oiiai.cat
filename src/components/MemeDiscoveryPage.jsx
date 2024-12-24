@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Alert, AlertDescription } from "./ui/Alert";
+import SocialMediaEmbed from "./SocialMediaEmbed";
 
 const CATEGORIES = [
   { id: "all", label: "All Memes", icon: Star },
