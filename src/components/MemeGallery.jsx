@@ -198,7 +198,7 @@ const MemeGallery = () => {
     }
   };
 
-  // Infinite scroll handler
+  // Infinite scroll handler with improved detection
   useEffect(() => {
     let timeoutId;
     const observer = new IntersectionObserver(
@@ -210,7 +210,10 @@ const MemeGallery = () => {
           }, 1000);
         }
       },
-      { threshold: 0.5 },
+      {
+        threshold: 0.1,
+        rootMargin: "100px",
+      },
     );
 
     if (observerTarget.current && hasMore) {
@@ -291,7 +294,7 @@ const MemeGallery = () => {
         {memes.map((meme) => (
           <div
             key={meme.id}
-            className="bg-white rounded-lg shadow-lg overflow-hidden"
+            className="bg-white rounded-lg shadow-lg overflow-hidden max-w-xl mx-auto w-full"
           >
             <div className="relative">
               <SocialMediaEmbed

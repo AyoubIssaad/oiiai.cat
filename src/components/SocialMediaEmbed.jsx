@@ -80,16 +80,20 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
 
   if (platform === "INSTAGRAM") {
     return (
-      <div className="instagram-embed-container relative w-full pt-[125%]">
+      <div
+        className="instagram-embed-container relative w-full"
+        style={{ paddingBottom: "120%" }}
+      >
         <blockquote
-          className="instagram-media absolute inset-0 w-full h-full"
+          className="instagram-media absolute inset-0 w-full"
           data-instgrm-permalink={`https://www.instagram.com/reel/${videoId}/`}
           data-instgrm-version="14"
           style={{
             background: "#FFF",
             border: "0",
-            margin: "1px",
+            margin: "0",
             maxWidth: "540px",
+            width: "100%",
             minWidth: "326px",
             padding: "0",
           }}
@@ -100,12 +104,21 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
 
   if (platform === "TIKTOK") {
     return (
-      <div className="tiktok-embed-container relative w-full pt-[177.77%]">
+      <div
+        className="tiktok-embed-container relative w-full"
+        style={{ paddingBottom: "177.77%" }}
+      >
         <blockquote
-          className="tiktok-embed absolute inset-0 w-full h-full"
+          className="tiktok-embed absolute inset-0"
           cite={`https://www.tiktok.com/@user/video/${videoId}`}
           data-video-id={videoId}
-          style={{ maxWidth: "605px", minWidth: "325px" }}
+          style={{
+            maxWidth: "605px",
+            minWidth: "325px",
+            width: "100%",
+            height: "100%",
+            margin: "0",
+          }}
         >
           <section>
             <a
