@@ -97,10 +97,10 @@ const MemeDiscoveryPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 pt-20 sm:pt-24 pb-8">
       {/* Header Section */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-blue-700 mb-4 font-['Orbitron']">
+      <div className="">
+        <h1 className="text-4xl font-bold text-blue-700 mb-4 font-['']">
           Discover Cat Memes
         </h1>
         <p className="text-blue-600 max-w-2xl mx-auto">
