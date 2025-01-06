@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Play } from "lucide-react";
 
-const SocialMediaEmbed = ({ platform, videoId, autoplay = false }) => {
+const SocialMediaEmbed = ({ platform, videoId }) => {
   const [loading, setLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(autoplay);
   const [iframeHeight, setIframeHeight] = useState(0);
   const instagramEmbedContainerRef = useRef(null);
 
@@ -56,7 +54,6 @@ const SocialMediaEmbed = ({ platform, videoId, autoplay = false }) => {
           instagramEmbedContainerRef.current.scrollHeight ||
           500; // Default height
         setIframeHeight(height);
-        console.log("Setting iframe height:", height); // Debugging
       } else {
         // Reset to 0 for smaller screens or TikTok
         setIframeHeight(0);
@@ -93,7 +90,7 @@ const SocialMediaEmbed = ({ platform, videoId, autoplay = false }) => {
       <div
         className="instagram-embed-container relative w-full"
         style={{
-          minHeight: iframeHeight > 0 ? iframeHeight + "px" : undefined, // Use calculated height or undefined
+          minHeight: iframeHeight > 0 ? iframeHeight + "px" : undefined,
         }}
         ref={instagramEmbedContainerRef}
       >
@@ -121,21 +118,10 @@ const SocialMediaEmbed = ({ platform, videoId, autoplay = false }) => {
         className="tiktok-embed-container relative flex justify-center overflow-hidden"
         style={{ minHeight: "500px" }}
       >
-        {!isPlaying && (
-          <div
-            className="absolute inset-0 z-10 bg-black bg-opacity-50 flex items-center justify-center cursor-pointer"
-            onClick={() => setIsPlaying(true)}
-          >
-            <div className="bg-white p-4 rounded-full">
-              <Play className="w-12 h-12 text-blue-600" />
-            </div>
-          </div>
-        )}
         <blockquote
           className="tiktok-embed"
           cite={`https://www.tiktok.com/@user/video/${videoId}`}
           data-video-id={videoId}
-          data-autoplay={isPlaying.toString()}
           style={{
             maxWidth: "325px",
             width: "100%",
