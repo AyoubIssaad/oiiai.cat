@@ -1,14 +1,57 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
+
+// Create a context for managing video playback
+const VideoPlaybackContext = React.createContext();
+
+export const VideoPlaybackProvider = ({ children }) => {
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+
+  return (
+    <VideoPlaybackContext.Provider
+      value={{ currentlyPlaying, setCurrentlyPlaying }}
+    >
+      {children}
+    </VideoPlaybackContext.Provider>
+  );
+};
 
 const SocialMediaEmbed = ({ platform, videoId }) => {
   const [loading, setLoading] = useState(true);
   const [iframeHeight, setIframeHeight] = useState(0);
   const instagramEmbedContainerRef = useRef(null);
+  const { currentlyPlaying, setCurrentlyPlaying } =
+    useContext(VideoPlaybackContext);
+  const uniqueId = `${platform}-${videoId}`;
+
+  useEffect(() => {
+    // If another video starts playing, stop or mute this one
+    if (currentlyPlaying && currentlyPlaying !== uniqueId) {
+      // For Instagram
+      if (platform === "INSTAGRAM") {
+        const iframe =
+          instagramEmbedContainerRef.current?.querySelector("iframe");
+        if (iframe) {
+          // Instagram doesn't provide direct control,
+          // but we can reload the iframe to stop playback
+          iframe.src = iframe.src;
+        }
+      }
+      // For TikTok
+      else if (platform === "TIKTOK") {
+        const iframe = document.querySelector(
+          `iframe[data-video-id="${videoId}"]`,
+        );
+        if (iframe) {
+          // TikTok videos can be reloaded to stop playback
+          iframe.src = iframe.src;
+        }
+      }
+    }
+  }, [currentlyPlaying, platform, videoId, uniqueId]);
 
   useEffect(() => {
     let scriptElement = null;
     const loadScript = async () => {
-      // Check if script is already loaded
       const existingScript = document.querySelector(
         `script[src*="${platform.toLowerCase()}"]`,
       );
@@ -20,7 +63,6 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
         return;
       }
 
-      // Create and load script if not already present
       scriptElement = document.createElement("script");
       scriptElement.async = true;
 
@@ -38,44 +80,51 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
       document.body.appendChild(scriptElement);
     };
 
-    // Delay script loading slightly to prevent flickering
     const timeoutId = setTimeout(loadScript, 100);
 
-    // Function to calculate and set the height
     const setEmbedHeight = () => {
       if (
         instagramEmbedContainerRef.current &&
-        window.innerWidth >= 768 && // For medium screens and above (md breakpoint)
+        window.innerWidth >= 768 &&
         platform === "INSTAGRAM"
       ) {
-        // Find the actual height of the content, fallback to default if needed
         const height =
           instagramEmbedContainerRef.current.offsetHeight ||
           instagramEmbedContainerRef.current.scrollHeight ||
-          500; // Default height
+          500;
         setIframeHeight(height);
       } else {
-        // Reset to 0 for smaller screens or TikTok
         setIframeHeight(0);
       }
     };
 
-    // Initial height calculation
-    const timeoutId2 = setTimeout(setEmbedHeight, 500); // Delay after initial render
+    const timeoutId2 = setTimeout(setEmbedHeight, 500);
 
-    // Recalculate on window resize
+    // Listen for video play events
+    const handleMessage = (event) => {
+      // Handle Instagram messages
+      if (event.data?.type === "video" && event.data?.action === "play") {
+        setCurrentlyPlaying(uniqueId);
+      }
+      // Handle TikTok messages
+      else if (event.data?.event === "play") {
+        setCurrentlyPlaying(uniqueId);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
     window.addEventListener("resize", setEmbedHeight);
 
     return () => {
       clearTimeout(timeoutId);
       clearTimeout(timeoutId2);
+      window.removeEventListener("message", handleMessage);
       window.removeEventListener("resize", setEmbedHeight);
-      // Only remove the script if we created it
       if (scriptElement) {
         scriptElement.remove();
       }
     };
-  }, [platform, videoId]);
+  }, [platform, videoId, uniqueId, setCurrentlyPlaying]);
 
   if (!videoId) {
     return (
