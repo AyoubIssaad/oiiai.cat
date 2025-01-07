@@ -11,7 +11,7 @@ import {
 import { Button } from "../ui/Button";
 import { Slider } from "../ui/Slider";
 import { Link } from "react-router-dom";
-import {ShareButton} from "../ShareButton"
+import { ShareButton } from "../ShareButton";
 import SEO from "../SEO";
 
 export function CatPage() {
@@ -168,9 +168,9 @@ export function CatPage() {
   return (
     <>
       <SEO
-        title="🌪️ Make Oiiai Cat Go Spinny! - Control the Spinning Cat Animation"
+        title="Make Oiiai Cat Go Spinny! - Control the Spinning Cat Animation"
         description="Control the legendary spinning Banana Cat! Adjust spinny speeds, add magical tunes, and create the perfect loop. Make the internet's favorite cat go round and round! ⭐"
-        path="/cat-goes-spin"
+        path="/"
       />
 
       <div className="container mx-auto px-4 pt-20 sm:pt24">

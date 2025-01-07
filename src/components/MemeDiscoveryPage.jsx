@@ -214,9 +214,13 @@ const MemeDiscoveryPage = () => {
   return (
     <div className="container mx-auto px-4 pt-20 sm:pt-24 pb-8 min-h-screen bg-white">
       <SEO
-        title="🎮 Discover Oiiai Cat / Banana Cat Memes - Watch the Best Spins!"
-        description="Explore the finest collection of spinning cat memes! Watch, vote, and share your favorite Oiiai Cat and Banana Cat moments. New memes added daily! 🐱"
-        path="/discover"
+        title="Viral Oiiai Cat & Banana Cat Memes | Best Spinning Cat Collection"
+        description="Discover and share the best Oiiai Cat memes! Vote for your favorites, submit new spins, and join our growing collection of viral spinning cat content. Updated daily with fresh memes! 🐱"
+        path="/memes"
+        // Adding more meta data for better SEO
+        type="website"
+        imageUrl="/meme-discovery-og.jpg"
+        imageAlt="Collection of viral Oiiai Cat memes"
       />
 
       {/* Header Section */}
