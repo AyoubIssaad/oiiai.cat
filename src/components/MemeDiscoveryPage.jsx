@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Flame,
-  Search,
   TrendingUp,
   Calendar,
   Star,
@@ -11,7 +10,6 @@ import {
   ThumbsDown,
   Link as LinkIcon,
   X,
-  Filter,
 } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Alert, AlertDescription } from "./ui/Alert";
@@ -21,14 +19,8 @@ import SEO from "./SEO";
 const CATEGORIES = [
   { id: "popular", label: "Most Popular", icon: Flame },
   { id: "trending", label: "Trending", icon: TrendingUp },
-  { id: "newest", label: "Latest", icon: Calendar },
+  { id: "latest", label: "Latest", icon: Calendar },
   { id: "all", label: "All Memes", icon: Star },
-];
-
-const PLATFORMS = [
-  { id: "all", label: "All Platforms" },
-  { id: "instagram", label: "Instagram" },
-  { id: "tiktok", label: "TikTok" },
 ];
 
 // Helper function to extract video ID from URL
@@ -66,11 +58,6 @@ const MemeDiscoveryPage = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("popular");
-  const [selectedPlatform, setSelectedPlatform] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [dateRange, setDateRange] = useState("all");
-  const [trendingTags, setTrendingTags] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -82,9 +69,6 @@ const MemeDiscoveryPage = () => {
     try {
       const queryParams = new URLSearchParams({
         category: selectedCategory,
-        platform: selectedPlatform,
-        dateRange,
-        search: searchQuery,
         page: pageNum,
         limit: 12,
       });
@@ -126,20 +110,9 @@ const MemeDiscoveryPage = () => {
     }
   };
 
-  const fetchTrendingTags = async () => {
-    try {
-      const response = await fetch("/api/memes/trending-tags");
-      const data = await response.json();
-      setTrendingTags(data);
-    } catch (err) {
-      console.error("Error fetching trending tags:", err);
-    }
-  };
-
   useEffect(() => {
     fetchMemes(1, true);
-    fetchTrendingTags();
-  }, [selectedCategory, selectedPlatform, dateRange, searchQuery]);
+  }, [selectedCategory]);
 
   const handleSubmitNewMeme = async (e) => {
     e.preventDefault();
@@ -194,13 +167,6 @@ const MemeDiscoveryPage = () => {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setPage(1);
-    setHasMore(true);
-    fetchMemes(1, true);
   };
 
   const handleLoadMore = () => {
@@ -273,127 +239,23 @@ const MemeDiscoveryPage = () => {
         </Button>
       </div>
 
-      {/* Search and Filter Section */}
-      <div className="mb-8">
-        <form
-          onSubmit={handleSearch}
-          className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-8"
-        >
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search memes..."
-              className="w-full pl-10 pr-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button
-              type="submit"
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2"
-            >
-              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Search</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2"
-            >
-              <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Filters</span>
-            </Button>
-          </div>
-        </form>
-
-        {/* Category Tabs */}
-        <div className="flex gap-2 md:gap-4 overflow-x-auto pb-4 mb-6 px-1 scrollbar-none">
-          {CATEGORIES.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setSelectedCategory(id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors
-                ${
-                  selectedCategory === id
-                    ? "bg-blue-500 text-white"
-                    : "bg-blue-50 text-blue-700 hover:bg-blue-100"
-                }`}
-            >
-              <Icon className="w-5 h-5" />
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {/* Expanded Filters */}
-        {showFilters && (
-          <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-blue-700">Filters</h3>
-              <button
-                onClick={() => setShowFilters(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Platform
-                </label>
-                <select
-                  value={selectedPlatform}
-                  onChange={(e) => setSelectedPlatform(e.target.value)}
-                  className="w-full p-2 border rounded"
-                >
-                  {PLATFORMS.map(({ id, label }) => (
-                    <option key={id} value={id}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Time Period
-                </label>
-                <select
-                  value={dateRange}
-                  onChange={(e) => setDateRange(e.target.value)}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="all">All Time</option>
-                  <option value="today">Today</option>
-                  <option value="week">This Week</option>
-                  <option value="month">This Month</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Trending Tags */}
-        {trendingTags.length > 0 && (
-          <div className="flex items-center gap-3 overflow-x-auto pb-2">
-            <span className="text-sm font-medium text-gray-500">Trending:</span>
-            {trendingTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setSearchQuery(tag)}
-                className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-full hover:bg-blue-100"
-              >
-                #{tag}
-              </button>
-            ))}
-          </div>
-        )}
+      {/* Category Tabs */}
+      <div className="flex gap-2 md:gap-4 overflow-x-auto pb-4 mb-6 px-1 scrollbar-none">
+        {CATEGORIES.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setSelectedCategory(id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors
+              ${
+                selectedCategory === id
+                  ? "bg-blue-500 text-white"
+                  : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+              }`}
+          >
+            <Icon className="w-5 h-5" />
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Error Alert */}
@@ -522,18 +384,7 @@ const MemeDiscoveryPage = () => {
       {/* No Results */}
       {!loading && memes.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">No memes found</p>
-          <Button
-            onClick={() => {
-              setSearchQuery("");
-              setSelectedCategory("popular");
-              setSelectedPlatform("all");
-              setDateRange("all");
-              fetchMemes(1, true);
-            }}
-          >
-            Clear Filters
-          </Button>
+          <p className="text-gray-500">No memes found</p>
         </div>
       )}
 
