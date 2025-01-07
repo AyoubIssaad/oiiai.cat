@@ -3,7 +3,7 @@
   <!-- Homepage (Spinning Cat) -->
   <url>
     <loc>https://oiiai.cat/</loc>
-    <lastmod>2024-11-04</lastmod>
+    <lastmod>2025-01-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -11,7 +11,7 @@
   <!-- Secret Messages Page -->
   <url>
     <loc>https://oiiai.cat/secret-messages</loc>
-    <lastmod>2024-11-04</lastmod>
+    <lastmod>2025-01-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -19,15 +19,31 @@
   <!-- Games Page -->
   <url>
     <loc>https://oiiai.cat/games</loc>
-    <lastmod>2024-11-04</lastmod>
+    <lastmod>2025-01-07</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Meme Discovery Page -->
+  <url>
+    <loc>https://oiiai.cat/memes</loc>
+    <lastmod>2025-01-07</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
   <!-- About Page -->
   <url>
     <loc>https://oiiai.cat/about</loc>
-    <lastmod>2024-11-04</lastmod>
+    <lastmod>2025-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Catalan About Page -->
+  <url>
+    <loc>https://oiiai.cat/about/ca</loc>
+    <lastmod>2025-01-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

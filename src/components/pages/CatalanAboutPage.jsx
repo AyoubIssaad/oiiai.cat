@@ -10,35 +10,34 @@ import {
   Users,
   Rocket,
   Share2,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import SEO from "../SEO";
 
-export function AboutPage() {
-  // Analytics tracking function
+export function CatalanAboutPage() {
   const trackEvent = (eventName, eventParams = {}) => {
     if (window.gtag) {
       window.gtag("event", eventName, eventParams);
     }
   };
 
-  // Share functionality
   const handleShare = async () => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: "Oiiai Cat - Interactive Spinning Cat Animation",
-          text: "Check out this fun spinning cat animation and game!",
+          title: "Oiiai Cat - Animació Interactiva de Gat Giratori",
+          text: "Mira aquest gat giratori divertit i el joc!",
           url: "https://oiiai.cat",
         });
         trackEvent("content_shared", { method: "native_share" });
       } else {
         await navigator.clipboard.writeText("https://oiiai.cat");
-        alert("Link copied to clipboard!");
+        alert("Enllaç copiat al portapapers!");
         trackEvent("content_shared", { method: "clipboard_copy" });
       }
     } catch (error) {
-      console.error("Error sharing:", error);
+      console.error("Error compartint:", error);
       trackEvent("share_error", { error: error.message });
     }
   };
@@ -46,36 +45,44 @@ export function AboutPage() {
   return (
     <>
       <SEO
-        title="Oiiai and Banana Cat Goes Spin! - The Official Oiiai Cat Playground"
-        description="Witness the legendary Oiiai Cat (aka Banana Cat) in action! Make the cat go spinny spin, send secret cat messages, and spread joy across the internet. The most purrfect cat meme experience! 🌟"
-        path="/about"
+        title="🐱 Oiiai i el Gat Plàtan fan voltes! - El parc oficial d'Oiiai Cat"
+        description="Descobreix el llegendari Oiiai Cat (també conegut com el Gat Plàtan) en acció! Fes que el gat giri, envia missatges secrets de gat i difon l'alegria per Internet. L'experiència més purrfecta del meme del gat! 🌟"
+        path="/ca"
       />
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-16 mt-20 mb-12">
+      {/* Back Button */}
+      <div className="container mx-auto px-4 pt-6 mt-20">
+        <Link to="/about">
+          <Button className="kawaii-button">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to English
+          </Button>
+        </Link>
+      </div>
+
+      {/* Secció Principal */}
+      <section className="bg-gradient-to-b from-blue-50 to-white py-16 mt-8 mb-12">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="text-center">
             <h1 className="flex items-center justify-center gap-4 mb-6">
               <span className="kawaii-heading text-4xl">
-                Welcome to Oiiai Cat
+                Benvinguts a Oiiai Cat
               </span>
             </h1>
-            <Link to="/about/ca">
-              <Button className="kawaii-button">Catalan Version</Button>
-            </Link>
-            <p className="text-lg text-blue-700 mb-8 mt-3">
-              Experience the viral sensation! Control the famous spinning cat,
-              play fun games, and discover more joy every day.
+            <p className="text-lg text-blue-700 mb-8">
+              Experimenta el fenomen viral! Controla el famós gat giratori, juga
+              a jocs divertits i descobreix més alegria cada dia.
             </p>
           </div>
         </div>
       </section>
+
       <section className="container mx-auto px-4 mb-16">
         <div className="max-w-4xl mx-auto">
           <div className="kawaii-card p-8 bg-gradient-to-br from-blue-50 to-white">
             <h2 className="kawaii-title text-2xl text-center mb-8 flex items-center justify-center gap-2">
               <Sparkles className="w-6 h-6 text-blue-500" />
-              Awesome Features
+              Característiques Impressionants
               <Sparkles className="w-6 h-6 text-blue-500" />
             </h2>
 
@@ -84,21 +91,21 @@ export function AboutPage() {
                 <div className="flex items-center gap-3">
                   <Cat className="w-8 h-8 text-blue-500 animate-[bounce_2s_ease-in-out_infinite]" />
                   <p className="text-blue-700 font-medium">
-                    Make Banana Cat go spinny spin!
+                    Fes que el Gat Plàtan giri sense parar!
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <MessageSquare className="w-8 h-8 text-blue-500" />
                   <p className="text-blue-700 font-medium">
-                    Send secret messages in cat language
+                    Envia missatges secrets en llenguatge de gat
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Keyboard className="w-8 h-8 text-blue-500" />
                   <p className="text-blue-700 font-medium">
-                    Play typing games with Oiiai patterns
+                    Juga a jocs d'escriptura amb patrons Oiiai
                   </p>
                 </div>
               </div>
@@ -107,21 +114,21 @@ export function AboutPage() {
                 <div className="flex items-center gap-3">
                   <Send className="w-8 h-8 text-blue-500" />
                   <p className="text-blue-700 font-medium">
-                    Share the joy with other cat fans
+                    Comparteix l'alegria amb altres fans dels gats
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Users className="w-8 h-8 text-blue-500" />
                   <p className="text-blue-700 font-medium">
-                    Join the spinning cat community
+                    Uneix-te a la comunitat del gat giratori
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Rocket className="w-8 h-8 text-blue-500" />
                   <p className="text-blue-700 font-medium">
-                    Discover new ways to play with Banana Cat
+                    Descobreix noves maneres de jugar amb el Gat Plàtan
                   </p>
                 </div>
               </div>
@@ -130,71 +137,71 @@ export function AboutPage() {
             <div className="mt-8 text-center">
               <Button onClick={handleShare} className="kawaii-button accent">
                 <Share2 className="w-4 h-4 mr-2" />
-                Share the Fun!
+                Comparteix la Diversió!
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Feature Cards Section */}
+      {/* Targetes de Característiques */}
       <section className="container mx-auto px-4 mb-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-          {/* Interactive Cat Card */}
+          {/* Gat Interactiu */}
           <Link
             to="/cat"
             className="kawaii-card p-8 text-center hover:scale-105 transition-transform"
           >
             <Cat className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-            <h2 className="kawaii-title text-2xl mb-4">Interactive Cat</h2>
+            <h2 className="kawaii-title text-2xl mb-4">Gat Interactiu</h2>
             <p className="text-blue-700 mb-4">
-              Make Banana Cat go spinny spin! Control the iconic animation with
-              perfect music sync.
+              Fes que el Gat Plàtan giri! Controla l'animació icònica amb
+              sincronització musical perfecta.
             </p>
             <span className="kawaii-text text-sm text-blue-500">
-              Try it now →
+              Prova-ho ara →
             </span>
           </Link>
 
-          {/* Secret Messages Card */}
+          {/* Missatges Secrets */}
           <Link
             to="/secret"
             className="kawaii-card p-8 text-center hover:scale-105 transition-transform"
           >
             <MessageSquare className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-            <h2 className="kawaii-title text-2xl mb-4">Secret Messages</h2>
+            <h2 className="kawaii-title text-2xl mb-4">Missatges Secrets</h2>
             <p className="text-blue-700 mb-4">
-              Send mysterious cat-coded messages using the ancient Oiiai
-              language!
+              Envia missatges misteriosos codificats en gat utilitzant l'antic
+              llenguatge Oiiai!
             </p>
             <span className="kawaii-text text-sm text-blue-500">
-              Send now →
+              Envia ara →
             </span>
           </Link>
 
-          {/* Games Card */}
+          {/* Jocs */}
           <Link
             to="/games"
             className="kawaii-card p-8 text-center hover:scale-105 transition-transform"
           >
             <Gamepad2 className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-            <h2 className="kawaii-title text-2xl mb-4">Fun Games</h2>
+            <h2 className="kawaii-title text-2xl mb-4">Jocs Divertits</h2>
             <p className="text-blue-700 mb-4">
-              Test your skills with our collection of Banana Cat games and
-              challenges!
+              Posa a prova les teves habilitats amb la nostra col·lecció de jocs
+              i reptes del Gat Plàtan!
             </p>
             <span className="kawaii-text text-sm text-blue-500">
-              Play now →
+              Juga ara →
             </span>
           </Link>
         </div>
       </section>
 
-      {/* About Section */}
+      {/* Secció Sobre el Gat */}
       <section className="container mx-auto px-4 mb-16">
         <div className="kawaii-card p-8 max-w-4xl mx-auto">
           <h2 className="kawaii-title text-2xl text-center mb-8">
-            About Banana Cat
+            Sobre el Gat Plàtan
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -203,13 +210,13 @@ export function AboutPage() {
                 <span className="text-2xl">🐱</span>
                 <div>
                   <h3 className="kawaii-subtitle text-xl mb-2">
-                    What's a Oiiai Cat ?
+                    Què és un Gat Oiiai?
                   </h3>
                   <p className="text-blue-700">
-                    The tale of the spinning sensation that broke the internet!
-                    Also known as Banana Cat, this adorable feline has been
-                    spinning its way into hearts worldwide with its mesmerizing
-                    rotations and catchy tune.
+                    La història de la sensació giratòria que va conquerir
+                    Internet! També conegut com el Gat Plàtan, aquest adorable
+                    felí ha estat girant el seu camí cap als cors de tot el món
+                    amb les seves rotacions hipnòtiques i melodies enganxoses.
                   </p>
                 </div>
               </div>
@@ -220,13 +227,14 @@ export function AboutPage() {
                 <span className="text-2xl">🔮</span>
                 <div>
                   <h3 className="kawaii-subtitle text-xl mb-2">
-                    Secret Cat Language
+                    Llenguatge Secret de Gat
                   </h3>
                   <p className="text-blue-700">
-                    Send covert messages in the ancient tongue of the spinning
-                    cat! Our special Oiiai translator turns your words into
-                    mysterious cat patterns. Perfect for secret communications
-                    with fellow Banana Cat enthusiasts!
+                    Envia missatges secrets en l'antiga llengua del gat
+                    giratori! El nostre traductor especial Oiiai converteix les
+                    teves paraules en patrons misteriosos de gat. Perfecte per a
+                    comunicacions secretes amb altres entusiastes del Gat
+                    Plàtan!
                   </p>
                 </div>
               </div>
@@ -234,42 +242,43 @@ export function AboutPage() {
           </div>
 
           <div className="text-blue-700 mt-6">
-            <h3 className="kawaii-subtitle text-xl mb-4">Fun Facts:</h3>
+            <h3 className="kawaii-subtitle text-xl mb-4">Dades Curioses:</h3>
             <ul className="list-disc pl-6 space-y-2">
               <li>
-                The original meme gained millions of views across social
-                platforms
+                El meme original va aconseguir milions de visualitzacions a les
+                xarxes socials
               </li>
               <li>
-                Our interactive version adds new ways to enjoy the beloved cat
+                La nostra versió interactiva afegeix noves formes de gaudir del
+                gat estimat
               </li>
               <li>
-                The secret message feature uses actual cat sounds for
-                authenticity
+                La funció de missatges secrets utilitza sons reals de gat per a
+                l'autenticitat
               </li>
-              <li>Perfect for short breaks and instant mood boosts</li>
+              <li>Perfecte per a descansos curts i pujar l'ànim al moment</li>
             </ul>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Secció d'Estadístiques */}
       <section className="container mx-auto px-4 mb-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           <div className="kawaii-card p-6 text-center">
-            <h3 className="kawaii-subtitle text-lg mb-2">Happy Users</h3>
+            <h3 className="kawaii-subtitle text-lg mb-2">Usuaris Feliços</h3>
             <p className="text-3xl font-bold text-blue-600 mb-2">10K+</p>
-            <p className="text-blue-700">Spreading joy daily</p>
+            <p className="text-blue-700">Difonent alegria diàriament</p>
           </div>
           <div className="kawaii-card p-6 text-center">
-            <h3 className="kawaii-subtitle text-lg mb-2">Spins Generated</h3>
+            <h3 className="kawaii-subtitle text-lg mb-2">Girs Generats</h3>
             <p className="text-3xl font-bold text-blue-600 mb-2">1M+</p>
-            <p className="text-blue-700">And counting!</p>
+            <p className="text-blue-700">I segueix augmentant!</p>
           </div>
           <div className="kawaii-card p-6 text-center">
-            <h3 className="kawaii-subtitle text-lg mb-2">Games Played</h3>
+            <h3 className="kawaii-subtitle text-lg mb-2">Partides Jugades</h3>
             <p className="text-3xl font-bold text-blue-600 mb-2">500K+</p>
-            <p className="text-blue-700">Fun moments created</p>
+            <p className="text-blue-700">Moments divertits creats</p>
           </div>
         </div>
       </section>
@@ -277,4 +286,4 @@ export function AboutPage() {
   );
 }
 
-export default AboutPage;
+export default CatalanAboutPage;

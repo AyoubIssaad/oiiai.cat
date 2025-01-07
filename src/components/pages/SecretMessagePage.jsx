@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
-  Share2,
   Play,
   Pause,
   Copy,
@@ -234,7 +233,7 @@ export function SecretMessagePage() {
       <SEO
         title="🔮 Super Secret Banana Cat Translator - Make Messages Go Spinny!"
         description="Psst! Transform your boring human words into mysterious Banana Cat speak! Our special cat-powered encoder makes messages that only true spinning cat fans can decode. It's purrfectly secret! 🐱"
-        path="/secret-cat-messages"
+        path="/secret-messages"
       />
 
       <div className="container mx-auto px-4 pt-20 sm:pt24">
@@ -396,9 +395,7 @@ export function SecretMessagePage() {
                         ) : (
                           <span className="flex items-center">
                             <Play className="w-4 h-4 mr-2" />
-                            <span className="hidden sm:inline">
-                              Play
-                            </span>
+                            <span className="hidden sm:inline">Play</span>
                             <span className="sm:hidden">Play</span>
                           </span>
                         )}
@@ -408,9 +405,7 @@ export function SecretMessagePage() {
                       onClick={handleDecode}
                       className="kawaii-button w-full sm:w-auto"
                     >
-                      <span className="hidden sm:inline">
-                        Reveal Secrets!
-                      </span>
+                      <span className="hidden sm:inline">Reveal Secrets!</span>
                       <span className="sm:hidden">Decode</span>
                     </Button>
                   </div>

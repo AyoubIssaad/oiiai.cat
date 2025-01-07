@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, MessageSquare, Gamepad2, Info, Menu, X } from "lucide-react";
+import {
+  Home,
+  MessageSquare,
+  Gamepad2,
+  Info,
+  Menu,
+  X,
+  Film,
+  Search,
+} from "lucide-react";
 import { cn } from "../lib/utils";
 
 const NavLink = ({ to, children, icon: Icon, label, onClick }) => {
@@ -72,6 +81,9 @@ export function KawaiiNav() {
             <NavLink to="/" icon={Home} label="Home">
               Make Cat Spin!
             </NavLink>
+            <NavLink to="/memes" icon={Search} label="Discover">
+              Discover Memes
+            </NavLink>
             <NavLink
               to="/secret-messages"
               icon={MessageSquare}
@@ -102,6 +114,14 @@ export function KawaiiNav() {
                 onClick={closeMenu}
               >
                 Encode Messages!
+              </NavLink>
+              <NavLink
+                to="/memes"
+                icon={Search}
+                label="Discover Memes"
+                onClick={closeMenu}
+              >
+                Discover Memes
               </NavLink>
               <NavLink
                 to="/games"

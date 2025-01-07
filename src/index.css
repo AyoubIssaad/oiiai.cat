@@ -6,9 +6,9 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -207,4 +207,19 @@ body {
 
 .spinning-gif {
   animation: spin-gif var(--rotation-duration) steps(1) infinite;
+}
+.instagram-embed-container {
+  position: relative; /* Make this container a positioning reference */
+  width: 100%; /* Ensure it takes up full width */
+  overflow: hidden; /* Hide any overflowing content from the iframe */
+  min-height: 500px; /* Minimum height for the container */
+}
+
+/* Optional: Adjust padding-bottom if needed */
+.instagram-embed-container {
+  padding-bottom: 0%; /* Adjust if a gap appears below the interaction bar */
+}
+
+.instagram-embed-container .instagram-media {
+  margin: 0 !important;
 }

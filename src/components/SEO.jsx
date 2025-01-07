@@ -62,6 +62,10 @@ export default function SEO({
       <meta property="og:description" content={description} />
       <meta property="og:image" content={fullImageUrl} />
       <meta property="og:image:alt" content={imageAlt} />
+      {/* <meta name="twitter:site" content="@oiiaicat" /> */}
+      <meta property="og:site_name" content="Oiiai Cat" />
+      <meta name="application-name" content="Oiiai Cat" />
+      <meta name="apple-mobile-web-app-title" content="Oiiai Cat" />
 
       {/* Twitter cards with meme-friendly content */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -70,6 +74,7 @@ export default function SEO({
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={fullImageUrl} />
 
+      <link rel="manifest" href="/manifest.json" />
       {/* SEO best practices with a twist */}
       <link rel="canonical" href={fullUrl} />
       <meta
