@@ -14,7 +14,6 @@ import {
   ThumbsUp,
   ThumbsDown,
   Link as LinkIcon,
-  Play,
 } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Alert, AlertDescription } from "./ui/Alert";
@@ -66,6 +65,7 @@ const MemeDiscoveryPage = () => {
   const [memes, setMemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("popular");
   const [selectedPlatform, setSelectedPlatform] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -169,6 +169,8 @@ const MemeDiscoveryPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
+    setSuccessMessage("");
 
     try {
       const platform = detectPlatform(newMemeUrl);
@@ -207,10 +209,18 @@ const MemeDiscoveryPage = () => {
 
       if (!response.ok) throw new Error("Failed to add meme");
 
+      // Show success message
+      setSuccessMessage(
+        "Meme submitted successfully! It will appear after review.",
+      );
+
       // Refresh the current page
       fetchMemes(1);
       setNewMemeUrl("");
       setShowAddForm(false);
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(""), 5000);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -290,25 +300,28 @@ const MemeDiscoveryPage = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-4xl font-bold text-blue-700 mb-4">
-            Discover Cat Memes
+            Discover Memes
           </h1>
           <p className="text-blue-600 max-w-2xl">
-            Explore the best spinning cat memes from across the internet. Vote
-            for your favorites and share the joy!
+            Explore the best oiiai cat memes from across the internet. Vote for
+            your favorites and share the joy!
           </p>
         </div>
         <Button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-2 py-3 px-6 h-12 text-base"
         >
-          <Plus size={20} />
+          <Plus className="w-5 h-5" />
           Add Meme
         </Button>
       </div>
 
       {/* Search and Filter Section */}
       <div className="mb-8">
-        <form onSubmit={handleSearch} className="flex gap-4 mb-6">
+        <form
+          onSubmit={handleSearch}
+          className="flex flex-col sm:flex-row gap-2 sm:gap-4 mp-6"
+        >
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -319,19 +332,25 @@ const MemeDiscoveryPage = () => {
               className="w-full pl-10 pr-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 focus:outline-none"
             />
           </div>
-          <Button type="submit" className="flex items-center gap-2">
-            <Search size={20} />
-            Search
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
-          >
-            <SlidersHorizontal size={20} />
-            Filters
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="submit"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2"
+            >
+              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Search</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2"
+            >
+              <SlidersHorizontal className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Filters</span>
+            </Button>
+          </div>
         </form>
 
         {/* Category Tabs */}
@@ -347,7 +366,7 @@ const MemeDiscoveryPage = () => {
                     : "bg-blue-50 text-blue-700 hover:bg-blue-100"
                 }`}
             >
-              <Icon size={20} />
+              <Icon className="w-5 h-5" />
               {label}
             </button>
           ))}
@@ -362,7 +381,7 @@ const MemeDiscoveryPage = () => {
                 onClick={() => setShowFilters(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <X size={20} />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -428,6 +447,13 @@ const MemeDiscoveryPage = () => {
         </Alert>
       )}
 
+      {/* Success Alert */}
+      {successMessage && (
+        <Alert className="mb-4 bg-green-50 border-green-500 text-green-700">
+          <AlertDescription>{successMessage}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Add Meme Form */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -438,7 +464,7 @@ const MemeDiscoveryPage = () => {
                 onClick={() => setShowAddForm(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <X size={20} />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -477,8 +503,6 @@ const MemeDiscoveryPage = () => {
             className="bg-white rounded-lg shadow-lg overflow-hidden max-w-xl mx-auto w-full flex flex-col"
           >
             <div className="relative grow">
-              {" "}
-              {/* Add grow here */}
               <div
                 className={
                   meme.platform === "INSTAGRAM"
@@ -502,7 +526,7 @@ const MemeDiscoveryPage = () => {
                     onClick={() => handleVote(meme.id, "up")}
                     className="p-2 hover:bg-blue-50 rounded-full bg-white shadow-sm"
                   >
-                    <ThumbsUp size={20} className="text-blue-600" />
+                    <ThumbsUp className="w-5 h-5 text-blue-600" />
                   </button>
                   <span className="font-bold bg-white px-2 py-1 rounded">
                     {meme.votes}
@@ -511,7 +535,7 @@ const MemeDiscoveryPage = () => {
                     onClick={() => handleVote(meme.id, "down")}
                     className="p-2 hover:bg-blue-50 rounded-full bg-white shadow-sm"
                   >
-                    <ThumbsDown size={20} className="text-blue-600" />
+                    <ThumbsDown className="w-5 h-5 text-blue-600" />
                   </button>
                 </div>
 
@@ -521,7 +545,7 @@ const MemeDiscoveryPage = () => {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 text-blue-600 hover:text-blue-800 bg-white px-3 py-1 rounded shadow-sm"
                 >
-                  <LinkIcon size={16} />
+                  <LinkIcon className="w-4 h-4" />
                   <span className="text-sm">Original</span>
                 </a>
               </div>
