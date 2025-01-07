@@ -2,6 +2,8 @@ const express = require("express");
 const { Pool } = require("pg");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(express.json());
@@ -251,7 +253,7 @@ app.get("/api/memes/discover", async (req, res) => {
   } = req.query;
 
   try {
-    let query = "SELECT * FROM memes WHERE 1=1";
+    let query = "SELECT * FROM memes WHERE status = 'approved'";
     const params = [];
     let paramCount = 1;
 
@@ -360,4 +362,138 @@ app.get("/api/health", async (req, res) => {
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
+});
+
+// Middleware to verify admin authentication
+const authenticateAdmin = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    // Verify JWT token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Check if session exists and is valid
+    const session = await pool.query(
+      "SELECT * FROM admin_sessions WHERE token = $1 AND expires_at > NOW()",
+      [token],
+    );
+
+    if (session.rows.length === 0) {
+      return res.status(401).json({ error: "Invalid or expired session" });
+    }
+
+    req.adminId = decoded.adminId;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+};
+
+// Admin login endpoint
+app.post("/api/admin/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    // Get admin user
+    const result = await pool.query(
+      "SELECT * FROM admins WHERE username = $1",
+      [username],
+    );
+
+    const admin = result.rows[0];
+    if (!admin) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Verify password
+    const validPassword = await bcrypt.compare(password, admin.password_hash);
+    if (!validPassword) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Create session token
+    const token = jwt.sign({ adminId: admin.id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+
+    // Store session
+    await pool.query(
+      "INSERT INTO admin_sessions (admin_id, token, expires_at) VALUES ($1, $2, NOW() + INTERVAL '24 hours')",
+      [admin.id, token],
+    );
+
+    res.json({ token });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Failed to login" });
+  }
+});
+
+// Get pending memes
+app.get("/api/admin/memes/pending", authenticateAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM memes WHERE status = 'pending' ORDER BY created_at DESC",
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch pending memes" });
+  }
+});
+
+// Review meme
+app.post("/api/admin/memes/:id/review", authenticateAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { status, adminNotes } = req.body;
+
+  if (!["approved", "rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid status" });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE memes
+       SET status = $1,
+           admin_notes = $2,
+           reviewed_at = NOW(),
+           reviewed_by = (SELECT username FROM admins WHERE id = $3)
+       WHERE id = $4
+       RETURNING *`,
+      [status, adminNotes, req.adminId, id],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Meme not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update meme status" });
+  }
+});
+
+// Modify the existing memes endpoint to only show approved memes
+app.get("/api/memes/discover", async (req, res) => {
+  const {
+    category,
+    platform,
+    dateRange,
+    search,
+    page = 1,
+    limit = 12,
+  } = req.query;
+
+  try {
+    let query = "SELECT * FROM memes WHERE status = 'approved'"; // Add status filter
+    const params = [];
+    let paramCount = 1;
+
+    // ... rest of the existing discover endpoint code ...
+  } catch (error) {
+    console.error("Error in meme discovery:", error);
+    res.status(500).json({ error: "Failed to fetch memes" });
+  }
 });
