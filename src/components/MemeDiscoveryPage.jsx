@@ -89,6 +89,7 @@ const MemeDiscoveryPage = () => {
       const {
         platform,
         videoId,
+        normalizedUrl,
         error: validationError,
       } = validateSocialUrl(newMemeUrl);
       if (validationError) {
@@ -109,13 +110,16 @@ const MemeDiscoveryPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          url: newMemeUrl,
+          url: normalizedUrl || newMemeUrl, // Use normalized URL if available
           platform,
           videoId,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to add meme");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add meme");
+      }
 
       setSuccessMessage(
         "Meme submitted successfully! It will appear after review.",

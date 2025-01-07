@@ -96,8 +96,9 @@ const AdminPanel = () => {
       const {
         platform,
         videoId,
+        normalizedUrl,
         error: validationError,
-      } = await validateSocialUrl(newMemeUrl);
+      } = validateSocialUrl(newMemeUrl);
       if (validationError) {
         throw new Error(validationError);
       }
@@ -117,14 +118,17 @@ const AdminPanel = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          url: newMemeUrl,
+          url: normalizedUrl || newMemeUrl, // Use normalized URL if available
           platform,
           videoId,
           status: "approved", // Auto-approve admin submissions
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to add meme");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add meme");
+      }
 
       setSuccessMessage("Meme added successfully!");
       setNewMemeUrl("");
@@ -135,6 +139,7 @@ const AdminPanel = () => {
 
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (err) {
+      console.error("Error adding meme:", err);
       setError(err.message);
     } finally {
       setSubmitting(false);
