@@ -1,56 +1,144 @@
-import React, { useEffect, useState, useRef, useContext } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 
-// Create a context for managing video playback
-const VideoPlaybackContext = React.createContext();
-
-export const VideoPlaybackProvider = ({ children }) => {
-  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
-
-  return (
-    <VideoPlaybackContext.Provider
-      value={{ currentlyPlaying, setCurrentlyPlaying }}
-    >
-      {children}
-    </VideoPlaybackContext.Provider>
-  );
+// Create a global state to track playing videos
+const globalPlaybackState = {
+  currentlyPlaying: null,
+  observers: new Set(),
+  setCurrentlyPlaying(id) {
+    this.currentlyPlaying = id;
+    this.notifyObservers();
+  },
+  addObserver(callback) {
+    this.observers.add(callback);
+  },
+  removeObserver(callback) {
+    this.observers.delete(callback);
+  },
+  notifyObservers() {
+    this.observers.forEach((callback) => callback(this.currentlyPlaying));
+  },
 };
 
-const SocialMediaEmbed = ({ platform, videoId }) => {
+const SocialMediaEmbed = ({ platform, videoId, onPlaybackChange }) => {
   const [loading, setLoading] = useState(true);
-  const [iframeHeight, setIframeHeight] = useState(0);
-  const instagramEmbedContainerRef = useRef(null);
-  const { currentlyPlaying, setCurrentlyPlaying } =
-    useContext(VideoPlaybackContext);
+  const containerRef = useRef(null);
+  const iframeRef = useRef(null);
   const uniqueId = `${platform}-${videoId}`;
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  useEffect(() => {
-    // If another video starts playing, stop or mute this one
-    if (currentlyPlaying && currentlyPlaying !== uniqueId) {
-      // For Instagram
+  // Function to stop video playback
+  const stopPlayback = useCallback(() => {
+    if (!containerRef.current) return;
+
+    try {
+      // First attempt: Reload the iframe
+      const iframe = containerRef.current.querySelector("iframe");
+      if (iframe) {
+        const src = iframe.src;
+        iframe.src = "";
+        setTimeout(() => {
+          iframe.src = src;
+        }, 10);
+      }
+
+      // Second attempt: Remove and recreate the embed
       if (platform === "INSTAGRAM") {
-        const iframe =
-          instagramEmbedContainerRef.current?.querySelector("iframe");
-        if (iframe) {
-          // Instagram doesn't provide direct control,
-          // but we can reload the iframe to stop playback
-          iframe.src = iframe.src;
+        const blockquote = containerRef.current.querySelector("blockquote");
+        if (blockquote && window.instgrm) {
+          window.instgrm.Embeds.process();
+        }
+      } else if (platform === "TIKTOK") {
+        const blockquote = containerRef.current.querySelector("blockquote");
+        if (blockquote) {
+          const parent = blockquote.parentElement;
+          const clone = blockquote.cloneNode(true);
+          parent.removeChild(blockquote);
+          parent.appendChild(clone);
         }
       }
-      // For TikTok
-      else if (platform === "TIKTOK") {
-        const iframe = document.querySelector(
-          `iframe[data-video-id="${videoId}"]`,
-        );
-        if (iframe) {
-          // TikTok videos can be reloaded to stop playback
-          iframe.src = iframe.src;
-        }
-      }
-    }
-  }, [currentlyPlaying, platform, videoId, uniqueId]);
 
+      setIsPlaying(false);
+    } catch (error) {
+      console.error("Error stopping playback:", error);
+    }
+  }, [platform]);
+
+  // Handle playback state changes
+  useEffect(() => {
+    const handlePlaybackChange = (currentlyPlayingId) => {
+      if (currentlyPlayingId && currentlyPlayingId !== uniqueId && isPlaying) {
+        stopPlayback();
+      }
+    };
+
+    globalPlaybackState.addObserver(handlePlaybackChange);
+
+    return () => {
+      globalPlaybackState.removeObserver(handlePlaybackChange);
+    };
+  }, [uniqueId, stopPlayback, isPlaying]);
+
+  // Monitor iframe events
+  useEffect(() => {
+    const handleMessage = (event) => {
+      try {
+        // Instagram video events
+        if (platform === "INSTAGRAM") {
+          if (
+            event.data?.type === "video" &&
+            event.data?.action === "play" &&
+            containerRef.current?.contains(event.source?.frameElement)
+          ) {
+            setIsPlaying(true);
+            globalPlaybackState.setCurrentlyPlaying(uniqueId);
+          }
+        }
+        // TikTok video events
+        else if (platform === "TIKTOK") {
+          if (
+            event.data?.event === "play" &&
+            containerRef.current?.contains(event.source?.frameElement)
+          ) {
+            setIsPlaying(true);
+            globalPlaybackState.setCurrentlyPlaying(uniqueId);
+          }
+        }
+      } catch (error) {
+        console.error("Error handling message:", error);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    // Set up mutation observer to watch for iframe creation
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeName === "IFRAME") {
+            iframeRef.current = node;
+            setLoading(false);
+          }
+        });
+      });
+    });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+      observer.disconnect();
+    };
+  }, [platform, uniqueId]);
+
+  // Load platform-specific scripts
   useEffect(() => {
     let scriptElement = null;
+
     const loadScript = async () => {
       const existingScript = document.querySelector(
         `script[src*="${platform.toLowerCase()}"]`,
@@ -80,51 +168,14 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
       document.body.appendChild(scriptElement);
     };
 
-    const timeoutId = setTimeout(loadScript, 100);
-
-    const setEmbedHeight = () => {
-      if (
-        instagramEmbedContainerRef.current &&
-        window.innerWidth >= 768 &&
-        platform === "INSTAGRAM"
-      ) {
-        const height =
-          instagramEmbedContainerRef.current.offsetHeight ||
-          instagramEmbedContainerRef.current.scrollHeight ||
-          500;
-        setIframeHeight(height);
-      } else {
-        setIframeHeight(0);
-      }
-    };
-
-    const timeoutId2 = setTimeout(setEmbedHeight, 500);
-
-    // Listen for video play events
-    const handleMessage = (event) => {
-      // Handle Instagram messages
-      if (event.data?.type === "video" && event.data?.action === "play") {
-        setCurrentlyPlaying(uniqueId);
-      }
-      // Handle TikTok messages
-      else if (event.data?.event === "play") {
-        setCurrentlyPlaying(uniqueId);
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    window.addEventListener("resize", setEmbedHeight);
+    loadScript();
 
     return () => {
-      clearTimeout(timeoutId);
-      clearTimeout(timeoutId2);
-      window.removeEventListener("message", handleMessage);
-      window.removeEventListener("resize", setEmbedHeight);
       if (scriptElement) {
         scriptElement.remove();
       }
     };
-  }, [platform, videoId, uniqueId, setCurrentlyPlaying]);
+  }, [platform]);
 
   if (!videoId) {
     return (
@@ -137,11 +188,9 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
   if (platform === "INSTAGRAM") {
     return (
       <div
+        ref={containerRef}
         className="instagram-embed-container relative w-full"
-        style={{
-          minHeight: iframeHeight > 0 ? iframeHeight + "px" : undefined,
-        }}
-        ref={instagramEmbedContainerRef}
+        style={{ minHeight: "500px" }}
       >
         <blockquote
           className="instagram-media absolute top-0 left-0 h-full"
@@ -164,6 +213,7 @@ const SocialMediaEmbed = ({ platform, videoId }) => {
   if (platform === "TIKTOK") {
     return (
       <div
+        ref={containerRef}
         className="tiktok-embed-container relative flex justify-center overflow-hidden"
         style={{ minHeight: "500px" }}
       >
