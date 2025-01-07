@@ -1,30 +1,19 @@
 // src/lib/urlValidation.js
 
 /**
- * Extracts video ID from an Instagram URL
+ * Extracts Instagram ID from any Instagram URL format
  * @param {string} url
  * @returns {string|null}
  */
-export async function extractInstagramId(url) {
+function extractInstagramId(url) {
   try {
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split("/").filter(Boolean);
 
     // Handle different Instagram URL formats
     if (pathParts.includes("share")) {
-      // For share URLs, we need to follow the redirect
-      try {
-        const response = await fetch(url);
-        if (response.ok) {
-          // Get the final URL after redirects
-          const finalUrl = response.url;
-          // Recursively extract ID from the final URL
-          return await extractInstagramId(finalUrl);
-        }
-      } catch (error) {
-        console.error("Error following share URL:", error);
-        // If we can't follow the redirect, try to extract from original URL
-      }
+      // For share URLs, get the ID from the last part
+      return pathParts[pathParts.length - 1].split("?")[0];
     }
 
     // Handle regular reel or post URLs
@@ -32,7 +21,6 @@ export async function extractInstagramId(url) {
       (part) => part === "p" || part === "reel",
     );
     if (idIndex !== -1 && pathParts[idIndex + 1]) {
-      // Return clean ID without any query params
       return pathParts[idIndex + 1].split("?")[0];
     }
 
@@ -44,11 +32,45 @@ export async function extractInstagramId(url) {
 }
 
 /**
- * Validates and extracts information from social media URLs
- * @param {string} url - The URL to validate
- * @returns {Promise<{ platform: string|null, videoId: string|null, error: string|null }>}
+ * Extracts TikTok video ID from URL
+ * @param {string} url
+ * @returns {string|null}
  */
-export async function validateSocialUrl(url) {
+function extractTikTokId(url) {
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split("/").filter(Boolean);
+
+    const videoIndex = pathParts.findIndex((part) => part === "video");
+    return videoIndex !== -1
+      ? pathParts[videoIndex + 1].split("?")[0]
+      : pathParts[pathParts.length - 1].split("?")[0];
+  } catch (error) {
+    console.error("Error extracting TikTok ID:", error);
+    return null;
+  }
+}
+
+/**
+ * Detects platform from URL
+ * @param {string} url
+ * @returns {string|null}
+ */
+function detectPlatform(url) {
+  if (!url) return null;
+
+  if (/instagram\.com/.test(url)) return "INSTAGRAM";
+  if (/tiktok\.com/.test(url)) return "TIKTOK";
+
+  return null;
+}
+
+/**
+ * Validates social media URL and extracts platform and ID
+ * @param {string} url
+ * @returns {{ platform: string|null, videoId: string|null, error: string|null }}
+ */
+export function validateSocialUrl(url) {
   try {
     if (!url) {
       return { platform: null, videoId: null, error: "URL is required" };
@@ -60,7 +82,6 @@ export async function validateSocialUrl(url) {
       return { platform: null, videoId: null, error: "Invalid URL format" };
     }
 
-    // Detect platform
     const platform = detectPlatform(url);
     if (!platform) {
       return {
@@ -70,10 +91,9 @@ export async function validateSocialUrl(url) {
       };
     }
 
-    // Extract video ID based on platform
-    let videoId = null;
+    let videoId;
     if (platform === "INSTAGRAM") {
-      videoId = await extractInstagramId(url);
+      videoId = extractInstagramId(url);
     } else if (platform === "TIKTOK") {
       videoId = extractTikTokId(url);
     }
@@ -94,39 +114,5 @@ export async function validateSocialUrl(url) {
       videoId: null,
       error: "Failed to process URL",
     };
-  }
-}
-
-/**
- * Detects the social media platform from a URL
- * @param {string} url
- * @returns {string|null} "INSTAGRAM", "TIKTOK", or null
- */
-export function detectPlatform(url) {
-  if (!url) return null;
-
-  if (/instagram\.com/.test(url)) return "INSTAGRAM";
-  if (/tiktok\.com/.test(url)) return "TIKTOK";
-
-  return null;
-}
-
-/**
- * Extracts video ID from a TikTok URL
- * @param {string} url
- * @returns {string|null}
- */
-function extractTikTokId(url) {
-  try {
-    const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split("/").filter(Boolean);
-
-    const videoIndex = pathParts.findIndex((part) => part === "video");
-    return videoIndex !== -1
-      ? pathParts[videoIndex + 1]
-      : pathParts[pathParts.length - 1];
-  } catch (error) {
-    console.error("Error extracting TikTok ID:", error);
-    return null;
   }
 }

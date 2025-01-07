@@ -90,7 +90,7 @@ const MemeDiscoveryPage = () => {
         platform,
         videoId,
         error: validationError,
-      } = await validateSocialUrl(newMemeUrl);
+      } = validateSocialUrl(newMemeUrl);
       if (validationError) {
         throw new Error(validationError);
       }
