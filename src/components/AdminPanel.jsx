@@ -1,7 +1,42 @@
 import React, { useState, useEffect } from "react";
-import { Check, X, AlertCircle } from "lucide-react";
+import { Check, X, AlertCircle, Plus } from "lucide-react";
 import { Button } from "./ui/Button";
+import { Alert, AlertDescription } from "./ui/Alert";
 import SocialMediaEmbed from "./SocialMediaEmbed";
+
+const extractVideoId = (url, platform) => {
+  if (!url) return null;
+
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split("/").filter(Boolean);
+
+    if (platform.toUpperCase() === "INSTAGRAM") {
+      const idIndex = pathParts.findIndex(
+        (part) => part === "p" || part === "reel",
+      );
+      return idIndex !== -1 ? pathParts[idIndex + 1] : null;
+    }
+
+    if (platform.toUpperCase() === "TIKTOK") {
+      const videoIndex = pathParts.findIndex((part) => part === "video");
+      return videoIndex !== -1
+        ? pathParts[videoIndex + 1]
+        : pathParts[pathParts.length - 1];
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error extracting video ID:", error);
+    return null;
+  }
+};
+
+const detectPlatform = (url) => {
+  if (/instagram\.com/.test(url)) return "INSTAGRAM";
+  if (/tiktok\.com/.test(url)) return "TIKTOK";
+  return null;
+};
 
 const AdminPanel = () => {
   const [pendingMemes, setPendingMemes] = useState([]);
@@ -10,6 +45,10 @@ const AdminPanel = () => {
   const [token, setToken] = useState(localStorage.getItem("adminToken"));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newMemeUrl, setNewMemeUrl] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (token) {
@@ -68,6 +107,54 @@ const AdminPanel = () => {
     }
   };
 
+  const handleAddMeme = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setSuccessMessage("");
+
+    try {
+      const platform = detectPlatform(newMemeUrl);
+      if (!platform) {
+        throw new Error("Unsupported platform or invalid URL");
+      }
+
+      const videoId = extractVideoId(newMemeUrl, platform);
+      if (!videoId) {
+        throw new Error("Could not extract video ID from URL");
+      }
+
+      const response = await fetch("/api/admin/memes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          url: newMemeUrl,
+          platform,
+          videoId,
+          status: "approved", // Auto-approve admin submissions
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to add meme");
+
+      setSuccessMessage("Meme added successfully!");
+      setNewMemeUrl("");
+      setShowAddForm(false);
+
+      // Refresh the pending memes list
+      fetchPendingMemes();
+
+      setTimeout(() => setSuccessMessage(""), 5000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleReview = async (memeId, status, adminNotes = "") => {
     try {
       const response = await fetch(`/api/admin/memes/${memeId}/review`, {
@@ -102,9 +189,10 @@ const AdminPanel = () => {
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             {error && (
-              <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-400 text-red-700">
-                {error}
-              </div>
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
 
             <form className="space-y-6" onSubmit={handleLogin}>
@@ -152,36 +240,86 @@ const AdminPanel = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 pt-20 sm:pt-24 pb-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">Meme Review Panel</h1>
-        <Button
-          onClick={() => {
-            setToken(null);
-            localStorage.removeItem("adminToken");
-          }}
-          className="bg-red-500 hover:bg-red-600"
-        >
-          Logout
-        </Button>
+        <h1 className="text-2xl font-bold">Admin Panel</h1>
+        <div className="flex gap-4">
+          <Button
+            onClick={() => setShowAddForm(true)}
+            className="bg-green-500 hover:bg-green-600"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add Meme
+          </Button>
+          <Button
+            onClick={() => {
+              setToken(null);
+              localStorage.removeItem("adminToken");
+            }}
+            className="bg-red-500 hover:bg-red-600"
+          >
+            Logout
+          </Button>
+        </div>
       </div>
 
+      {/* Error and Success Messages */}
       {error && (
-        <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 flex items-center">
-          <AlertCircle className="w-5 h-5 mr-2" />
-          {error}
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {successMessage && (
+        <Alert className="mb-4 bg-green-50 border-green-500 text-green-700">
+          <AlertDescription>{successMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Add Meme Form */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Add New Meme</h3>
+              <button
+                onClick={() => setShowAddForm(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddMeme}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Video URL
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={newMemeUrl}
+                    onChange={(e) => setNewMemeUrl(e.target.value)}
+                    placeholder="Paste Instagram Reel or TikTok URL"
+                    className="flex-1 p-2 border rounded"
+                    required
+                  />
+                  <Button type="submit" disabled={submitting}>
+                    {submitting ? "Adding..." : "Add"}
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Supports Instagram Reels and TikTok videos
+                </p>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
+      {/* Pending Memes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {pendingMemes.map((meme) => (
           <div
@@ -231,7 +369,14 @@ const AdminPanel = () => {
         ))}
       </div>
 
-      {pendingMemes.length === 0 && (
+      {loading && (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <p className="mt-4 text-blue-600">Loading pending memes...</p>
+        </div>
+      )}
+
+      {!loading && pendingMemes.length === 0 && (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <p className="text-gray-500">No pending memes to review</p>
         </div>
