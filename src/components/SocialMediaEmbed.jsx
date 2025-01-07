@@ -189,11 +189,15 @@ const SocialMediaEmbed = ({ platform, videoId, onPlaybackChange }) => {
     return (
       <div
         ref={containerRef}
-        className="instagram-embed-container relative w-full"
-        style={{ minHeight: "500px" }}
+        className="instagram-embed-container relative w-full overflow-hidden"
+        style={{
+          paddingBottom: "125%", // This creates a 4:5 aspect ratio which Instagram uses
+          height: 0,
+          position: "relative",
+        }}
       >
         <blockquote
-          className="instagram-media absolute top-0 left-0 h-full"
+          className="instagram-media absolute top-0 left-0 h-full w-full"
           data-instgrm-permalink={`https://www.instagram.com/reel/${videoId}/`}
           data-instgrm-version="14"
           style={{

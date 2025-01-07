@@ -223,3 +223,34 @@ body {
 .instagram-embed-container .instagram-media {
   margin: 0 !important;
 }
+
+.instagram-embed-container {
+  width: 100% !important;
+  max-width: 540px !important;
+  margin: 0 auto !important;
+}
+
+.instagram-embed-container .instagram-media {
+  margin: 0 !important;
+  width: 100% !important;
+  min-width: unset !important;
+  max-width: 540px !important;
+  border-radius: 8px !important;
+}
+
+/* Ensure iframe takes full size of container */
+.instagram-embed-container iframe {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+}
+
+/* Fix aspect ratio container for different screen sizes */
+@media (min-width: 768px) {
+  .instagram-embed-container {
+    margin: 0 auto !important;
+  }
+}
