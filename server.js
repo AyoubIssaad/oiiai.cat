@@ -392,6 +392,41 @@ const authenticateAdmin = async (req, res, next) => {
   }
 };
 
+// Admin meme submission endpoint
+app.post("/api/admin/memes", authenticateAdmin, async (req, res) => {
+  const { url, platform, videoId, status = "approved" } = req.body;
+
+  if (!url || !platform || !videoId) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    // Check if meme already exists
+    const existingMeme = await pool.query(
+      "SELECT id FROM memes WHERE platform = $1 AND video_id = $2",
+      [platform, videoId],
+    );
+
+    if (existingMeme.rows.length > 0) {
+      return res.status(409).json({ error: "Meme already exists" });
+    }
+
+    // Insert new meme with admin-specific fields
+    const result = await pool.query(
+      `INSERT INTO memes
+        (url, platform, video_id, status, reviewed_by, reviewed_at)
+       VALUES ($1, $2, $3, $4, (SELECT username FROM admins WHERE id = $5), NOW())
+       RETURNING *`,
+      [url, platform, videoId, status, req.adminId],
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error adding meme:", error);
+    res.status(500).json({ error: "Failed to add meme" });
+  }
+});
+
 // Admin login endpoint
 app.post("/api/admin/login", async (req, res) => {
   const { username, password } = req.body;
