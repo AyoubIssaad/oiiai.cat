@@ -320,7 +320,7 @@ const MemeDiscoveryPage = () => {
       <div className="mb-8">
         <form
           onSubmit={handleSearch}
-          className="flex flex-col sm:flex-row gap-2 sm:gap-4 mp-6"
+          className="flex flex-col sm:flex-row gap-2 sm:gap-4 mp-8"
         >
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -354,7 +354,7 @@ const MemeDiscoveryPage = () => {
         </form>
 
         {/* Category Tabs */}
-        <div className="flex gap-4 overflow-x-auto pb-4 mb-6">
+        <div className="flex gap-2 md:gap-4 overflow-x-auto pb-4 mb-6 px-1 scrollbar-none mt-6">
           {CATEGORIES.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
