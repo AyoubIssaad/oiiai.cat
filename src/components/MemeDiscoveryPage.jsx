@@ -15,6 +15,7 @@ import { Button } from "./ui/Button";
 import { Alert, AlertDescription } from "./ui/Alert";
 import SocialMediaEmbed from "./SocialMediaEmbed";
 import SEO from "./SEO";
+import { validateSocialUrl } from "../lib/urlValidation";
 
 const CATEGORIES = [
   { id: "popular", label: "Most Popular", icon: Flame },
@@ -22,35 +23,6 @@ const CATEGORIES = [
   { id: "latest", label: "Latest", icon: Calendar },
   { id: "all", label: "All Memes", icon: Star },
 ];
-
-// Helper function to extract video ID from URL
-const extractVideoId = (url, platform) => {
-  if (!url) return null;
-
-  try {
-    const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split("/").filter(Boolean);
-
-    if (platform.toUpperCase() === "INSTAGRAM") {
-      const idIndex = pathParts.findIndex(
-        (part) => part === "p" || part === "reel",
-      );
-      return idIndex !== -1 ? pathParts[idIndex + 1] : null;
-    }
-
-    if (platform.toUpperCase() === "TIKTOK") {
-      const videoIndex = pathParts.findIndex((part) => part === "video");
-      return videoIndex !== -1
-        ? pathParts[videoIndex + 1]
-        : pathParts[pathParts.length - 1];
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Error extracting video ID:", error);
-    return null;
-  }
-};
 
 const MemeDiscoveryPage = () => {
   const [memes, setMemes] = useState([]);
@@ -94,14 +66,7 @@ const MemeDiscoveryPage = () => {
         return;
       }
 
-      const processedMemes = data.map((meme) => ({
-        ...meme,
-        extractedVideoId: extractVideoId(meme.url, meme.platform),
-      }));
-
-      setMemes((prev) =>
-        resetExisting ? processedMemes : [...prev, ...processedMemes],
-      );
+      setMemes((prev) => (resetExisting ? data : [...prev, ...data]));
       setHasMore(data.length === 12);
     } catch (err) {
       setError(err.message);
@@ -121,19 +86,17 @@ const MemeDiscoveryPage = () => {
     setSuccessMessage("");
 
     try {
-      const platform = detectPlatform(newMemeUrl);
-      if (!platform) {
-        throw new Error("Unsupported platform or invalid URL");
-      }
-
-      const videoId = extractVideoId(newMemeUrl, platform);
-      if (!videoId) {
-        throw new Error("Could not extract video ID from URL");
+      const {
+        platform,
+        videoId,
+        error: validationError,
+      } = validateSocialUrl(newMemeUrl);
+      if (validationError) {
+        throw new Error(validationError);
       }
 
       const isDuplicate = memes.some(
-        (meme) =>
-          meme.extractedVideoId === videoId && meme.platform === platform,
+        (meme) => meme.video_id === videoId && meme.platform === platform,
       );
 
       if (isDuplicate) {
@@ -205,22 +168,12 @@ const MemeDiscoveryPage = () => {
     }
   };
 
-  const detectPlatform = (url) => {
-    if (/instagram\.com/.test(url)) return "INSTAGRAM";
-    if (/tiktok\.com/.test(url)) return "TIKTOK";
-    return null;
-  };
-
   return (
     <div className="container mx-auto px-4 pt-20 sm:pt-24 pb-8 min-h-screen bg-white">
       <SEO
         title="Viral Oiiai Cat & Banana Cat Memes | Best Spinning Cat Collection"
         description="Discover and share the best Oiiai Cat memes! Vote for your favorites, submit new spins, and join our growing collection of viral spinning cat content. Updated daily with fresh memes! 🐱"
         path="/memes"
-        // Adding more meta data for better SEO
-        type="website"
-        imageUrl="/meme-discovery-og.jpg"
-        imageAlt="Collection of viral Oiiai Cat memes"
       />
 
       {/* Header Section */}
@@ -335,7 +288,7 @@ const MemeDiscoveryPage = () => {
               >
                 <SocialMediaEmbed
                   platform={meme.platform}
-                  videoId={meme.extractedVideoId || meme.video_id}
+                  videoId={meme.video_id}
                   autoplay={false}
                 />
               </div>

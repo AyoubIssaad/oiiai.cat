@@ -1,42 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Check, X, AlertCircle, Plus } from "lucide-react";
+import {
+  Flame,
+  TrendingUp,
+  Calendar,
+  Star,
+  Plus,
+  AlertCircle,
+  ThumbsUp,
+  ThumbsDown,
+  Link as LinkIcon,
+  X,
+  Check,
+} from "lucide-react";
 import { Button } from "./ui/Button";
 import { Alert, AlertDescription } from "./ui/Alert";
 import SocialMediaEmbed from "./SocialMediaEmbed";
-
-const extractVideoId = (url, platform) => {
-  if (!url) return null;
-
-  try {
-    const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split("/").filter(Boolean);
-
-    if (platform.toUpperCase() === "INSTAGRAM") {
-      const idIndex = pathParts.findIndex(
-        (part) => part === "p" || part === "reel",
-      );
-      return idIndex !== -1 ? pathParts[idIndex + 1] : null;
-    }
-
-    if (platform.toUpperCase() === "TIKTOK") {
-      const videoIndex = pathParts.findIndex((part) => part === "video");
-      return videoIndex !== -1
-        ? pathParts[videoIndex + 1]
-        : pathParts[pathParts.length - 1];
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Error extracting video ID:", error);
-    return null;
-  }
-};
-
-const detectPlatform = (url) => {
-  if (/instagram\.com/.test(url)) return "INSTAGRAM";
-  if (/tiktok\.com/.test(url)) return "TIKTOK";
-  return null;
-};
+import { validateSocialUrl } from "../lib/urlValidation";
 
 const AdminPanel = () => {
   const [pendingMemes, setPendingMemes] = useState([]);
@@ -114,14 +93,21 @@ const AdminPanel = () => {
     setSuccessMessage("");
 
     try {
-      const platform = detectPlatform(newMemeUrl);
-      if (!platform) {
-        throw new Error("Unsupported platform or invalid URL");
+      const {
+        platform,
+        videoId,
+        error: validationError,
+      } = validateSocialUrl(newMemeUrl);
+      if (validationError) {
+        throw new Error(validationError);
       }
 
-      const videoId = extractVideoId(newMemeUrl, platform);
-      if (!videoId) {
-        throw new Error("Could not extract video ID from URL");
+      const isDuplicate = pendingMemes.some(
+        (meme) => meme.video_id === videoId && meme.platform === platform,
+      );
+
+      if (isDuplicate) {
+        throw new Error("This meme has already been added");
       }
 
       const response = await fetch("/api/admin/memes", {
