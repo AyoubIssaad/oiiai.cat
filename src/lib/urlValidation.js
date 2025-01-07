@@ -1,74 +1,23 @@
 // src/lib/urlValidation.js
 
 /**
- * Normalizes an Instagram URL to its canonical form
+ * Resolves an Instagram share URL to its final URL
  * @param {string} url
- * @returns {string}
+ * @returns {Promise<string>}
  */
-function normalizeInstagramUrl(url) {
+async function resolveInstagramUrl(url) {
   try {
-    const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split("/").filter(Boolean);
-
-    // Extract ID and type (reel or post)
-    let type = "p"; // default to post
-    let id = null;
-
-    if (pathParts.includes("share")) {
-      // For share URLs, get the ID from the last part
-      id = pathParts[pathParts.length - 1];
-    } else {
-      // Handle regular reel or post URLs
-      const typeIndex = pathParts.findIndex(
-        (part) => part === "p" || part === "reel",
-      );
-      if (typeIndex !== -1 && pathParts[typeIndex + 1]) {
-        type = pathParts[typeIndex];
-        id = pathParts[typeIndex + 1];
-      }
+    const response = await fetch(
+      `/api/resolve-url?${new URLSearchParams({ url })}`,
+    );
+    if (!response.ok) {
+      throw new Error("Failed to resolve URL");
     }
-
-    if (!id) return url; // if we can't parse it, return original
-
-    // Remove any query params from ID
-    id = id.split("?")[0];
-
-    // Construct canonical URL
-    return `https://www.instagram.com/${type}/${id}/`;
+    const data = await response.json();
+    return data.resolvedUrl;
   } catch (error) {
-    console.error("Error normalizing Instagram URL:", error);
-    return url;
-  }
-}
-
-/**
- * Normalizes a TikTok URL to its canonical form
- * @param {string} url
- * @returns {string}
- */
-function normalizeTikTokUrl(url) {
-  try {
-    const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split("/").filter(Boolean);
-
-    // Find video ID
-    const videoIndex = pathParts.findIndex((part) => part === "video");
-    let videoId;
-
-    if (videoIndex !== -1 && pathParts[videoIndex + 1]) {
-      videoId = pathParts[videoIndex + 1].split("?")[0];
-    } else {
-      // Some TikTok URLs don't have "video" in the path
-      videoId = pathParts[pathParts.length - 1].split("?")[0];
-    }
-
-    if (!videoId) return url;
-
-    // Construct canonical URL
-    return `https://www.tiktok.com/video/${videoId}`;
-  } catch (error) {
-    console.error("Error normalizing TikTok URL:", error);
-    return url;
+    console.error("Error resolving URL:", error);
+    return url; // Fall back to original URL if resolution fails
   }
 }
 
@@ -84,7 +33,6 @@ function extractInstagramId(url) {
 
     // Handle different Instagram URL formats
     if (pathParts.includes("share")) {
-      // For share URLs, get the ID from the last part
       return pathParts[pathParts.length - 1].split("?")[0];
     }
 
@@ -113,14 +61,19 @@ function extractTikTokId(url) {
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split("/").filter(Boolean);
 
+    // First try to find ID after "video/"
     const videoIndex = pathParts.findIndex((part) => part === "video");
     if (videoIndex !== -1 && pathParts[videoIndex + 1]) {
       return pathParts[videoIndex + 1].split("?")[0];
     }
 
-    // Handle URLs without "video" in the path
+    // If no "video/" in path, try the last part
     const lastPart = pathParts[pathParts.length - 1];
-    return lastPart.split("?")[0];
+    if (lastPart && /^\d+$/.test(lastPart.split("?")[0])) {
+      return lastPart.split("?")[0];
+    }
+
+    return null;
   } catch (error) {
     console.error("Error extracting TikTok ID:", error);
     return null;
@@ -128,7 +81,7 @@ function extractTikTokId(url) {
 }
 
 /**
- * Detects the platform from URL hostname
+ * Detects platform from URL
  * @param {URL} urlObj
  * @returns {string|null}
  */
@@ -139,11 +92,11 @@ function detectPlatform(urlObj) {
 }
 
 /**
- * Validates social media URL and extracts platform and ID
+ * Validates and processes a social media URL
  * @param {string} url
- * @returns {{ platform: string|null, videoId: string|null, normalizedUrl: string|null, error: string|null }}
+ * @returns {Promise<{ platform: string|null, videoId: string|null, normalizedUrl: string|null, error: string|null }>}
  */
-export function validateSocialUrl(url) {
+export async function validateSocialUrl(url) {
   try {
     if (!url) {
       return {
@@ -180,9 +133,15 @@ export function validateSocialUrl(url) {
 
     // Handle Instagram
     if (platform === "INSTAGRAM") {
-      const normalizedUrl = normalizeInstagramUrl(url);
-      const videoId = extractInstagramId(url);
+      const pathParts = urlObj.pathname.split("/").filter(Boolean);
 
+      // For share URLs, resolve to final URL
+      let finalUrl = url;
+      if (pathParts.includes("share")) {
+        finalUrl = await resolveInstagramUrl(url);
+      }
+
+      const videoId = extractInstagramId(finalUrl);
       if (!videoId) {
         return {
           platform,
@@ -192,14 +151,17 @@ export function validateSocialUrl(url) {
         };
       }
 
-      return { platform, videoId, normalizedUrl, error: null };
+      return {
+        platform,
+        videoId,
+        normalizedUrl: finalUrl,
+        error: null,
+      };
     }
 
     // Handle TikTok
     if (platform === "TIKTOK") {
-      const normalizedUrl = normalizeTikTokUrl(url);
       const videoId = extractTikTokId(url);
-
       if (!videoId) {
         return {
           platform,
@@ -209,7 +171,13 @@ export function validateSocialUrl(url) {
         };
       }
 
-      return { platform, videoId, normalizedUrl, error: null };
+      const normalizedUrl = `https://www.tiktok.com/video/${videoId}`;
+      return {
+        platform,
+        videoId,
+        normalizedUrl,
+        error: null,
+      };
     }
 
     return {

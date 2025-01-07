@@ -93,16 +93,19 @@ const AdminPanel = () => {
     setSuccessMessage("");
 
     try {
+      // Validate and resolve URL if needed
       const {
         platform,
         videoId,
         normalizedUrl,
         error: validationError,
-      } = validateSocialUrl(newMemeUrl);
+      } = await validateSocialUrl(newMemeUrl);
+
       if (validationError) {
         throw new Error(validationError);
       }
 
+      // Check for duplicates
       const isDuplicate = pendingMemes.some(
         (meme) => meme.video_id === videoId && meme.platform === platform,
       );
@@ -111,6 +114,7 @@ const AdminPanel = () => {
         throw new Error("This meme has already been added");
       }
 
+      // Make API request
       const response = await fetch("/api/admin/memes", {
         method: "POST",
         headers: {
@@ -118,7 +122,7 @@ const AdminPanel = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          url: normalizedUrl || newMemeUrl, // Use normalized URL if available
+          url: normalizedUrl || newMemeUrl, // Use resolved URL if available
           platform,
           videoId,
           status: "approved", // Auto-approve admin submissions
@@ -126,10 +130,11 @@ const AdminPanel = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || "Failed to add meme");
       }
 
+      // Success handling
       setSuccessMessage("Meme added successfully!");
       setNewMemeUrl("");
       setShowAddForm(false);

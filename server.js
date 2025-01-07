@@ -429,3 +429,31 @@ const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+// In server.js, add this new endpoint:
+
+const fetch = require("node-fetch"); // Make sure to install this package
+
+// Endpoint to resolve Instagram share URLs
+app.get("/api/resolve-url", async (req, res) => {
+  const { url } = req.query;
+
+  if (!url) {
+    return res.status(400).json({ error: "URL is required" });
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      redirect: "follow", // This is important - it tells fetch to follow redirects
+    });
+
+    // Get the final URL after all redirects
+    const finalUrl = response.url;
+
+    res.json({ resolvedUrl: finalUrl });
+  } catch (error) {
+    console.error("Error resolving URL:", error);
+    res.status(500).json({ error: "Failed to resolve URL" });
+  }
+});

@@ -91,7 +91,7 @@ const MemeDiscoveryPage = () => {
         videoId,
         normalizedUrl,
         error: validationError,
-      } = validateSocialUrl(newMemeUrl);
+      } = await validateSocialUrl(newMemeUrl);
       if (validationError) {
         throw new Error(validationError);
       }
@@ -110,7 +110,7 @@ const MemeDiscoveryPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          url: normalizedUrl || newMemeUrl, // Use normalized URL if available
+          url: normalizedUrl || newMemeUrl,
           platform,
           videoId,
         }),
