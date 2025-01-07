@@ -1,13 +1,55 @@
 // src/lib/urlValidation.js
 
 /**
+ * Extracts video ID from an Instagram URL
+ * @param {string} url
+ * @returns {string|null}
+ */
+export async function extractInstagramId(url) {
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split("/").filter(Boolean);
+
+    // Handle different Instagram URL formats
+    if (pathParts.includes("share")) {
+      // For share URLs, we need to follow the redirect
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          // Get the final URL after redirects
+          const finalUrl = response.url;
+          // Recursively extract ID from the final URL
+          return await extractInstagramId(finalUrl);
+        }
+      } catch (error) {
+        console.error("Error following share URL:", error);
+        // If we can't follow the redirect, try to extract from original URL
+      }
+    }
+
+    // Handle regular reel or post URLs
+    const idIndex = pathParts.findIndex(
+      (part) => part === "p" || part === "reel",
+    );
+    if (idIndex !== -1 && pathParts[idIndex + 1]) {
+      // Return clean ID without any query params
+      return pathParts[idIndex + 1].split("?")[0];
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error extracting Instagram ID:", error);
+    return null;
+  }
+}
+
+/**
  * Validates and extracts information from social media URLs
  * @param {string} url - The URL to validate
- * @returns {{ platform: string|null, videoId: string|null, error: string|null }}
+ * @returns {Promise<{ platform: string|null, videoId: string|null, error: string|null }>}
  */
-export function validateSocialUrl(url) {
+export async function validateSocialUrl(url) {
   try {
-    // Basic URL validation
     if (!url) {
       return { platform: null, videoId: null, error: "URL is required" };
     }
@@ -28,8 +70,14 @@ export function validateSocialUrl(url) {
       };
     }
 
-    // Extract video ID
-    const videoId = extractVideoId(url, platform);
+    // Extract video ID based on platform
+    let videoId = null;
+    if (platform === "INSTAGRAM") {
+      videoId = await extractInstagramId(url);
+    } else if (platform === "TIKTOK") {
+      videoId = extractTikTokId(url);
+    }
+
     if (!videoId) {
       return {
         platform,
@@ -64,35 +112,21 @@ export function detectPlatform(url) {
 }
 
 /**
- * Extracts video ID from a social media URL
+ * Extracts video ID from a TikTok URL
  * @param {string} url
- * @param {string} platform
  * @returns {string|null}
  */
-export function extractVideoId(url, platform) {
-  if (!url || !platform) return null;
-
+function extractTikTokId(url) {
   try {
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split("/").filter(Boolean);
 
-    if (platform === "INSTAGRAM") {
-      const idIndex = pathParts.findIndex(
-        (part) => part === "p" || part === "reel",
-      );
-      return idIndex !== -1 ? pathParts[idIndex + 1] : null;
-    }
-
-    if (platform === "TIKTOK") {
-      const videoIndex = pathParts.findIndex((part) => part === "video");
-      return videoIndex !== -1
-        ? pathParts[videoIndex + 1]
-        : pathParts[pathParts.length - 1];
-    }
-
-    return null;
+    const videoIndex = pathParts.findIndex((part) => part === "video");
+    return videoIndex !== -1
+      ? pathParts[videoIndex + 1]
+      : pathParts[pathParts.length - 1];
   } catch (error) {
-    console.error("Error extracting video ID:", error);
+    console.error("Error extracting TikTok ID:", error);
     return null;
   }
 }
