@@ -458,6 +458,49 @@ app.get("/api/resolve-url", async (req, res) => {
   }
 });
 
+// Scores endpoints
+app.post("/api/scores", async (req, res) => {
+  console.log("Received score submission:", req.body);
+
+  const { playerName, score, time, lettersPerSecond, mistakes } = req.body;
+
+  // Basic validation
+  if (!playerName || !score || !time || !lettersPerSecond) {
+    console.log("Validation failed:", {
+      playerName,
+      score,
+      time,
+      lettersPerSecond,
+    });
+    return res.status(400).json({
+      error: "Missing required fields",
+      received: { playerName, score, time, lettersPerSecond },
+    });
+  }
+
+  try {
+    console.log("Attempting database insertion...");
+    const result = await pool.query(
+      "INSERT INTO scores (player_name, score, time, letters_per_second, mistakes) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+      [playerName, score, time, lettersPerSecond, mistakes],
+    );
+
+    console.log("Database insertion successful:", result.rows[0]);
+    res.json({ id: result.rows[0].id });
+  } catch (error) {
+    console.error("Database error:", {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+    });
+    res.status(500).json({
+      error: "Failed to save score",
+      details: error.message,
+      code: error.code,
+    });
+  }
+});
+
 app.get("/api/leaderboard", async (req, res) => {
   try {
     const result = await pool.query(`
