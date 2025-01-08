@@ -16,18 +16,10 @@ class MainScene extends Phaser.Scene {
     this.startTime = 0;
   }
 
-  init(data) {
-    this.onGameOver = data.onGameOver;
-  }
-
-  preload() {
-    // Load any assets if needed
-  }
-
   create() {
-    // Create danger zone
-    const dangerZone = this.add.rectangle(50, 200, 100, 400, 0xFFEBEE);
-    const dangerLine = this.add.line(0, 0, 100, 0, 100, 400, 0xEF5350);
+    // Create danger zone at bottom
+    const dangerZone = this.add.rectangle(400, 350, 800, 100, 0xFFEBEE);
+    const dangerLine = this.add.line(400, 300, -400, 0, 400, 0, 0xEF5350);
     dangerLine.setLineWidth(2);
 
     // Add score text
@@ -41,21 +33,117 @@ class MainScene extends Phaser.Scene {
     this.input.keyboard.on('keydown', this.handleKeyPress, this);
   }
 
+  spawnLetter() {
+    if (!this.gameStarted) return;
+
+    const letters = ['O', 'I', 'A'];
+    const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+    const color = randomLetter === 'O' ? 0x3B82F6 :
+                 randomLetter === 'I' ? 0xFBBF24 :
+                 0x1D4ED8;
+
+    // Create letter container at random x position at top
+    const container = this.add.container(
+      Phaser.Math.Between(50, 750),  // Random x position
+      -50  // Start above screen
+    );
+
+    // Create background
+    const bg = this.add.rectangle(0, 0, 50, 50, color, 1);
+    bg.setInteractive();
+    bg.on('pointerdown', () => this.handleLetterClick(container));
+
+    // Create text
+    const text = this.add.text(0, 0, randomLetter, {
+      fontFamily: 'Arial',
+      fontSize: '32px',
+      fill: '#FFFFFF'
+    }).setOrigin(0.5);
+
+    container.add([bg, text]);
+    container.value = randomLetter;
+    this.letters.push(container);
+    this.totalLetters++;
+  }
+
+  update() {
+    if (!this.gameStarted) return;
+
+    // Move letters downward
+    this.letters.forEach(letter => {
+      letter.y += this.speed * (this.game.loop.delta / 1000);
+
+      // Check if letter has reached danger zone
+      if (letter.y >= 300) {  // Danger line y-position
+        this.gameOver();
+      }
+    });
+  }
+
+  handleLetterClick(clickedLetter) {
+    if (!this.gameStarted) return;
+
+    const lowestLetter = this.getLowestLetter();
+    if (clickedLetter === lowestLetter) {
+      this.handleCorrectLetter();
+    } else {
+      this.gameOver();
+    }
+  }
+
+  handleKeyPress(event) {
+    if (!this.gameStarted || this.letters.length === 0) return;
+
+    const lowestLetter = this.getLowestLetter();
+    if (lowestLetter.value.toLowerCase() === event.key.toLowerCase()) {
+      this.handleCorrectLetter();
+    } else {
+      this.gameOver();
+    }
+  }
+
+  getLowestLetter() {
+    // Return the letter closest to the bottom
+    return this.letters.reduce((lowest, current) =>
+      !lowest || current.y > lowest.y ? current : lowest
+    , null);
+  }
+
+  handleCorrectLetter() {
+    const lowestLetter = this.getLowestLetter();
+    if (lowestLetter) {
+      this.letters = this.letters.filter(l => l !== lowestLetter);
+      lowestLetter.destroy();
+      this.score += 100;
+      this.correctLetters++;
+
+      // Smooth speed increase using a logarithmic curve
+      this.speed = Math.min(
+        this.maxSpeed,
+        this.baseSpeed * (1 + Math.log1p(this.correctLetters * 0.1))
+      );
+
+      this.scoreText.setText(`Score: ${this.score}`);
+    }
+  }
+
   startGame() {
+    // Initialize game parameters
+    this.baseSpeed = 150;    // Slightly faster for vertical movement
+    this.maxSpeed = 500;
+    this.baseSpawnDelay = 1000;  // Start with 1 second between letters
+    this.minSpawnDelay = 400;    // Don't go faster than 0.4 seconds
+    this.currentSpawnDelay = this.baseSpawnDelay;
+    this.speed = this.baseSpeed;
+
     this.letters.forEach(letter => letter.destroy());
     this.letters = [];
     this.score = 0;
-    this.speed = 100;
     this.totalLetters = 0;
     this.correctLetters = 0;
     this.gameStarted = true;
     this.startTime = this.time.now;
     this.scoreText.setText('Score: 0');
-
-    // Initialize spawn timing
-    this.baseSpawnDelay = 1200; // Start with 1.2 seconds between letters
-    this.minSpawnDelay = 400;   // Don't go faster than 0.4 seconds between letters
-    this.currentSpawnDelay = this.baseSpawnDelay;
 
     // Start spawning letters with dynamic timing
     this.spawnTimer = this.time.addEvent({
@@ -76,95 +164,6 @@ class MainScene extends Phaser.Scene {
       loop: true
     });
   }
-
-  spawnLetter() {
-    if (!this.gameStarted) return;
-
-    const letters = ['O', 'I', 'A'];
-    const randomLetter = letters[Math.floor(Math.random() * letters.length)];
-    const color = randomLetter === 'O' ? 0x3B82F6 :
-                 randomLetter === 'I' ? 0xFBBF24 :
-                 0x1D4ED8;
-
-    // Create background
-    const container = this.add.container(800, Phaser.Math.Between(50, 350));
-    const bg = this.add.rectangle(0, 0, 50, 50, color, 1);
-    bg.setInteractive();
-    bg.on('pointerdown', () => this.handleLetterClick(container));
-
-    // Create text
-    const text = this.add.text(0, 0, randomLetter, {
-      fontFamily: 'Arial',
-      fontSize: '32px',
-      fill: '#FFFFFF'
-    }).setOrigin(0.5);
-
-    container.add([bg, text]);
-    container.value = randomLetter;
-    this.letters.push(container);
-    this.totalLetters++;
-  }
-
-  handleLetterClick(clickedLetter) {
-    if (!this.gameStarted) return;
-
-    const leftmostLetter = this.letters[0];
-    if (clickedLetter === leftmostLetter) {
-      this.handleCorrectLetter();
-    } else {
-      this.gameOver();
-    }
-  }
-
-  handleKeyPress(event) {
-    if (!this.gameStarted || this.letters.length === 0) return;
-
-    const leftmostLetter = this.letters[0];
-    if (leftmostLetter.value.toLowerCase() === event.key.toLowerCase()) {
-      this.handleCorrectLetter();
-    } else {
-      this.gameOver();
-    }
-  }
-
-  handleCorrectLetter() {
-    const letter = this.letters.shift();
-    letter.destroy();
-    this.score += 100;
-    this.correctLetters++;
-    this.speed += 5;
-    this.scoreText.setText(`Score: ${this.score}`);
-  }
-
-  gameOver() {
-    this.gameStarted = false;
-    const timePlayed = (this.time.now - this.startTime) / 1000;
-    const lettersPerSecond = this.correctLetters / timePlayed;
-
-    if (this.onGameOver) {
-      this.onGameOver({
-        score: this.score,
-        time: timePlayed.toFixed(1),
-        speed: lettersPerSecond.toFixed(2),
-        totalLetters: this.totalLetters,
-        correctLetters: this.correctLetters
-      });
-    }
-  }
-
-  update() {
-    if (!this.gameStarted) return;
-
-    // Move letters
-    this.letters.forEach(letter => {
-      letter.x -= this.speed * (this.game.loop.delta / 1000);
-
-      // Check if letter has reached danger zone
-      if (letter.x <= 100) {
-        this.gameOver();
-      }
-    });
-  }
 }
 
 const OiiaiGame = ({ onShowLeaderboard }) => {
@@ -176,26 +175,25 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Initialize Phaser game
+    // Initialize Phaser game with vertical layout
     const config = {
       type: Phaser.AUTO,
-      width: 800,
-      height: 400,
+      width: 400,  // Narrower width
+      height: 600, // Taller height
       backgroundColor: '#F0F9FF',
       parent: 'game-container',
       scene: MainScene,
       physics: {
         default: 'arcade',
         arcade: {
-          debug: false
+          debug: false,
+          gravity: { y: 0 }
         }
       }
     };
 
-    // Create game instance
     gameRef.current = new Phaser.Game(config);
 
-    // Pass callback to scene
     const scene = gameRef.current.scene.getScene('MainScene');
     if (scene) {
       scene.onGameOver = (stats) => {
@@ -259,27 +257,29 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-8">
+    <div className="flex flex-col items-center">
       {/* Game Header */}
-      <div className="flex items-center justify-between w-full">
-        <div className="text-2xl font-bold text-blue-700">
-          Score: {gameStats?.score || 0}
+      <div className="w-full max-w-[400px] px-4 mb-2">
+        <div className="flex items-center justify-between">
+          <div className="text-xl font-bold text-blue-700">
+            Score: {gameStats?.score || 0}
+          </div>
+          <Button
+            onClick={() => setIsMuted(!isMuted)}
+            className="w-10 h-10 rounded-full flex items-center justify-center"
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </Button>
         </div>
-        <Button
-          onClick={() => setIsMuted(!isMuted)}
-          className="kawaii-button"
-        >
-          {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-        </Button>
       </div>
 
-      {/* Game Container */}
-      <div className="relative rounded-lg overflow-hidden border-4 border-blue-200 w-[800px] h-[400px] bg-blue-50">
-        <div id="game-container" />
+      {/* Game Container - Vertical aspect ratio */}
+      <div className="relative w-full max-w-[400px] aspect-[2/3] bg-blue-50">
+        <div id="game-container" className="w-full h-full" />
 
         {/* Game Over Overlay */}
         {isGameOver && gameStats && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
             <GameOverMessage
               success={true}
               score={gameStats.score}
@@ -292,10 +292,9 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
         )}
 
         {/* Start Game Overlay */}
-        {/* Add proper game state tracking */}
         {!isGameStarted && !isGameOver && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <Button onClick={handleStartGame} className="kawaii-button accent text-lg px-8 py-4">
+            <Button onClick={handleStartGame} className="kawaii-button accent text-lg px-6 py-3">
               Start Game
             </Button>
           </div>
@@ -303,9 +302,9 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
       </div>
 
       {/* Instructions */}
-      <div className="text-center text-blue-700">
-        <p>Type <span className="font-bold">O</span>, <span className="font-bold">I</span>, or <span className="font-bold">A</span> to match the leftmost letter!</p>
-        <p className="text-sm mt-2">Or click/tap the letters directly</p>
+      <div className="text-center text-blue-700 px-4 py-3 mt-2 text-sm">
+        <p>Type <span className="font-bold">O</span>, <span className="font-bold">I</span>, or <span className="font-bold">A</span> to match the closest letter</p>
+        <p className="text-xs mt-1 text-blue-600">or tap letters to remove them</p>
       </div>
     </div>
   );
