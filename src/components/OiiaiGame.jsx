@@ -1,462 +1,328 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { API_URL } from "../config";
-import GameOverMessage from "./GameOverMessage";
-import {
-  Play,
-  RotateCw,
-  Volume2,
-  VolumeX,
-  Keyboard,
-  Trophy,
-} from "lucide-react";
-import { Button } from "./ui/Button";
-import { Leaderboard } from "./Leaderboard";
+import React, { useEffect, useRef, useState } from 'react';
+import * as PIXI from 'pixi.js';
+import { Button } from './ui/Button';
+import { Volume2, VolumeX } from 'lucide-react';
 
-// const API_URL = process.env.REACT_APP_API_URL || "/api";
-const BASE_SEQUENCE = "oiiaiooiiiai".split("");
-const REPEAT_COUNT = 4;
-const SEQUENCE = Array(REPEAT_COUNT).fill(BASE_SEQUENCE).flat();
-const LETTER_COLORS = {
-  o: "bg-blue-500 hover:bg-blue-600", // Primary blue
-  i: "bg-yellow-400 hover:bg-yellow-500", // Accent yellow
-  a: "bg-blue-700 hover:bg-blue-800", // Darker blue for contrast
-};
+// Game constants
+const GAME_WIDTH = 800;
+const GAME_HEIGHT = 400;
+const INITIAL_SPEED = 1; // pixels per frame (slower for testing)
+const LETTER_SIZE = 50;
+const LETTER_SPAWN_INTERVAL = 2000; // ms between letters
 
-const LETTER_NAMES = {
-  o: "O",
-  i: "I",
-  a: "A",
-};
+class Game {
+  constructor(canvas, onGameOver) {
+    this.onGameOver = onGameOver;
 
-const KEYBOARD_MAPPINGS = {
-  o: ["o", "O"],
-  i: ["i", "I"],
-  a: ["a", "A"],
-};
+    // Initialize PIXI Application using v8 syntax
+    PIXI.Application.init({
+      view: canvas,
+      width: GAME_WIDTH,
+      height: GAME_HEIGHT,
+      backgroundColor: 0xF0F9FF,
+      resolution: window.devicePixelRatio || 1,
+    }).then((app) => {
+      this.app = app;
+      this.init();
+    });
 
-const KeyboardHint = () => (
-  <div className="flex items-center justify-center gap-2 text-sm text-blue-700 mt-4 bg-blue-50 px-4 py-2 rounded-lg border-2 border-blue-200">
-    <div className="kawaii-text flex items-center gap-2">
-      <Keyboard className="w-4 h-4" />
-      <span>Use keyboard keys:</span>
-      {Object.entries(LETTER_NAMES).map(([letter, name], index) => (
-        <span key={letter} className="font-mono">
-          {index > 0 && "/"}
-          {name}
-        </span>
-      ))}
-    </div>
-    <div className="kawaii-text text-xs">
-      Complete the sequence 4 times to win!
-    </div>
-  </div>
-);
+    // Game state
+    this.letters = [];
+    this.score = 0;
+    this.speed = INITIAL_SPEED;
+    this.isPlaying = false;
+    this.isInitialized = false;
+  }
 
-export default function OiiaiGame({ onShowLeaderboard }) {
-  const [gameState, setGameState] = useState("idle");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [mistakes, setMistakes] = useState(0);
-  const [startTime, setStartTime] = useState(null);
-  const [endTime, setEndTime] = useState(null);
-  const [score, setScore] = useState({ time: 0, accuracy: 0, speed: 0 });
+  async init() {
+    try {
+      if (!this.app || this.isInitialized) return;
+
+      // Create game container
+      this.gameContainer = new PIXI.Container();
+      this.app.stage.addChild(this.gameContainer);
+
+      // Setup game area
+      this.setupGameArea();
+
+      // Set up the game ticker
+      this.app.ticker.add(() => {
+        if (this.isPlaying) {
+          this.gameLoop();
+        }
+      });
+
+      this.isInitialized = true;
+      console.log('Game initialized successfully');
+    } catch (error) {
+      console.error('Error initializing game:', error);
+    }
+  }
+
+  setupGameArea() {
+    // Create danger zone using v8 syntax
+    const dangerZone = new PIXI.Graphics();
+    dangerZone.fill({ color: 0xFFEBEE });
+    dangerZone.rect(0, 0, 100, GAME_HEIGHT);
+    this.gameContainer.addChild(dangerZone);
+
+    // Create border for danger zone
+    const dangerBorder = new PIXI.Graphics();
+    dangerBorder.setStrokeStyle({ width: 2, color: 0xEF5350 });
+    dangerBorder.moveTo(100, 0);
+    dangerBorder.lineTo(100, GAME_HEIGHT);
+    this.gameContainer.addChild(dangerBorder);
+  }
+
+  createLetter() {
+    if (!this.isInitialized || !this.gameContainer) {
+      console.warn('Cannot create letter - game not initialized');
+      return;
+    }
+
+    const letters = ['O', 'I', 'A'];
+    const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+
+    // Create letter container
+    const letterContainer = new PIXI.Container();
+    letterContainer.x = GAME_WIDTH - LETTER_SIZE;
+    letterContainer.y = GAME_HEIGHT / 2;
+
+    // Create background using v8 syntax
+    const background = new PIXI.Graphics();
+    const color = randomLetter === 'O' ? 0x3B82F6 :
+                 randomLetter === 'I' ? 0xFBBF24 :
+                 0x1D4ED8;
+
+    background.fill({ color });
+    background.roundRect(-LETTER_SIZE/2, -LETTER_SIZE/2, LETTER_SIZE, LETTER_SIZE, 10);
+
+    // Create text using v8 syntax
+    const text = new PIXI.Text({
+      text: randomLetter,
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 32,
+        fill: 0xFFFFFF,
+        align: 'center',
+      }
+    });
+    text.anchor.set(0.5);
+
+    letterContainer.addChild(background);
+    letterContainer.addChild(text);
+    letterContainer.value = randomLetter;
+    letterContainer.eventMode = 'static';
+    letterContainer.cursor = 'pointer';
+    letterContainer.on('pointerdown', () => this.handleLetterClick(letterContainer));
+
+    this.gameContainer.addChild(letterContainer);
+    this.letters.push(letterContainer);
+
+    console.log(`Letter ${randomLetter} created at ${letterContainer.x}, ${letterContainer.y}`);
+  }
+
+  handleLetterClick(letterContainer) {
+    if (!this.isPlaying) return;
+
+    const leftmostLetter = this.letters[0];
+    if (letterContainer === leftmostLetter) {
+      this.letters = this.letters.filter(l => l !== letterContainer);
+      this.gameContainer.removeChild(letterContainer);
+      this.score += 100;
+      this.speed += 0.1;
+    } else {
+      this.gameOver();
+    }
+  }
+
+  gameLoop() {
+    if (!this.isPlaying || !this.isInitialized) return;
+
+    // Move letters
+    for (const letter of this.letters) {
+      letter.x -= this.speed;
+
+      // Check if letter has reached danger zone
+      if (letter.x <= 100) {
+        this.gameOver();
+        return;
+      }
+    }
+
+    // Remove off-screen letters
+    this.letters = this.letters.filter(letter => {
+      if (letter.x < -LETTER_SIZE) {
+        this.gameContainer.removeChild(letter);
+        return false;
+      }
+      return true;
+    });
+
+    // Generate new letters
+    const lastLetter = this.letters[this.letters.length - 1];
+    if (!lastLetter || lastLetter.x < GAME_WIDTH - 200) {
+      this.createLetter();
+    }
+  }
+
+  async start() {
+    if (!this.isInitialized) {
+      console.warn('Game not initialized yet');
+      return;
+    }
+
+    console.log('Starting game...');
+
+    // Reset game state
+    this.letters.forEach(letter => {
+      if (letter.parent) {
+        letter.parent.removeChild(letter);
+      }
+    });
+    this.letters = [];
+    this.score = 0;
+    this.speed = INITIAL_SPEED;
+    this.isPlaying = true;
+
+    this.createLetter();
+  }
+
+  gameOver() {
+    this.isPlaying = false;
+    if (this.onGameOver) {
+      this.onGameOver(this.score);
+    }
+  }
+
+  destroy() {
+    try {
+      this.isPlaying = false;
+      this.isInitialized = false;
+
+      if (this.letters) {
+        this.letters.forEach(letter => {
+          if (letter?.parent) {
+            letter.parent.removeChild(letter);
+          }
+        });
+        this.letters = [];
+      }
+
+      if (this.gameContainer?.parent) {
+        this.gameContainer.parent.removeChild(this.gameContainer);
+        this.gameContainer.destroy({ children: true });
+      }
+
+      if (this.app?.stage) {
+        this.app.stage.removeChildren();
+      }
+
+      if (this.app && !this.app.destroyed) {
+        this.app.destroy(true, { children: true, texture: true, baseTexture: true });
+      }
+
+      this.app = null;
+      this.gameContainer = null;
+    } catch (error) {
+      console.error('Error during cleanup:', error);
+    }
+  }
+}
+
+const OiiaiGame = ({ onShowLeaderboard }) => {
+  const canvasRef = useRef(null);
+  const gameRef = useRef(null);
   const [isMuted, setIsMuted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [lastPressedKey, setLastPressedKey] = useState(null);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [submittingScore, setSubmittingScore] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [score, setScore] = useState(0);
 
-  const audioContextRef = useRef(null);
-  const audioBuffersRef = useRef({});
-  const gainNodeRef = useRef(null);
-  const correctSoundRef = useRef(null);
-  const incorrectSoundRef = useRef(null);
-
-  const getCurrentRepetition = useCallback(() => {
-    return Math.floor(currentIndex / BASE_SEQUENCE.length) + 1;
-  }, [currentIndex]);
-
-  // Initialize audio context and load sounds
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext ||
-      window.webkitAudioContext)();
-    gainNodeRef.current = audioContextRef.current.createGain();
-    gainNodeRef.current.connect(audioContextRef.current.destination);
-
-    const loadSound = async (letter) => {
-      try {
-        const response = await fetch(`/sounds/${letter}.wav`);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer =
-          await audioContextRef.current.decodeAudioData(arrayBuffer);
-        audioBuffersRef.current[letter] = audioBuffer;
-        setLoadingProgress(
-          (prev) => prev + 100 / (Object.keys(LETTER_NAMES).length + 2),
-        );
-      } catch (error) {
-        console.error(`Error loading ${letter} sound:`, error);
+    const initGame = async () => {
+      if (canvasRef.current && !gameRef.current) {
+        try {
+          gameRef.current = new Game(canvasRef.current, (finalScore) => {
+            setScore(finalScore);
+            setIsGameOver(true);
+          });
+        } catch (error) {
+          console.error('Error creating game:', error);
+        }
       }
     };
 
-    Promise.all([
-      ...Object.keys(LETTER_NAMES).map(loadSound),
-      fetch("/sounds/correct.wav")
-        .then((response) => response.arrayBuffer())
-        .then((arrayBuffer) =>
-          audioContextRef.current.decodeAudioData(arrayBuffer),
-        )
-        .then((audioBuffer) => {
-          correctSoundRef.current = audioBuffer;
-        }),
-      fetch("/sounds/incorrect.wav")
-        .then((response) => response.arrayBuffer())
-        .then((arrayBuffer) =>
-          audioContextRef.current.decodeAudioData(arrayBuffer),
-        )
-        .then((audioBuffer) => {
-          incorrectSoundRef.current = audioBuffer;
-        }),
-    ]).then(() => {
-      setIsLoading(false);
-      setLoadingProgress(100);
-    });
+    initGame();
 
     return () => {
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
+      try {
+        if (gameRef.current) {
+          gameRef.current.destroy();
+          gameRef.current = null;
+        }
+      } catch (error) {
+        console.error('Error during cleanup:', error);
       }
     };
   }, []);
 
-  const submitScore = async (playerName) => {
-    if (!playerName.trim()) return;
-
-    setSubmittingScore(true);
-    const scoreData = {
-      playerName: playerName.trim(),
-      score: Number(score.speed) * 1000, // Convert to points
-      time: Number(score.time),
-      lettersPerSecond: Number(score.speed),
-      mistakes: mistakes,
-    };
-
-    console.log("Submitting score data:", scoreData);
-    console.log("API URL:", `${API_URL}/scores`);
-
-    try {
-      const response = await fetch(`${API_URL}/scores`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(scoreData),
-      });
-
-      console.log("Response status:", response.status);
-      const responseData = await response.json();
-      console.log("Response data:", responseData);
-
-      if (!response.ok) {
-        throw new Error(responseData.error || "Failed to submit score");
-      }
-
-      // Show leaderboard after successful submission
-      // setShowLeaderboard(true);
-      onShowLeaderboard();
-    } catch (error) {
-      console.error("Detailed error:", error);
-      console.error("Error submitting score:", {
-        message: error.message,
-        stack: error.stack,
-      });
-      alert(`Failed to submit score: ${error.message}`);
-    } finally {
-      setSubmittingScore(false);
+  const handleStartGame = () => {
+    if (gameRef.current?.isInitialized) {
+      setIsGameOver(false);
+      gameRef.current.start();
+    } else {
+      console.warn('Game not ready yet');
     }
   };
 
-  const playFeedbackSound = useCallback(
-    (isCorrect) => {
-      if (audioContextRef.current?.state === "suspended") {
-        audioContextRef.current.resume();
-      }
-
-      if (audioContextRef.current && !isMuted) {
-        const source = audioContextRef.current.createBufferSource();
-        source.buffer = isCorrect
-          ? correctSoundRef.current
-          : incorrectSoundRef.current;
-        source.connect(gainNodeRef.current);
-        source.start(0);
-      }
-    },
-    [isMuted],
-  );
-
-  const playSound = useCallback(
-    (letter) => {
-      if (audioContextRef.current?.state === "suspended") {
-        audioContextRef.current.resume();
-      }
-
-      if (
-        audioContextRef.current &&
-        audioBuffersRef.current[letter] &&
-        !isMuted
-      ) {
-        const source = audioContextRef.current.createBufferSource();
-        source.buffer = audioBuffersRef.current[letter];
-
-        const compressor = audioContextRef.current.createDynamicsCompressor();
-        compressor.threshold.value = -24;
-        compressor.knee.value = 30;
-        compressor.ratio.value = 12;
-        compressor.attack.value = 0.003;
-        compressor.release.value = 0.25;
-
-        source.connect(compressor);
-        compressor.connect(gainNodeRef.current);
-
-        source.start(0);
-      }
-    },
-    [isMuted],
-  );
-
-  const handleLetterClick = useCallback(
-    (letter) => {
-      if (gameState !== "playing") return;
-
-      playSound(letter);
-
-      if (letter === SEQUENCE[currentIndex]) {
-        if (currentIndex === SEQUENCE.length - 1) {
-          // Successfully completed all repetitions
-          const endTimeStamp = Date.now();
-          setEndTime(endTimeStamp);
-          setGameState("gameOver");
-
-          const timeElapsed = (endTimeStamp - startTime) / 1000;
-          const speed = SEQUENCE.length / timeElapsed;
-
-          setScore({
-            time: timeElapsed.toFixed(2),
-            speed: speed.toFixed(2),
-            points: Math.round(speed * 1000), // Calculate points based on speed
-            success: true,
-          });
-
-          // Play success sound for perfect completion
-          playFeedbackSound(true);
-        } else {
-          setCurrentIndex((prev) => prev + 1);
-        }
-      } else {
-        // Play error sound and end game immediately
-        playFeedbackSound(false);
-        setMistakes((prev) => prev + 1);
-        setGameState("gameOver");
-        setScore({ success: false });
-      }
-    },
-    [gameState, currentIndex, startTime, playSound, playFeedbackSound],
-  );
-
-  const startGame = useCallback(() => {
-    if (audioContextRef.current?.state === "suspended") {
-      audioContextRef.current.resume();
-    }
-    setGameState("playing");
-    setCurrentIndex(0);
-    setMistakes(0);
-    setStartTime(Date.now());
-    setEndTime(null);
-  }, []);
-
-  // Handle muting
-  useEffect(() => {
-    if (gainNodeRef.current) {
-      gainNodeRef.current.gain.value = isMuted ? 0 : 1;
-    }
-  }, [isMuted]);
-
-  // Keyboard event handler with spacebar support
-  useEffect(() => {
-    const handleKeyPress = (event) => {
-      // Spacebar to start/restart
-      if (event.code === "Space") {
-        event.preventDefault(); // Prevent page scroll
-        if (gameState !== "playing") {
-          startGame();
-          return;
-        }
-      }
-
-      // Letter keys during gameplay
-      if (gameState === "playing") {
-        for (const [letter, keys] of Object.entries(KEYBOARD_MAPPINGS)) {
-          if (keys.includes(event.key)) {
-            handleLetterClick(letter);
-            setLastPressedKey(letter);
-            setTimeout(() => setLastPressedKey(null), 100);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [gameState, handleLetterClick, startGame]);
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 p-8">
-        <div className="w-full max-w-xs bg-gray-200 rounded-full h-4">
-          <div
-            className="bg-blue-500 h-4 rounded-full transition-all duration-300"
-            style={{ width: `${loadingProgress}%` }}
-          ></div>
-        </div>
-        <p className="text-gray-600">
-          Loading sounds... {Math.round(loadingProgress)}%
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col items-center gap-8">
-      <div className="flex items-center gap-4">
-        <div className="kawaii-title text-xl text-blue-700">
-          {gameState === "idle" && "Ready to Play?"}
-          {gameState === "playing" && (
-            <div className="flex flex-col items-center">
-              <div>Match the Sequence!</div>
-              <div className="text-sm text-blue-600">
-                Round {getCurrentRepetition()} of {REPEAT_COUNT}
-              </div>
-            </div>
-          )}
-          {gameState === "gameOver" &&
-            (score.success ? "Congratulations! 🎉" : "Game Over 💫")}
+      {/* Game Header */}
+      <div className="flex items-center justify-between w-full">
+        <div className="text-2xl font-bold text-blue-700">
+          Score: {gameRef.current?.score || 0}
         </div>
-        <Button onClick={() => setIsMuted(!isMuted)} className="kawaii-button">
-          {isMuted ? (
-            <VolumeX className="w-4 h-4" />
-          ) : (
-            <Volume2 className="w-4 h-4" />
-          )}
+        <Button
+          onClick={() => setIsMuted(!isMuted)}
+          className="kawaii-button"
+        >
+          {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
         </Button>
       </div>
-      {/* Sequence display */}
-      <div className="flex flex-col items-center gap-4">
-        <div className="flex gap-2 flex-wrap justify-center max-w-2xl">
-          {BASE_SEQUENCE.map((letter, index) => (
-            <div
-              key={index}
-              className={`w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold
-                ${LETTER_COLORS[letter]}
-                ${
-                  currentIndex % BASE_SEQUENCE.length === index &&
-                  gameState === "playing"
-                    ? "ring-4 ring-yellow-300 animate-pulse"
-                    : ""
-                }
-                ${
-                  currentIndex % BASE_SEQUENCE.length > index
-                    ? "opacity-50"
-                    : "opacity-100"
-                }
-                transition-all duration-200 transform hover:scale-105`}
-            >
-              {letter.toUpperCase()}
+
+      {/* Game Canvas */}
+      <div className="relative rounded-lg overflow-hidden border-4 border-blue-200 w-[800px] h-[400px] bg-blue-50">
+        <canvas
+          ref={canvasRef}
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'block'
+          }}
+        />
+
+        {/* Overlay for game over / start screen */}
+        {isGameOver && (
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-lg text-center">
+              <h2 className="text-2xl font-bold text-blue-700 mb-4">Game Over!</h2>
+              <p className="text-xl text-blue-600 mb-4">Score: {score}</p>
+              <Button onClick={handleStartGame} className="kawaii-button accent">
+                Play Again
+              </Button>
             </div>
-          ))}
-        </div>
-        {gameState === "playing" && (
-          <div className="flex gap-2">
-            {Array(REPEAT_COUNT)
-              .fill(0)
-              .map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-3 h-3 rounded-full
-                    ${
-                      index < getCurrentRepetition() - 1
-                        ? "bg-blue-500"
-                        : "bg-blue-200"
-                    }
-                    ${
-                      index === getCurrentRepetition() - 1 &&
-                      "animate-pulse bg-yellow-400"
-                    }
-                  `}
-                />
-              ))}
+          </div>
+        )}
+
+        {(!gameRef.current?.isPlaying && !isGameOver) && (
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <Button onClick={handleStartGame} className="kawaii-button accent text-lg px-8 py-4">
+              Start Game
+            </Button>
           </div>
         )}
       </div>
-      {/* Game controls */}
-      <div className="flex flex-col items-center gap-4">
-        <div className="flex gap-4 flex-wrap justify-center">
-          {Object.entries(LETTER_NAMES).map(([letter, name]) => (
-            <button
-              key={letter}
-              className={`w-20 h-20 ${LETTER_COLORS[letter]} text-white text-2xl font-bold
-                rounded-lg border-2 border-blue-700 shadow-lg
-                transform transition-all duration-200
-                ${
-                  gameState !== "playing"
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:scale-105"
-                }
-                ${lastPressedKey === letter ? "scale-95" : ""}
-                disabled:opacity-50 disabled:cursor-not-allowed
-              `}
-              onClick={() => handleLetterClick(letter)}
-              disabled={gameState !== "playing"}
-            >
-              {name}
-            </button>
-          ))}
-        </div>
-        <KeyboardHint />
-        <div className="text-sm text-blue-600 mt-2">
-          Press{" "}
-          <kbd className="px-2 py-1 bg-blue-50 rounded border border-blue-200">
-            Space
-          </kbd>{" "}
-          to {gameState === "playing" ? "restart" : "start"}
-        </div>
-      </div>
-      {/* Game Over Message */}
-      {gameState === "gameOver" && (
-        <GameOverMessage
-          success={score.success}
-          time={score.time}
-          speed={score.speed}
-          onSubmitScore={submitScore}
-          submitting={submittingScore}
-        />
-      )}
-      {/* Start/Restart button */}
-      <Button
-        onClick={startGame}
-        className="kawaii-button accent mt-4 text-lg px-8 py-4"
-      >
-        {gameState === "idle" ? (
-          <>
-            <Play className="w-6 h-6 mr-2" />
-            Start Game
-          </>
-        ) : (
-          <>
-            <RotateCw className="w-6 h-6 mr-2" />
-            Play Again
-          </>
-        )}
-      </Button>
     </div>
   );
-}
+};
+
+export default OiiaiGame;
