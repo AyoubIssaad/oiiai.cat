@@ -457,3 +457,42 @@ app.get("/api/resolve-url", async (req, res) => {
     res.status(500).json({ error: "Failed to resolve URL" });
   }
 });
+
+app.get("/api/leaderboard", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      WITH RankedScores AS (
+        SELECT
+          id,
+          player_name,
+          score,
+          time,
+          letters_per_second,
+          mistakes,
+          created_at,
+          ROW_NUMBER() OVER (
+            PARTITION BY player_name
+            ORDER BY score DESC, time ASC
+          ) as rank
+        FROM scores
+      )
+      SELECT
+        id,
+        player_name,
+        score,
+        time,
+        letters_per_second,
+        mistakes,
+        created_at
+      FROM RankedScores
+      WHERE rank = 1
+      ORDER BY score DESC, time ASC
+      LIMIT 50
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    res.status(500).json({ error: "Failed to fetch leaderboard" });
+  }
+});
