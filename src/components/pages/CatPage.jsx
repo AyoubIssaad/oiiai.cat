@@ -13,6 +13,7 @@ import { Slider } from "../ui/Slider";
 import { Link } from "react-router-dom";
 import { ShareButton } from "../ShareButton";
 import SEO from "../SEO";
+import FeaturedProducts from "../FeaturedProducts";
 
 export function CatPage() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -188,6 +189,9 @@ export function CatPage() {
           </p>
         </div>
         <div className="flex justify-center mb-8"></div>
+
+        {/* Featured Products Section */}
+        <FeaturedProducts />
 
         {/* Main Controller Section */}
         <div className="kawaii-card p-8 max-w-2xl mx-auto">

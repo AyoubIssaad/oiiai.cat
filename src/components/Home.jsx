@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import SEO from "./SEO";
+import { FeaturedProducts } from "./FeaturedProducts";
 import {
   Play,
   Pause,
@@ -238,6 +239,8 @@ export default function Home() {
             </header>
           </div>
         </section>
+
+        <FeaturedProducts />
 
         <main className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
