@@ -9,6 +9,7 @@ import {
   X,
   Film,
   Search,
+  ShoppingCart,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 
@@ -81,6 +82,17 @@ export function KawaiiNav() {
             <NavLink to="/" icon={Home} label="Home">
               Make Cat Spin!
             </NavLink>
+            <a
+              href="https://store.oiiai.cat"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300
+                hover:bg-blue-100 hover:text-blue-700 hover:transform hover:scale-105
+                font-['Orbitron'] font-bold text-sm md:text-base text-blue-600"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              Store
+            </a>
             <NavLink to="/memes" icon={Search} label="Discover">
               Discover Memes
             </NavLink>
@@ -107,6 +119,18 @@ export function KawaiiNav() {
               <NavLink to="/" icon={Home} label="Home" onClick={closeMenu}>
                 Make Cat Spin!
               </NavLink>
+              <a
+                href="https://store.oiiai.cat"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300
+                  hover:bg-blue-100 hover:text-blue-700
+                  font-['Orbitron'] font-bold text-sm md:text-base text-blue-600"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMenu}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                Store
+              </a>
               <NavLink
                 to="/secret-messages"
                 icon={MessageSquare}

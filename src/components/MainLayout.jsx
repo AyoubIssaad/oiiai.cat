@@ -23,6 +23,16 @@ export function MainLayout({ children }) {
               <h3 className="kawaii-subtitle text-lg mb-4">Quick Links</h3>
               <ul className="space-y-2">
                 <li>
+                  <a
+                    href="https://store.oiiai.cat"
+                    className="text-blue-600 hover:text-blue-800"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Store
+                  </a>
+                </li>
+                <li>
                   <Link
                     to="/privacy"
                     className="text-blue-600 hover:text-blue-800"
