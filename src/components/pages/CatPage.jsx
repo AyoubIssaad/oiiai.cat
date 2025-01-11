@@ -176,16 +176,15 @@ export function CatPage() {
 
       <div className="container mx-auto px-4 pt-20 sm:pt24">
         {/* Fun Header Section */}
-        <div className="text-center mb-8">
-          <h1 className="relative flex items-center justify-center gap-2">
-            <span className="kawaii-heading text-4xl mb-4">
-              Ultimate Spin Controller
-            </span>
-            <span className="animate-bounce text-4xl bg-transparent">🌪️</span>
+        {/* Streamlined Header Section */}
+        <div className="text-center mb-6">
+          <h1 className="relative inline-flex items-center gap-2 kawaii-heading text-2xl sm:text-3xl">
+            Make Cat Go Spin
+            <span className="animate-bounce bg-transparent">🌪️</span>
           </h1>
-          <p className="text-lg text-blue-700">
-            Welcome to the sacred art of cat spinning! Control the legendary
-            Oiiai Cat's rotations and create spinning magic!
+          <p className="text-sm sm:text-base text-blue-700 mt-2 max-w-lg mx-auto">
+            Control the legendary Oiiai Cat's rotations and create spinning
+            magic!
           </p>
         </div>
         <div className="flex justify-center mb-8"></div>
@@ -194,7 +193,10 @@ export function CatPage() {
         <div className="kawaii-card p-8 max-w-2xl mx-auto">
           <div className="flex flex-col items-center gap-8 mb-8">
             {/* Cat Animation Container */}
-            <div className="kawaii-cat-container relative w-64 h-64 flex items-center justify-center bg-blue-50 rounded-full overflow-hidden">
+            <div
+              className="kawaii-cat-container relative w-64 h-64 flex items-center justify-center rounded-full overflow-hidden"
+              style={{ backgroundColor: "#0bf70a" }}
+            >
               {isPlaying ? (
                 <video
                   ref={videoRef}
