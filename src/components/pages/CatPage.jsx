@@ -13,6 +13,7 @@ import { Slider } from "../ui/Slider";
 import { Link } from "react-router-dom";
 import { ShareButton } from "../ShareButton";
 import SEO from "../SEO";
+import FeaturedProducts from "../FeaturedProducts";
 
 export function CatPage() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -284,6 +285,9 @@ export function CatPage() {
             </div>
           </div>
         </div>
+
+        {/* Featured Products Section */}
+        <FeaturedProducts />
 
         {/* Fun Info Section */}
         <div className="max-w-2xl mx-auto mt-8">

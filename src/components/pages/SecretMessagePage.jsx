@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import SEO from "../SEO";
+import FeaturedProducts from "../FeaturedProducts";
 
 // Encoding map
 const ENCODER_MAP = {
@@ -437,6 +438,8 @@ export function SecretMessagePage() {
           </div>
         </div>
 
+        {/* Featured Products Section */}
+        <FeaturedProducts />
         {/* Show More Information Button */}
         <div className="text-center mb-8">
           <Button
