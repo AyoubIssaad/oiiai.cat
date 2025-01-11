@@ -4,6 +4,7 @@ import { Button } from "../ui/Button";
 import OiiaiGame from "../OiiaiGame";
 import { Leaderboard } from "../Leaderboard";
 import SEO from "../SEO";
+import FeaturedProducts from "../FeaturedProducts";
 
 export function GamesPage() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -48,6 +49,10 @@ export function GamesPage() {
             </div>
           )}
         </div>
+
+        {/* Featured Products Section */}
+        <FeaturedProducts />
+
         {/* Quick Tips */}
         <div className="max-w-4xl mx-auto mt-8">
           <div className="kawaii-card p-6">

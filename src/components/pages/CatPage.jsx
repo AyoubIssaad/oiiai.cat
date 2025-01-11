@@ -190,9 +190,6 @@ export function CatPage() {
         </div>
         <div className="flex justify-center mb-8"></div>
 
-        {/* Featured Products Section */}
-        <FeaturedProducts />
-
         {/* Main Controller Section */}
         <div className="kawaii-card p-8 max-w-2xl mx-auto">
           <div className="flex flex-col items-center gap-8 mb-8">
@@ -288,6 +285,9 @@ export function CatPage() {
             </div>
           </div>
         </div>
+
+        {/* Featured Products Section */}
+        <FeaturedProducts />
 
         {/* Fun Info Section */}
         <div className="max-w-2xl mx-auto mt-8">
