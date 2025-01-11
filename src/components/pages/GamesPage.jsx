@@ -20,14 +20,18 @@ export function GamesPage() {
 
       <div className="container mx-auto px-4 pt-20 sm:pt24">
         {/* Header Section */}
-        <div className="text-center mb-12">
-          <h1 className="relative inline-flex items-center gap-2 kawaii-heading text-2xl sm:text-3xl">
-            Oiiai Games
-            <span className="animate-bounce bg-transparent">🎮</span>
+        <div className="text-center mb-6">
+          <h1 className="relative flex items-center justify-center gap-2">
+            <span className="kawaii-heading text-2xl sm:text-3xl">
+              Oiiai Games
+            </span>
+            <span className="animate-bounce text-2xl sm:text-3xl">🎮</span>
           </h1>
           <p className="text-sm sm:text-base text-blue-700 mt-2 max-w-lg mx-auto">
             Test your skills, set high scores, and have fun!
           </p>
+        </div>
+        <div className="text-center mb-4">
           <Button
             onClick={() => setShowLeaderboard(true)}
             className="kawaii-button"
