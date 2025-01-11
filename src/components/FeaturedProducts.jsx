@@ -107,15 +107,15 @@ function FeaturedProducts() {
   return (
     <div className="bg-blue-50/50 py-8 mb-8">
       <div className="max-w-5xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="kawaii-title text-xl text-blue-700">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-6 px-4 sm:px-0">
+          <h2 className="kawaii-title text-xl sm:text-2xl text-blue-700">
             Gifts & Giggles 🎁😆
           </h2>
           <a
             href="https://store.oiiai.cat"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+            className="text-sm font-medium text-blue-600 hover:text-blue-700 whitespace-nowrap"
           >
             View All →
           </a>
