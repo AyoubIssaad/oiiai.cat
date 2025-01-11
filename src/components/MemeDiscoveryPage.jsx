@@ -182,13 +182,14 @@ const MemeDiscoveryPage = () => {
 
       {/* Header Section */}
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-4xl font-bold text-blue-700 mb-4">
+        <div className="text-center mb-8">
+          <h1 className="relative inline-flex items-center gap-2 kawaii-heading text-2xl sm:text-3xl">
             Discover Memes
+            <span className="animate-bounce bg-transparent">🔍</span>
           </h1>
-          <p className="text-blue-600 max-w-2xl">
-            Explore the best oiiai cat memes from across the internet. Vote for
-            your favorites!
+          <p className="text-sm sm:text-base text-blue-700 mt-2 max-w-lg mx-auto">
+            Explore and vote for the best oiiai cat memes from across the
+            internet!
           </p>
         </div>
         <Button

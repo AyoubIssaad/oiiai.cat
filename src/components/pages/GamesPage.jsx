@@ -21,13 +21,12 @@ export function GamesPage() {
       <div className="container mx-auto px-4 pt-20 sm:pt24">
         {/* Header Section */}
         <div className="text-center mb-12">
-          <h1 className="relative flex items-center justify-center gap-2">
-            <span className="kawaii-heading text-4xl mb-4">Oiiai Games</span>
-            <span className="animate-bounce text-4xl bg-transparent">🎮</span>
+          <h1 className="relative inline-flex items-center gap-2 kawaii-heading text-2xl sm:text-3xl">
+            Oiiai Games
+            <span className="animate-bounce bg-transparent">🎮</span>
           </h1>
-          <p className="text-lg text-blue-700 mb-6">
-            Test your skills, set high scores, and have fun with our collection
-            of games!
+          <p className="text-sm sm:text-base text-blue-700 mt-2 max-w-lg mx-auto">
+            Test your skills, set high scores, and have fun!
           </p>
           <Button
             onClick={() => setShowLeaderboard(true)}

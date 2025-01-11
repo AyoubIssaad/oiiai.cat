@@ -239,14 +239,12 @@ export function SecretMessagePage() {
 
       <div className="container mx-auto px-4 pt-20 sm:pt24">
         {/* Header Section */}
-        <div className="text-center mb-12">
-          <h1 className="relative flex items-center justify-center gap-2">
-            <span className="kawaii-heading text-4xl mb-4">
-              The Ultimate Cat Translator
-            </span>
-            <span className="animate-bounce text-4xl bg-transparent">🔮</span>
+        <div className="text-center mb-8">
+          <h1 className="relative inline-flex items-center gap-2 kawaii-heading text-2xl sm:text-3xl">
+            Cat Message Encoder
+            <span className="animate-bounce bg-transparent">🔮</span>
           </h1>
-          <p className="text-lg text-blue-700">
+          <p className="text-sm sm:text-base text-blue-700 mt-2 max-w-lg mx-auto">
             Transform your messages into mysterious OIIAI Cat patterns!
           </p>
         </div>
