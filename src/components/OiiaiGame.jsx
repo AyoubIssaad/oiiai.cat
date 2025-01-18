@@ -700,8 +700,8 @@ class MainScene extends Phaser.Scene {
     // Initialize game parameters
     this.baseSpeed = 80;
     this.maxSpeed = 400;
-    this.baseSpawnDelay = 2000;
-    this.minSpawnDelay = 500;
+    this.baseSpawnDelay = 1200;
+    this.minSpawnDelay = 400;
     this.currentSpawnDelay = this.baseSpawnDelay;
     this.speed = this.baseSpeed;
     this.difficultyLevel = 1;
