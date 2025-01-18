@@ -18,6 +18,36 @@ class MainScene extends Phaser.Scene {
     this.combo = 0;
     this.maxCombo = 0;
     this.onGameOver = null;
+    // Fixed column positions for spawning
+    this.columnPositions = [80, 160, 240, 320];
+    this.lastUsedColumns = [];
+  }
+
+  getAvailableSpawnPosition() {
+    // Filter out recently used columns
+    let availableColumns = this.columnPositions.filter(
+      (pos) => !this.lastUsedColumns.includes(pos),
+    );
+
+    // If all columns were recently used, reset the tracking
+    if (availableColumns.length === 0) {
+      availableColumns = [...this.columnPositions];
+      this.lastUsedColumns = [];
+    }
+
+    // Get a random available column
+    const index = Math.floor(Math.random() * availableColumns.length);
+    const position = availableColumns[index];
+
+    // Track this column as recently used
+    this.lastUsedColumns.push(position);
+
+    // Keep only the last 2 used columns in memory
+    if (this.lastUsedColumns.length > 2) {
+      this.lastUsedColumns.shift();
+    }
+
+    return position;
   }
 
   create() {
@@ -158,23 +188,8 @@ class MainScene extends Phaser.Scene {
       A: 0x1d4ed8,
     };
 
-    // Find a suitable x position
-    const minHorizontalSpacing = 60;
-    let attempts = 0;
-    let newX;
-
-    do {
-      newX = Phaser.Math.Between(50, 350);
-      attempts++;
-
-      const recentLetters = this.letters.slice(-3);
-      const isTooClose = recentLetters.some((letter) => {
-        const distance = Math.abs(letter.x - newX);
-        return distance < minHorizontalSpacing;
-      });
-
-      if (!isTooClose || attempts > 5) break;
-    } while (true);
+    // Get spawn position using fixed columns
+    const newX = this.getAvailableSpawnPosition();
 
     // Create letter container
     const container = this.add.container(newX, -50);
@@ -197,15 +212,15 @@ class MainScene extends Phaser.Scene {
     container.setInteractive(hitArea, Phaser.Geom.Polygon.Contains);
     container.on("pointerdown", () => this.handleLetterClick(container));
 
-    // Add letter text with improved visibility
+    // Add letter text
     const text = this.add
       .text(0, 0, randomLetter, {
         fontFamily: "Orbitron",
-        fontSize: "40px", // Larger font size
+        fontSize: "40px",
         fill: "#FFFFFF",
-        stroke: "#000000", // Add stroke
-        strokeThickness: 4, // Make the stroke thick enough to stand out
-        shadow: { blur: 0, stroke: true, fill: true }, // Add shadow for better contrast
+        stroke: "#000000",
+        strokeThickness: 4,
+        shadow: { blur: 0, stroke: true, fill: true },
       })
       .setOrigin(0.5);
 
@@ -234,8 +249,8 @@ class MainScene extends Phaser.Scene {
       this.maxCombo = Math.max(this.maxCombo, this.combo);
 
       // Calculate bonus points based on combo
-      const comboBonus = Math.floor(this.combo / 5) * 50;
-      const points = 100 + comboBonus;
+      const comboBonus = Math.floor(this.combo / 2) * 2;
+      const points = 2 + comboBonus;
 
       // Show floating score text
       this.showFloatingScore(lowestLetter.x, lowestLetter.y, points);
@@ -354,58 +369,48 @@ class MainScene extends Phaser.Scene {
   }
 
   handleKeyPress(event) {
-    if (!this.gameStarted || this.letters.length === 0) return;
+  if (!this.gameStarted || this.letters.length === 0) return;
 
-    const lowestLetter = this.getLowestLetter();
-    if (lowestLetter.value.toLowerCase() === event.key.toLowerCase()) {
-      this.handleCorrectLetter();
-    } else {
-      // Reset combo
-      this.combo = 0;
-      this.comboText.setAlpha(0.5);
+  // Convert to uppercase for consistency
+  const pressedKey = event.key.toUpperCase();
 
-      // Flash and shake the letter
-      const container = lowestLetter;
-      const hexagon = container.list[0];
-
-      // Save original color
-      const originalColor = hexagon.fillStyle;
-
-      // Flash red
-      hexagon.clear();
-      this.createHexagon(0, 0, 30, 0xff0000);
-
-      // Shake effect
-      this.tweens.add({
-        targets: container,
-        x: container.x - 10,
-        duration: 50,
-        yoyo: true,
-        repeat: 2,
-        onComplete: () => {
-          if (container.active) {
-            hexagon.clear();
-            this.createHexagon(0, 0, 30, originalColor);
-          }
-        },
-      });
-
-      this.gameOver(false);
-    }
+  // Only respond to O, I, and A keys
+  if (!['O', 'I', 'A'].includes(pressedKey)) {
+    return; // Ignore any other key press
   }
+
+  const lowestLetter = this.getLowestLetter();
+  if (lowestLetter && lowestLetter.value === pressedKey) {
+    this.handleCorrectLetter();
+  } else if (lowestLetter) {
+    // Wrong key pressed - game over
+    this.combo = 0;
+    this.comboText.setAlpha(0.5);
+    this.gameOver(false);
+  }
+}
 
   handleLetterClick(clickedLetter) {
-    if (!this.gameStarted) return;
+  if (!this.gameStarted) return;
 
-    const lowestLetter = this.getLowestLetter();
-    if (clickedLetter === lowestLetter) {
+  const lowestLetter = this.getLowestLetter();
+  if (clickedLetter === lowestLetter) {
+    // Only handle as correct if clicking the right letter value
+    if (clickedLetter.value === lowestLetter.value) {
       this.handleCorrectLetter();
     } else {
+      // Wrong letter clicked - game over
       this.combo = 0;
       this.comboText.setAlpha(0.5);
       this.gameOver(false);
     }
+  } else {
+    // Clicking wrong position - game over
+    this.combo = 0;
+    this.comboText.setAlpha(0.5);
+    this.gameOver(false);
   }
+}
 
   update() {
     if (!this.gameStarted) return;
@@ -446,20 +451,47 @@ class MainScene extends Phaser.Scene {
     const centerY = this.cameras.main.centerY;
     const messageContainer = this.add.container(centerX, centerY);
 
-    // Create glass-like background
+    // Create modern glass-like background with gradient
     const bg = this.add.graphics();
-    bg.fillStyle(0x000000, 0.8);
-    bg.fillRoundedRect(-150, -100, 300, 200, 16);
-    bg.lineStyle(2, success ? 0x4ade80 : 0xef4444);
-    bg.strokeRoundedRect(-150, -100, 300, 200, 16);
-    messageContainer.add(bg);
 
+    // Add outer glow effect
+    bg.lineStyle(4, success ? 0x4ade80 : 0xef4444, 0.3);
+    bg.strokeRoundedRect(-155, -105, 310, 210, 20);
+
+    // Main background with gradient
+    bg.fillGradientStyle(
+      0x1a1a2e,
+      0x1a1a2e,
+      0x2a2a3e,
+      0x2a2a3e,
+      0.95,
+      0.95,
+      0.95,
+      0.95,
+    );
+    bg.fillRoundedRect(-150, -100, 300, 200, 16);
+
+    // Inner border
+    bg.lineStyle(2, success ? 0x4ade80 : 0xef4444, 0.8);
+    bg.strokeRoundedRect(-150, -100, 300, 200, 16);
+
+    // Add subtle inner glow
+    const innerGlow = this.add.graphics();
+    innerGlow.lineStyle(1, success ? 0x4ade80 : 0xef4444, 0.2);
+    innerGlow.strokeRoundedRect(-145, -95, 290, 190, 14);
+
+    messageContainer.add([bg, innerGlow]);
+
+    // Configure text style with enhanced visibility
     const messageConfig = {
       fontFamily: "Orbitron",
       fontSize: "28px",
       fontWeight: "bold",
       fill: "#FFFFFF",
       align: "center",
+      stroke: "#000000",
+      strokeThickness: 2,
+      shadow: { blur: 2, color: "#000000", fill: true, offsetX: 1, offsetY: 1 },
     };
 
     if (success) {
@@ -501,38 +533,64 @@ class MainScene extends Phaser.Scene {
         })
         .setOrigin(0.5);
 
-      // Create interactive retry button
+      // Create interactive retry button with modern styling
       const buttonBg = this.add.graphics();
-      buttonBg.fillStyle(0x2563eb, 1);
+
+      // Button shadow
+      buttonBg.fillStyle(0x1d4ed8, 0.3);
+      buttonBg.fillRoundedRect(-78, 52, 156, 38, 8);
+
+      // Button gradient
+      buttonBg.fillGradientStyle(0x2563eb, 0x2563eb, 0x1d4ed8, 0x1d4ed8, 1);
       buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
-      buttonBg.lineStyle(2, 0x3b82f6);
+
+      // Button border with glow
+      buttonBg.lineStyle(2, 0x60a5fa, 1);
       buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
 
+      // Add subtle inner glow
+      buttonBg.lineStyle(1, 0x93c5fd, 0.5);
+      buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
+
       const buttonText = this.add
-        .text(0, 50, "Try Again", {
+        .text(0, 70, "Try Again", {
           ...messageConfig,
           fontSize: "20px",
         })
         .setOrigin(0.5);
 
-      // Make button interactive
-      const buttonHitArea = new Phaser.Geom.Rectangle(-80, 30, 160, 40);
+      // Make button interactive with enhanced hover effects
+      const buttonHitArea = new Phaser.Geom.Rectangle(-80, 50, 160, 40);
       buttonBg
         .setInteractive(buttonHitArea, Phaser.Geom.Rectangle.Contains)
         .on("pointerover", () => {
           buttonBg.clear();
-          buttonBg.fillStyle(0x1d4ed8, 1);
+          // Enhanced hover effect
+          // Larger shadow
+          buttonBg.fillStyle(0x1d4ed8, 0.4);
+          buttonBg.fillRoundedRect(-77, 53, 154, 38, 8);
+          // Brighter gradient
+          buttonBg.fillGradientStyle(0x3b82f6, 0x3b82f6, 0x2563eb, 0x2563eb, 1);
           buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
-          buttonBg.lineStyle(2, 0x3b82f6);
+          // Brighter border with enhanced glow
+          buttonBg.lineStyle(2, 0x93c5fd, 1);
           buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
+          // Enhanced inner glow
+          buttonBg.lineStyle(1, 0xbfdbfe, 0.6);
+          buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
           buttonText.setScale(1.1);
         })
         .on("pointerout", () => {
           buttonBg.clear();
-          buttonBg.fillStyle(0x2563eb, 1);
+          // Reset to normal state
+          buttonBg.fillStyle(0x1d4ed8, 0.3);
+          buttonBg.fillRoundedRect(-78, 52, 156, 38, 8);
+          buttonBg.fillGradientStyle(0x2563eb, 0x2563eb, 0x1d4ed8, 0x1d4ed8, 1);
           buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
-          buttonBg.lineStyle(2, 0x3b82f6);
+          buttonBg.lineStyle(2, 0x60a5fa, 1);
           buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
+          buttonBg.lineStyle(1, 0x93c5fd, 0.5);
+          buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
           buttonText.setScale(1);
         })
         .on("pointerdown", () => {
@@ -565,7 +623,6 @@ class MainScene extends Phaser.Scene {
       this.cameras.main.shake(500, 0.01);
     }
 
-    // Call the onGameOver callback with stats
     if (this.onGameOver) {
       this.onGameOver({
         success,
@@ -609,7 +666,14 @@ class MainScene extends Phaser.Scene {
   }
 
   startGame() {
-    // Initialize with easier starting conditions
+    // Clear any existing letters
+    this.letters.forEach((letter) => letter.destroy());
+    this.letters = [];
+
+    // Reset spawn position tracking
+    this.lastUsedColumns = [];
+
+    // Initialize game parameters
     this.baseSpeed = 80;
     this.maxSpeed = 400;
     this.baseSpawnDelay = 2000;
@@ -619,10 +683,6 @@ class MainScene extends Phaser.Scene {
     this.difficultyLevel = 1;
     this.combo = 0;
     this.maxCombo = 0;
-
-    // Reset game state
-    this.letters.forEach((letter) => letter.destroy());
-    this.letters = [];
     this.score = 0;
     this.totalLetters = 0;
     this.correctLetters = 0;
@@ -633,11 +693,16 @@ class MainScene extends Phaser.Scene {
     this.scoreText.setText("Score: 0");
     this.comboText.setText("Combo: x0").setAlpha(0);
 
-    // Start spawning letters with dynamic timing
+    // Start spawning letters with fixed delay to maintain spacing
+    if (this.spawnTimer) {
+      this.spawnTimer.remove();
+    }
+
     this.spawnTimer = this.time.addEvent({
       delay: this.currentSpawnDelay,
       callback: () => {
         this.spawnLetter();
+        // Update spawn delay for next letter
         this.currentSpawnDelay = Math.max(
           this.minSpawnDelay,
           this.baseSpawnDelay * Math.pow(0.95, this.difficultyLevel),
