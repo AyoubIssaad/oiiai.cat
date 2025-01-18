@@ -19,7 +19,7 @@ class MainScene extends Phaser.Scene {
     this.onGameOver = null;
     this.sounds = {};
     this.isMuted = false;
-    this.catProjectiles = [];  // Track active projectiles
+    this.catProjectiles = []; // Track active projectiles
     // Fixed column positions for spawning
     this.columnPositions = [80, 160, 240, 320];
     this.lastUsedColumns = [];
@@ -31,87 +31,91 @@ class MainScene extends Phaser.Scene {
     this.load.audio("sound-o", "/sounds/o.wav");
     this.load.audio("sound-i", "/sounds/i.wav");
     // Load cat image for cannon and projectiles
-    this.load.image('cat', '/cat_game.png');
+    this.load.image("cat", "/cat_game.png");
   }
 
   create() {
-    // Initialize sounds
-    this.sounds = {
-      A: this.sound.add("sound-a", { volume: 0.5 }),
-      O: this.sound.add("sound-o", { volume: 0.5 }),
-      I: this.sound.add("sound-i", { volume: 0.5 }),
-    };
+  // Initialize sounds
+  this.sounds = {
+    A: this.sound.add("sound-a", { volume: 0.5 }),
+    O: this.sound.add("sound-o", { volume: 0.5 }),
+    I: this.sound.add("sound-i", { volume: 0.5 }),
+  };
 
-    // Create a starfield background effect
-    this.createStarfield();
+  // Create a starfield background effect
+  this.createStarfield();
 
-    // Create the cat cannon
-    this.createCatCannon();
+  // Create the cat cannon
+  this.createCatCannon();
 
-    // Create the danger zone at bottom
-    const dangerGradient = this.add.graphics();
-    dangerGradient.fillGradientStyle(0xff6b6b, 0xff8787, 0xffa5a5, 0xffbebe, 1);
-    dangerGradient.fillRect(0, 500, 400, 100);
+  // Create the danger zone at bottom with gradient
+  const dangerGradient = this.add.graphics();
+  dangerGradient.fillGradientStyle(0xff6b6b, 0xff8787, 0xffa5a5, 0xffbebe, 1);
+  dangerGradient.fillRect(0, 500, 400, 100);
 
-    // Add score display
-    this.scoreText = this.add.text(20, 20, "Score: 0", {
-      fontFamily: "Orbitron",
-      fontSize: "24px",
-      fill: "#3B82F6",
-      padding: { x: 10, y: 5 },
-      backgroundColor: "rgba(0, 0, 0, 0.3)",
-      borderRadius: 5,
-    });
+  // Create letter buttons in danger zone
+  this.createLetterButtons();
 
-    // Add combo display
-    this.comboText = this.add.text(20, 60, "Combo: x1", {
-      fontFamily: "Orbitron",
-      fontSize: "20px",
-      fill: "#60A5FA",
-      padding: { x: 10, y: 5 },
-      backgroundColor: "rgba(0, 0, 0, 0.3)",
-      borderRadius: 5,
-      alpha: 0,
-    });
+  // Add score display
+  this.scoreText = this.add.text(20, 20, "Score: 0", {
+    fontFamily: "Orbitron",
+    fontSize: "24px",
+    fill: "#3B82F6",
+    padding: { x: 10, y: 5 },
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderRadius: 5,
+  });
 
-    // Setup keyboard input
-    this.input.keyboard.on("keydown", this.handleKeyPress, this);
-  }
+  // Add combo display
+  this.comboText = this.add.text(20, 60, "Combo: x1", {
+    fontFamily: "Orbitron",
+    fontSize: "20px",
+    fill: "#60A5FA",
+    padding: { x: 10, y: 5 },
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderRadius: 5,
+    alpha: 0,
+  });
+
+  // Setup keyboard input
+  this.input.keyboard.on("keydown", this.handleKeyPress, this);
+}
 
   createCatCannon() {
-    // Create the cannon base (semi-circle with platform)
-    this.cannon = this.add.graphics();
+  // Create the cannon base (semi-circle with platform)
+  this.cannon = this.add.graphics();
 
-    // Add platform base
-    this.cannon.fillStyle(0x2563eb);
-    this.cannon.fillRect(160, 560, 80, 10);
+  // Add platform base
+  this.cannon.fillStyle(0x2563eb);
+  this.cannon.fillRect(160, 560, 80, 10);
 
-    // Add dome/cannon part
-    this.cannon.lineStyle(3, 0x4287f5);
-    this.cannon.fillStyle(0x2563eb);
-    this.cannon.beginPath();
-    this.cannon.arc(200, 560, 40, Math.PI, 0, false);
-    this.cannon.closePath();
-    this.cannon.fillPath();
-    this.cannon.strokePath();
+  // Add dome/cannon part
+  this.cannon.lineStyle(3, 0x4287f5);
+  this.cannon.fillStyle(0x2563eb);
+  this.cannon.beginPath();
+  this.cannon.arc(200, 560, 40, Math.PI, 0, false);
+  this.cannon.closePath();
+  this.cannon.fillPath();
+  this.cannon.strokePath();
 
-    // Add cat sprite on the cannon
-    this.catSprite = this.add.image(200, 530, 'cat');
-    this.catSprite.setScale(0.2);
-    this.catSprite.setOrigin(0.5, 0.5);
+  // Add cat sprite on the cannon - now with correct orientation
+  this.catSprite = this.add.image(200, 530, 'cat');
+  this.catSprite.setScale(0.2);
+  this.catSprite.setOrigin(0.5, 0.5);
+  this.catSprite.setAngle(180); // Rotate the cat 180 degrees to face upward
 
-    // Add subtle bobbing animation to the cat
-    this.tweens.add({
-      targets: this.catSprite,
-      y: 535,
-      duration: 1000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
-  }
+  // Add subtle bobbing animation to the cat
+  this.tweens.add({
+    targets: this.catSprite,
+    y: 535,
+    duration: 1000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
+}
 
-createStarfield() {
+  createStarfield() {
     // Create graphics for stars
     const stars = this.add.graphics();
     this.starField = [];
@@ -127,7 +131,7 @@ createStarfield() {
         color: Phaser.Display.Color.GetColor(
           155 + Math.random() * 100,
           155 + Math.random() * 100,
-          255
+          255,
         ),
       });
     }
@@ -150,7 +154,7 @@ createStarfield() {
 
   getAvailableSpawnPosition() {
     let availableColumns = this.columnPositions.filter(
-      (pos) => !this.lastUsedColumns.includes(pos)
+      (pos) => !this.lastUsedColumns.includes(pos),
     );
 
     if (availableColumns.length === 0) {
@@ -212,20 +216,6 @@ createStarfield() {
     const hexSize = 35;
     const hexagon = this.createHexagon(0, 0, hexSize, colors[randomLetter]);
 
-    // Make container interactive
-    const hitArea = new Phaser.Geom.Polygon(
-      [...Array(6).keys()].map((i) => {
-        const angle = (i * Math.PI) / 3 + Math.PI / 6;
-        return new Phaser.Geom.Point(
-          hexSize * Math.cos(angle),
-          hexSize * Math.sin(angle)
-        );
-      })
-    );
-
-    container.setInteractive(hitArea, Phaser.Geom.Polygon.Contains);
-    container.on("pointerdown", () => this.handleLetterClick(container));
-
     // Add letter text
     const text = this.add
       .text(0, 0, randomLetter, {
@@ -255,6 +245,102 @@ createStarfield() {
     this.totalLetters++;
   }
 
+  createLetterButtons() {
+    const letters = ["O", "I", "A"];
+    const colors = {
+      O: 0x3b82f6,
+      I: 0xfbbf24,
+      A: 0x1d4ed8,
+    };
+    const buttonWidth = 80;
+    const spacing = 40;
+    const startX = (400 - (buttonWidth * 3 + spacing * 2)) / 2;
+    const buttonY = 520;
+
+    letters.forEach((letter, index) => {
+      // Create button background
+      const button = this.add.graphics();
+      const x = startX + (buttonWidth + spacing) * index;
+
+      // Create hexagonal button
+      button.lineStyle(2, 0xffffff, 1);
+      button.fillStyle(colors[letter], 0.8);
+
+      const hexPoints = [];
+      const hexSize = 25;
+      for (let i = 0; i < 6; i++) {
+        const angle = (i * Math.PI) / 3 + Math.PI / 6;
+        hexPoints.push({
+          x: x + buttonWidth / 2 + hexSize * Math.cos(angle),
+          y: buttonY + hexSize * Math.sin(angle),
+        });
+      }
+
+      button.beginPath();
+      button.moveTo(hexPoints[0].x, hexPoints[0].y);
+      hexPoints.forEach((point) => button.lineTo(point.x, point.y));
+      button.closePath();
+      button.fillPath();
+      button.strokePath();
+
+      // Add letter text
+      const text = this.add
+        .text(x + buttonWidth / 2, buttonY, letter, {
+          fontFamily: "Orbitron",
+          fontSize: "24px",
+          fill: "#FFFFFF",
+          stroke: "#000000",
+          strokeThickness: 2,
+        })
+        .setOrigin(0.5);
+
+      // Make button interactive
+      const hitArea = new Phaser.Geom.Polygon(hexPoints);
+      button.setInteractive(hitArea, Phaser.Geom.Polygon.Contains);
+
+      // Add hover effects
+      button.on("pointerover", () => {
+        button.clear();
+        button.lineStyle(2, 0xffffff, 1);
+        button.fillStyle(colors[letter], 1);
+        button.beginPath();
+        button.moveTo(hexPoints[0].x, hexPoints[0].y);
+        hexPoints.forEach((point) => button.lineTo(point.x, point.y));
+        button.closePath();
+        button.fillPath();
+        button.strokePath();
+        text.setScale(1.1);
+      });
+
+      button.on("pointerout", () => {
+        button.clear();
+        button.lineStyle(2, 0xffffff, 1);
+        button.fillStyle(colors[letter], 0.8);
+        button.beginPath();
+        button.moveTo(hexPoints[0].x, hexPoints[0].y);
+        hexPoints.forEach((point) => button.lineTo(point.x, point.y));
+        button.closePath();
+        button.fillPath();
+        button.strokePath();
+        text.setScale(1);
+      });
+
+      // Add click handler
+      button.on("pointerdown", () => {
+        if (!this.gameStarted) return;
+
+        // Find matching letter
+        const matchingLetters = this.letters
+          .filter((l) => l.value === letter)
+          .sort((a, b) => b.y - a.y);
+
+        if (matchingLetters.length > 0) {
+          this.handleCorrectLetter(matchingLetters[0]);
+        }
+      });
+    });
+  }
+
   update() {
     if (!this.gameStarted) return;
 
@@ -272,10 +358,12 @@ createStarfield() {
       if (projectile.active) {
         // Check for collisions with letters
         this.letters.forEach((letter) => {
-          if (Phaser.Geom.Intersects.RectangleToRectangle(
-            projectile.getBounds(),
-            letter.getBounds()
-          )) {
+          if (
+            Phaser.Geom.Intersects.RectangleToRectangle(
+              projectile.getBounds(),
+              letter.getBounds(),
+            )
+          ) {
             this.handleProjectileHit(projectile, letter);
           }
         });
@@ -291,7 +379,7 @@ createStarfield() {
 
     // Find any letter matching the pressed key
     const matchingLetters = this.letters
-      .filter(letter => letter.value === pressedKey)
+      .filter((letter) => letter.value === pressedKey)
       .sort((a, b) => b.y - a.y); // Sort by y position, lowest (highest y value) first
 
     if (matchingLetters.length > 0) {
@@ -299,7 +387,7 @@ createStarfield() {
       this.handleCorrectLetter(matchingLetters[0]);
     }
     // If no matching letter is found, do nothing - no penalty
-}
+  }
 
   handleLetterClick(clickedLetter) {
     if (!this.gameStarted) return;
@@ -308,12 +396,12 @@ createStarfield() {
     if (clickedLetter && clickedLetter.value) {
       this.handleCorrectLetter(clickedLetter);
     }
-}
+  }
 
   handleCorrectLetter(targetLetter) {
     // Play sound if not muted
     if (!this.isMuted && this.sounds[targetLetter.value]) {
-        this.sounds[targetLetter.value].play();
+      this.sounds[targetLetter.value].play();
     }
 
     // Increment combo
@@ -340,54 +428,62 @@ createStarfield() {
 
     // Update difficulty
     if (this.correctLetters % 5 === 0) {
-        this.difficultyLevel++;
-        this.speed = Math.min(
-            this.maxSpeed,
-            this.baseSpeed * (1 + Math.log1p(this.difficultyLevel * 0.3))
-        );
-        this.currentSpawnDelay = Math.max(
-            this.minSpawnDelay,
-            this.baseSpawnDelay * Math.pow(0.95, this.difficultyLevel)
-        );
-        if (this.spawnTimer) {
-            this.spawnTimer.delay = this.currentSpawnDelay;
-        }
+      this.difficultyLevel++;
+      this.speed = Math.min(
+        this.maxSpeed,
+        this.baseSpeed * (1 + Math.log1p(this.difficultyLevel * 0.3)),
+      );
+      this.currentSpawnDelay = Math.max(
+        this.minSpawnDelay,
+        this.baseSpawnDelay * Math.pow(0.95, this.difficultyLevel),
+      );
+      if (this.spawnTimer) {
+        this.spawnTimer.delay = this.currentSpawnDelay;
+      }
     }
 
     this.scoreText.setText(`Score: ${this.score}`);
-}
+  }
 
   shootCatProjectile(targetLetter) {
     // Create cat projectile
-    const projectile = this.add.image(this.catSprite.x, this.catSprite.y, 'cat');
+    const projectile = this.add.image(
+      this.catSprite.x,
+      this.catSprite.y,
+      "cat",
+    );
     projectile.setScale(0.15);
     projectile.active = true;
 
     // Calculate angle to target
     const angle = Phaser.Math.Angle.Between(
-      projectile.x, projectile.y,
-      targetLetter.x, targetLetter.y
+      projectile.x,
+      projectile.y,
+      targetLetter.x,
+      targetLetter.y,
     );
 
     // Rotate projectile
-    projectile.setRotation(angle - Math.PI/2);
+    projectile.setRotation(angle + Math.PI / 2);
 
     // Add to projectiles array
     this.catProjectiles.push(projectile);
 
     // Create shooting animation
     const distance = Phaser.Math.Distance.Between(
-      projectile.x, projectile.y,
-      targetLetter.x, targetLetter.y
+      projectile.x,
+      projectile.y,
+      targetLetter.x,
+      targetLetter.y,
     );
 
     // Add trail effect
     const trail = this.add.particles(0, 0, {
       speed: 20,
       scale: { start: 0.2, end: 0 },
-      blendMode: 'ADD',
+      blendMode: "ADD",
       lifespan: 200,
-      follow: projectile
+      follow: projectile,
     });
 
     // Shoot animation
@@ -396,11 +492,11 @@ createStarfield() {
       x: targetLetter.x,
       y: targetLetter.y,
       duration: distance * 2,
-      ease: 'Linear',
+      ease: "Linear",
       onComplete: () => {
         this.handleProjectileHit(projectile, targetLetter);
         trail.destroy();
-      }
+      },
     });
 
     // Add recoil animation to cannon cat
@@ -409,7 +505,7 @@ createStarfield() {
       y: this.catSprite.y + 10,
       duration: 50,
       yoyo: true,
-      ease: 'Quad.easeOut'
+      ease: "Quad.easeOut",
     });
   }
 
@@ -423,17 +519,17 @@ createStarfield() {
       alpha: 0,
       scale: 1.5,
       duration: 200,
-      ease: 'Back.easeIn',
+      ease: "Back.easeIn",
       onComplete: () => {
-        this.letters = this.letters.filter(l => l !== letter);
+        this.letters = this.letters.filter((l) => l !== letter);
         letter.destroy();
-      }
+      },
     });
 
     // Remove projectile
     projectile.active = false;
     projectile.destroy();
-    this.catProjectiles = this.catProjectiles.filter(p => p.active);
+    this.catProjectiles = this.catProjectiles.filter((p) => p.active);
   }
 
   addImpactEffect(x, y) {
@@ -442,17 +538,17 @@ createStarfield() {
       speed: { min: 50, max: 150 },
       angle: { min: 0, max: 360 },
       scale: { start: 0.4, end: 0 },
-      blendMode: 'ADD',
+      blendMode: "ADD",
       tint: [0x3b82f6, 0x60a5fa, 0x93c5fd],
       lifespan: 500,
-      quantity: 20
+      quantity: 20,
     });
 
     // Auto-destroy particle emitter
     this.time.delayedCall(500, () => particles.destroy());
   }
 
-showFloatingScore(x, y, points) {
+  showFloatingScore(x, y, points) {
     const floatingText = this.add
       .text(x, y, `+${points}`, {
         fontFamily: "Orbitron",
@@ -474,7 +570,7 @@ showFloatingScore(x, y, points) {
   getLowestLetter() {
     return this.letters.reduce(
       (lowest, current) => (!lowest || current.y > lowest.y ? current : lowest),
-      null
+      null,
     );
   }
 
@@ -491,8 +587,8 @@ showFloatingScore(x, y, points) {
     // Initialize game parameters
     this.baseSpeed = 100;
     this.maxSpeed = 400;
-    this.baseSpawnDelay = 1200;  // Adjusted for tighter letter spacing
-    this.minSpawnDelay = 400;    // Adjusted for tighter letter spacing
+    this.baseSpawnDelay = 1200; // Adjusted for tighter letter spacing
+    this.minSpawnDelay = 400; // Adjusted for tighter letter spacing
     this.currentSpawnDelay = this.baseSpawnDelay;
     this.speed = this.baseSpeed;
     this.difficultyLevel = 1;
@@ -524,7 +620,7 @@ showFloatingScore(x, y, points) {
         // Update spawn delay for next letter
         this.currentSpawnDelay = Math.max(
           this.minSpawnDelay,
-          this.baseSpawnDelay * Math.pow(0.95, this.difficultyLevel)
+          this.baseSpawnDelay * Math.pow(0.95, this.difficultyLevel),
         );
         this.spawnTimer.delay = this.currentSpawnDelay;
       },
@@ -548,7 +644,7 @@ showFloatingScore(x, y, points) {
       radius: 300,
       alpha: 0,
       duration: 1000,
-      ease: 'Quad.easeOut',
+      ease: "Quad.easeOut",
       onUpdate: (tween, target) => {
         circle.clear();
         circle.lineStyle(3, 0x3b82f6, target.alpha);
@@ -556,7 +652,7 @@ showFloatingScore(x, y, points) {
       },
       onComplete: () => {
         circle.destroy();
-      }
+      },
     });
 
     // Add particles burst from cannon
@@ -564,10 +660,10 @@ showFloatingScore(x, y, points) {
       speed: { min: 100, max: 200 },
       angle: { min: -30, max: 30 },
       scale: { start: 0.4, end: 0 },
-      blendMode: 'ADD',
+      blendMode: "ADD",
       tint: [0x3b82f6, 0x60a5fa],
       lifespan: 1000,
-      quantity: 30
+      quantity: 30,
     });
 
     this.time.delayedCall(1000, () => particles.destroy());
@@ -576,7 +672,7 @@ showFloatingScore(x, y, points) {
   setMuted(muted) {
     this.isMuted = muted;
     // Update volume for all sound effects
-    Object.values(this.sounds).forEach(sound => {
+    Object.values(this.sounds).forEach((sound) => {
       sound.setVolume(muted ? 0 : 0.5);
     });
   }
@@ -609,7 +705,7 @@ showFloatingScore(x, y, points) {
 
     this.time.delayedCall(2000, () => particles.destroy());
   }
-gameOver(success = false) {
+  gameOver(success = false) {
     if (!this.gameStarted) return;
 
     this.gameStarted = false;
@@ -618,14 +714,14 @@ gameOver(success = false) {
     const lettersPerSecond = (this.correctLetters / duration).toFixed(2);
 
     // Clear active projectiles with effects
-    this.catProjectiles.forEach(projectile => {
+    this.catProjectiles.forEach((projectile) => {
       this.addImpactEffect(projectile.x, projectile.y);
       projectile.destroy();
     });
     this.catProjectiles = [];
 
     // Clear letters with effects
-    this.letters.forEach(letter => {
+    this.letters.forEach((letter) => {
       this.addImpactEffect(letter.x, letter.y);
       letter.destroy();
     });
@@ -652,16 +748,17 @@ gameOver(success = false) {
       0.95,
       0.95,
       0.95,
-      0.95
+      0.95,
     );
     bg.fillRoundedRect(-150, -100, 300, 200, 16);
 
     // Add cat decoration at the top
-    const gameCat = this.add.image(0, -80, 'cat');
+    const gameCat = this.add.image(0, -80, "cat");
     gameCat.setScale(0.2);
+    gameCat.setAngle(180)
     if (!success) {
       gameCat.setTint(0xff6666);  // Red tint for failure
-      gameCat.setAngle(180);      // Upside down for failure
+      // gameCat.setAngle(0);        // Flip it back around for failure state
     }
 
     // Configure text style
@@ -730,32 +827,41 @@ gameOver(success = false) {
         .setOrigin(0.5);
 
       // Make button interactive
-      buttonBg.setInteractive(
-        new Phaser.Geom.Rectangle(-80, 90, 160, 40),
-        Phaser.Geom.Rectangle.Contains
-      )
-      .on('pointerover', () => {
-        buttonBg.clear();
-        buttonBg.fillStyle(0x3b82f6, 0.8);
-        buttonBg.fillRoundedRect(-80, 90, 160, 40, 8);
-        buttonBg.lineStyle(2, 0x93c5fd);
-        buttonBg.strokeRoundedRect(-80, 90, 160, 40, 8);
-        buttonText.setScale(1.1);
-      })
-      .on('pointerout', () => {
-        buttonBg.clear();
-        buttonBg.fillStyle(0x2563eb, 0.8);
-        buttonBg.fillRoundedRect(-80, 90, 160, 40, 8);
-        buttonBg.lineStyle(2, 0x60a5fa);
-        buttonBg.strokeRoundedRect(-80, 90, 160, 40, 8);
-        buttonText.setScale(1);
-      })
-      .on('pointerdown', () => {
-        messageContainer.destroy();
-        this.startGame();
-      });
+      buttonBg
+        .setInteractive(
+          new Phaser.Geom.Rectangle(-80, 90, 160, 40),
+          Phaser.Geom.Rectangle.Contains,
+        )
+        .on("pointerover", () => {
+          buttonBg.clear();
+          buttonBg.fillStyle(0x3b82f6, 0.8);
+          buttonBg.fillRoundedRect(-80, 90, 160, 40, 8);
+          buttonBg.lineStyle(2, 0x93c5fd);
+          buttonBg.strokeRoundedRect(-80, 90, 160, 40, 8);
+          buttonText.setScale(1.1);
+        })
+        .on("pointerout", () => {
+          buttonBg.clear();
+          buttonBg.fillStyle(0x2563eb, 0.8);
+          buttonBg.fillRoundedRect(-80, 90, 160, 40, 8);
+          buttonBg.lineStyle(2, 0x60a5fa);
+          buttonBg.strokeRoundedRect(-80, 90, 160, 40, 8);
+          buttonText.setScale(1);
+        })
+        .on("pointerdown", () => {
+          messageContainer.destroy();
+          this.startGame();
+        });
 
-      messageContainer.add([bg, gameCat, messageText, scoreText, comboText, buttonBg, buttonText]);
+      messageContainer.add([
+        bg,
+        gameCat,
+        messageText,
+        scoreText,
+        comboText,
+        buttonBg,
+        buttonText,
+      ]);
     }
 
     // Add container animation
@@ -772,9 +878,9 @@ gameOver(success = false) {
     // Add cat spinning animation
     this.tweens.add({
       targets: gameCat,
-      angle: success ? 360 : 540,  // Spin once for success, 1.5 times for failure
+      angle: success ? 360 : 540, // Spin once for success, 1.5 times for failure
       duration: 1000,
-      ease: "Cubic.easeOut"
+      ease: "Cubic.easeOut",
     });
 
     // Shake camera on failure
