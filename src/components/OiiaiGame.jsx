@@ -85,38 +85,34 @@ class MainScene extends Phaser.Scene {
   }
 
   createCatCannon() {
-    // Create the cannon base (semi-circle with platform)
-    this.cannon = this.add.graphics();
+  // Create the cannon base (semi-circle with platform)
+  this.cannon = this.add.graphics();
 
-    // Move platform base up slightly
-    this.cannon.fillStyle(0x2563eb);
-    this.cannon.fillRect(160, 540, 80, 10); // Moved up from 560 to 540
+  // Make the dome smaller and more subtle
+  this.cannon.lineStyle(2, 0x4287f5, 0.5);  // Thinner line, more transparent
+  this.cannon.fillStyle(0x2563eb, 0.3);     // More transparent fill
+  this.cannon.beginPath();
+  this.cannon.arc(200, 545, 30, Math.PI, 0, false);  // Smaller radius (30 instead of 40)
+  this.cannon.closePath();
+  this.cannon.fillPath();
+  this.cannon.strokePath();
 
-    // Adjust dome/cannon part
-    this.cannon.lineStyle(3, 0x4287f5);
-    this.cannon.fillStyle(0x2563eb);
-    this.cannon.beginPath();
-    this.cannon.arc(200, 540, 40, Math.PI, 0, false); // Moved up from 560 to 540
-    this.cannon.closePath();
-    this.cannon.fillPath();
-    this.cannon.strokePath();
+  // Move the cat sprite up slightly to sit on top of the dome
+  this.catSprite = this.add.image(200, 520, 'cat');  // Moved up to better position
+  this.catSprite.setScale(0.18);  // Slightly smaller
+  this.catSprite.setOrigin(0.5, 0.5);
+  this.catSprite.setAngle(180);
 
-    // Adjust cat sprite position
-    this.catSprite = this.add.image(200, 510, "cat"); // Moved up from 530 to 510
-    this.catSprite.setScale(0.2);
-    this.catSprite.setOrigin(0.5, 0.5);
-    this.catSprite.setAngle(180);
-
-    // Adjust bobbing animation position
-    this.tweens.add({
-      targets: this.catSprite,
-      y: 515, // Adjust bobbing range
-      duration: 1000,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    });
-  }
+  // Adjust bobbing animation to be more subtle
+  this.tweens.add({
+    targets: this.catSprite,
+    y: 523,  // Smaller range of motion
+    duration: 1500, // Slower bobbing
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
+}
 
   createStarfield() {
     // Create graphics for stars
@@ -202,147 +198,145 @@ class MainScene extends Phaser.Scene {
   }
 
   spawnLetter() {
-    if (!this.gameStarted) return;
+  if (!this.gameStarted) return;
 
-    const letters = ["O", "I", "A"];
-    const randomLetter = letters[Math.floor(Math.random() * letters.length)];
-    const colors = {
-      O: 0x3b82f6,
-      I: 0xfbbf24,
-      A: 0x1d4ed8,
-    };
+  const letters = ["O", "I", "A"];
+  const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+  const colors = {
+    O: 0x3b82f6,
+    I: 0xfbbf24,
+    A: 0xFC5130,
+  };
 
-    const newX = this.getAvailableSpawnPosition();
-    const container = this.add.container(newX, -50);
+  const newX = this.getAvailableSpawnPosition();
+  const container = this.add.container(newX, -50);
 
-    // Create hexagonal background
-    const hexSize = 35;
-    const hexagon = this.createHexagon(0, 0, hexSize, colors[randomLetter]);
+  // Create hexagonal background with smaller size
+  const hexSize = 25;  // Reduced from 35
+  const hexagon = this.createHexagon(0, 0, hexSize, colors[randomLetter]);
 
-    // Add letter text
-    const text = this.add
-      .text(0, 0, randomLetter, {
-        fontFamily: "Orbitron",
-        fontSize: "40px",
-        fill: "#FFFFFF",
-        stroke: "#000000",
-        strokeThickness: 4,
-        shadow: { blur: 0, stroke: true, fill: true },
-      })
-      .setOrigin(0.5);
+  // Add letter text with smaller font size
+  const text = this.add
+    .text(0, 0, randomLetter, {
+      fontFamily: "Orbitron",
+      fontSize: "28px",  // Reduced from 40px
+      fill: "#FFFFFF",
+      stroke: "#000000",
+      strokeThickness: 3,  // Slightly reduced from 4
+      shadow: { blur: 0, stroke: true, fill: true },
+    })
+    .setOrigin(0.5);
 
-    // Add entry animation
-    container.alpha = 0;
-    container.scale = 0.5;
-    this.tweens.add({
-      targets: container,
-      alpha: 1,
-      scale: 1,
-      duration: 200,
-      ease: "Back.easeOut",
-    });
+  // Add entry animation
+  container.alpha = 0;
+  container.scale = 0.5;
+  this.tweens.add({
+    targets: container,
+    alpha: 1,
+    scale: 1,
+    duration: 200,
+    ease: "Back.easeOut",
+  });
 
-    container.add([hexagon, text]);
-    container.value = randomLetter;
-    this.letters.push(container);
-    this.totalLetters++;
-  }
+  container.add([hexagon, text]);
+  container.value = randomLetter;
+  this.letters.push(container);
+  this.totalLetters++;
+}
 
   createLetterButtons() {
-    const letters = ["O", "I", "A"];
-    const colors = {
-      O: 0x3b82f6,
-      I: 0xfbbf24,
-      A: 0x1d4ed8,
-    };
-    const buttonWidth = 80;
-    const spacing = 40;
-    const startX = (400 - (buttonWidth * 3 + spacing * 2)) / 2;
-    const buttonY = 550;
+  const letters = ["O", "I", "A"];
+  const colors = {
+    O: 0x3b82f6,
+    I: 0xfbbf24,
+    A: 0xFC5130,
+  };
+  const buttonWidth = 80;
+  const spacing = 50;  // Increased spacing between buttons
+  const startX = (400 - (buttonWidth * 3 + spacing * 2)) / 2;
+  const buttonY = 555;  // Moved buttons slightly lower
 
-    letters.forEach((letter, index) => {
-      // Create button background
-      const button = this.add.graphics();
-      const x = startX + (buttonWidth + spacing) * index;
+  letters.forEach((letter, index) => {
+    // Create button background
+    const button = this.add.graphics();
+    const x = startX + (buttonWidth + spacing) * index;
 
-      // Create hexagonal button
+    // Create hexagonal button
+    button.lineStyle(2, 0xffffff, 1);
+    button.fillStyle(colors[letter], 0.8);
+
+    const hexPoints = [];
+    const hexSize = 22;  // Slightly smaller hexagons
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * Math.PI) / 3 + Math.PI / 6;
+      hexPoints.push({
+        x: x + buttonWidth/2 + hexSize * Math.cos(angle),
+        y: buttonY + hexSize * Math.sin(angle),
+      });
+    }
+
+    button.beginPath();
+    button.moveTo(hexPoints[0].x, hexPoints[0].y);
+    hexPoints.forEach((point) => button.lineTo(point.x, point.y));
+    button.closePath();
+    button.fillPath();
+    button.strokePath();
+
+    // Add letter text
+    const text = this.add.text(x + buttonWidth/2, buttonY, letter, {
+      fontFamily: "Orbitron",
+      fontSize: "22px",  // Slightly smaller text
+      fill: "#FFFFFF",
+      stroke: "#000000",
+      strokeThickness: 2,
+    }).setOrigin(0.5);
+
+    // Make button interactive
+    const hitArea = new Phaser.Geom.Polygon(hexPoints);
+    button.setInteractive(hitArea, Phaser.Geom.Polygon.Contains);
+
+    // Add hover effects
+    button.on('pointerover', () => {
+      button.clear();
       button.lineStyle(2, 0xffffff, 1);
-      button.fillStyle(colors[letter], 0.8);
-
-      const hexPoints = [];
-      const hexSize = 25;
-      for (let i = 0; i < 6; i++) {
-        const angle = (i * Math.PI) / 3 + Math.PI / 6;
-        hexPoints.push({
-          x: x + buttonWidth / 2 + hexSize * Math.cos(angle),
-          y: buttonY + hexSize * Math.sin(angle),
-        });
-      }
-
+      button.fillStyle(colors[letter], 1);
       button.beginPath();
       button.moveTo(hexPoints[0].x, hexPoints[0].y);
       hexPoints.forEach((point) => button.lineTo(point.x, point.y));
       button.closePath();
       button.fillPath();
       button.strokePath();
-
-      // Add letter text
-      const text = this.add
-        .text(x + buttonWidth / 2, buttonY, letter, {
-          fontFamily: "Orbitron",
-          fontSize: "24px",
-          fill: "#FFFFFF",
-          stroke: "#000000",
-          strokeThickness: 2,
-        })
-        .setOrigin(0.5);
-
-      // Make button interactive
-      const hitArea = new Phaser.Geom.Polygon(hexPoints);
-      button.setInteractive(hitArea, Phaser.Geom.Polygon.Contains);
-
-      // Add hover effects
-      button.on("pointerover", () => {
-        button.clear();
-        button.lineStyle(2, 0xffffff, 1);
-        button.fillStyle(colors[letter], 1);
-        button.beginPath();
-        button.moveTo(hexPoints[0].x, hexPoints[0].y);
-        hexPoints.forEach((point) => button.lineTo(point.x, point.y));
-        button.closePath();
-        button.fillPath();
-        button.strokePath();
-        text.setScale(1.1);
-      });
-
-      button.on("pointerout", () => {
-        button.clear();
-        button.lineStyle(2, 0xffffff, 1);
-        button.fillStyle(colors[letter], 0.8);
-        button.beginPath();
-        button.moveTo(hexPoints[0].x, hexPoints[0].y);
-        hexPoints.forEach((point) => button.lineTo(point.x, point.y));
-        button.closePath();
-        button.fillPath();
-        button.strokePath();
-        text.setScale(1);
-      });
-
-      // Add click handler
-      button.on("pointerdown", () => {
-        if (!this.gameStarted) return;
-
-        // Find matching letter
-        const matchingLetters = this.letters
-          .filter((l) => l.value === letter)
-          .sort((a, b) => b.y - a.y);
-
-        if (matchingLetters.length > 0) {
-          this.handleCorrectLetter(matchingLetters[0]);
-        }
-      });
+      text.setScale(1.1);
     });
-  }
+
+    button.on('pointerout', () => {
+      button.clear();
+      button.lineStyle(2, 0xffffff, 1);
+      button.fillStyle(colors[letter], 0.8);
+      button.beginPath();
+      button.moveTo(hexPoints[0].x, hexPoints[0].y);
+      hexPoints.forEach((point) => button.lineTo(point.x, point.y));
+      button.closePath();
+      button.fillPath();
+      button.strokePath();
+      text.setScale(1);
+    });
+
+    // Add click handler
+    button.on('pointerdown', () => {
+      if (!this.gameStarted) return;
+
+      // Find matching letter
+      const matchingLetters = this.letters
+        .filter(l => l.value === letter)
+        .sort((a, b) => b.y - a.y);
+
+      if (matchingLetters.length > 0) {
+        this.handleCorrectLetter(matchingLetters[0]);
+      }
+    });
+  });
+}
 
   update() {
     if (!this.gameStarted) return;
@@ -449,68 +443,60 @@ class MainScene extends Phaser.Scene {
   }
 
   shootCatProjectile(targetLetter) {
-    // Create cat projectile
-    const projectile = this.add.image(
-      this.catSprite.x,
-      this.catSprite.y,
-      "cat",
-    );
-    projectile.setScale(0.15);
-    projectile.active = true;
+  // Create cat projectile
+  const projectile = this.add.image(this.catSprite.x, this.catSprite.y, 'cat');
+  projectile.setScale(0.15);
+  projectile.active = true;
 
-    // Calculate angle to target
-    const angle = Phaser.Math.Angle.Between(
-      projectile.x,
-      projectile.y,
-      targetLetter.x,
-      targetLetter.y,
-    );
+  // Calculate angle to target
+  const angle = Phaser.Math.Angle.Between(
+    projectile.x, projectile.y,
+    targetLetter.x, targetLetter.y
+  );
 
-    // Rotate projectile
-    projectile.setRotation(angle + Math.PI / 2);
+  // Rotate projectile
+  projectile.setRotation(angle + Math.PI/2);
 
-    // Add to projectiles array
-    this.catProjectiles.push(projectile);
+  // Add to projectiles array
+  this.catProjectiles.push(projectile);
 
-    // Create shooting animation
-    const distance = Phaser.Math.Distance.Between(
-      projectile.x,
-      projectile.y,
-      targetLetter.x,
-      targetLetter.y,
-    );
+  // Calculate distance for speed calculation
+  const distance = Phaser.Math.Distance.Between(
+    projectile.x, projectile.y,
+    targetLetter.x, targetLetter.y
+  );
 
-    // Add trail effect
-    const trail = this.add.particles(0, 0, {
-      speed: 20,
-      scale: { start: 0.2, end: 0 },
-      blendMode: "ADD",
-      lifespan: 200,
-      follow: projectile,
-    });
+  // Add trail effect
+  const trail = this.add.particles(0, 0, {
+    speed: 20,
+    scale: { start: 0.2, end: 0 },
+    blendMode: 'ADD',
+    lifespan: 100,  // Shorter trail for faster projectile
+    follow: projectile
+  });
 
-    // Shoot animation
-    this.tweens.add({
-      targets: projectile,
-      x: targetLetter.x,
-      y: targetLetter.y,
-      duration: distance * 2,
-      ease: "Linear",
-      onComplete: () => {
-        this.handleProjectileHit(projectile, targetLetter);
-        trail.destroy();
-      },
-    });
+  // Shoot animation - much faster now
+  this.tweens.add({
+    targets: projectile,
+    x: targetLetter.x,
+    y: targetLetter.y,
+    duration: distance * 0.8,  // Reduced from 2 to 0.8 for faster movement
+    ease: 'Linear',
+    onComplete: () => {
+      this.handleProjectileHit(projectile, targetLetter);
+      trail.destroy();
+    }
+  });
 
-    // Add recoil animation to cannon cat
-    this.tweens.add({
-      targets: this.catSprite,
-      y: this.catSprite.y + 10,
-      duration: 50,
-      yoyo: true,
-      ease: "Quad.easeOut",
-    });
-  }
+  // Add quicker recoil animation to cannon cat
+  this.tweens.add({
+    targets: this.catSprite,
+    y: this.catSprite.y + 10,
+    duration: 30,  // Faster recoil
+    yoyo: true,
+    ease: 'Quad.easeOut'
+  });
+}
 
   handleProjectileHit(projectile, letter) {
     // Create impact effect
