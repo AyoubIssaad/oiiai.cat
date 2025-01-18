@@ -35,85 +35,88 @@ class MainScene extends Phaser.Scene {
   }
 
   create() {
-  // Initialize sounds
-  this.sounds = {
-    A: this.sound.add("sound-a", { volume: 0.5 }),
-    O: this.sound.add("sound-o", { volume: 0.5 }),
-    I: this.sound.add("sound-i", { volume: 0.5 }),
-  };
+    // Initialize sounds
+    this.sounds = {
+      A: this.sound.add("sound-a", { volume: 0.5 }),
+      O: this.sound.add("sound-o", { volume: 0.5 }),
+      I: this.sound.add("sound-i", { volume: 0.5 }),
+    };
 
-  // Create a starfield background effect
-  this.createStarfield();
+    // Create a starfield background effect
+    this.createStarfield();
 
-  // Create the cat cannon
-  this.createCatCannon();
+    // Create the cat cannon
+    this.createCatCannon();
 
-  // Create the danger zone at bottom with gradient
-  const dangerGradient = this.add.graphics();
-  dangerGradient.fillGradientStyle(0xff6b6b, 0xff8787, 0xffa5a5, 0xffbebe, 1);
-  dangerGradient.fillRect(0, 500, 400, 100);
+    // Create the danger zone at bottom with adjusted height
+    const dangerGradient = this.add.graphics();
+    dangerGradient.fillGradientStyle(0xff6b6b, 0xff8787, 0xffa5a5, 0xffbebe, 1);
+    dangerGradient.fillRect(0, 500, 400, 100); // Keep starting at 500, but ensure it's visible
 
-  // Create letter buttons in danger zone
-  this.createLetterButtons();
+    // Create the cat cannon first (so it appears under the buttons)
+    this.createCatCannon();
 
-  // Add score display
-  this.scoreText = this.add.text(20, 20, "Score: 0", {
-    fontFamily: "Orbitron",
-    fontSize: "24px",
-    fill: "#3B82F6",
-    padding: { x: 10, y: 5 },
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-    borderRadius: 5,
-  });
+    // Create letter buttons in danger zone
+    this.createLetterButtons();
 
-  // Add combo display
-  this.comboText = this.add.text(20, 60, "Combo: x1", {
-    fontFamily: "Orbitron",
-    fontSize: "20px",
-    fill: "#60A5FA",
-    padding: { x: 10, y: 5 },
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-    borderRadius: 5,
-    alpha: 0,
-  });
+    // Add score display
+    this.scoreText = this.add.text(20, 20, "Score: 0", {
+      fontFamily: "Orbitron",
+      fontSize: "24px",
+      fill: "#3B82F6",
+      padding: { x: 10, y: 5 },
+      backgroundColor: "rgba(0, 0, 0, 0.3)",
+      borderRadius: 5,
+    });
 
-  // Setup keyboard input
-  this.input.keyboard.on("keydown", this.handleKeyPress, this);
-}
+    // Add combo display
+    this.comboText = this.add.text(20, 60, "Combo: x1", {
+      fontFamily: "Orbitron",
+      fontSize: "20px",
+      fill: "#60A5FA",
+      padding: { x: 10, y: 5 },
+      backgroundColor: "rgba(0, 0, 0, 0.3)",
+      borderRadius: 5,
+      alpha: 0,
+    });
+
+    // Setup keyboard input
+    this.input.keyboard.on("keydown", this.handleKeyPress, this);
+  }
 
   createCatCannon() {
-  // Create the cannon base (semi-circle with platform)
-  this.cannon = this.add.graphics();
+    // Create the cannon base (semi-circle with platform)
+    this.cannon = this.add.graphics();
 
-  // Add platform base
-  this.cannon.fillStyle(0x2563eb);
-  this.cannon.fillRect(160, 560, 80, 10);
+    // Move platform base up slightly
+    this.cannon.fillStyle(0x2563eb);
+    this.cannon.fillRect(160, 540, 80, 10); // Moved up from 560 to 540
 
-  // Add dome/cannon part
-  this.cannon.lineStyle(3, 0x4287f5);
-  this.cannon.fillStyle(0x2563eb);
-  this.cannon.beginPath();
-  this.cannon.arc(200, 560, 40, Math.PI, 0, false);
-  this.cannon.closePath();
-  this.cannon.fillPath();
-  this.cannon.strokePath();
+    // Adjust dome/cannon part
+    this.cannon.lineStyle(3, 0x4287f5);
+    this.cannon.fillStyle(0x2563eb);
+    this.cannon.beginPath();
+    this.cannon.arc(200, 540, 40, Math.PI, 0, false); // Moved up from 560 to 540
+    this.cannon.closePath();
+    this.cannon.fillPath();
+    this.cannon.strokePath();
 
-  // Add cat sprite on the cannon - now with correct orientation
-  this.catSprite = this.add.image(200, 530, 'cat');
-  this.catSprite.setScale(0.2);
-  this.catSprite.setOrigin(0.5, 0.5);
-  this.catSprite.setAngle(180); // Rotate the cat 180 degrees to face upward
+    // Adjust cat sprite position
+    this.catSprite = this.add.image(200, 510, "cat"); // Moved up from 530 to 510
+    this.catSprite.setScale(0.2);
+    this.catSprite.setOrigin(0.5, 0.5);
+    this.catSprite.setAngle(180);
 
-  // Add subtle bobbing animation to the cat
-  this.tweens.add({
-    targets: this.catSprite,
-    y: 535,
-    duration: 1000,
-    yoyo: true,
-    repeat: -1,
-    ease: 'Sine.easeInOut'
-  });
-}
+    // Adjust bobbing animation position
+    this.tweens.add({
+      targets: this.catSprite,
+      y: 515, // Adjust bobbing range
+      duration: 1000,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+  }
 
   createStarfield() {
     // Create graphics for stars
@@ -255,7 +258,7 @@ class MainScene extends Phaser.Scene {
     const buttonWidth = 80;
     const spacing = 40;
     const startX = (400 - (buttonWidth * 3 + spacing * 2)) / 2;
-    const buttonY = 520;
+    const buttonY = 550;
 
     letters.forEach((letter, index) => {
       // Create button background
@@ -755,9 +758,9 @@ class MainScene extends Phaser.Scene {
     // Add cat decoration at the top
     const gameCat = this.add.image(0, -80, "cat");
     gameCat.setScale(0.2);
-    gameCat.setAngle(180)
+    gameCat.setAngle(180);
     if (!success) {
-      gameCat.setTint(0xff6666);  // Red tint for failure
+      gameCat.setTint(0xff6666); // Red tint for failure
       // gameCat.setAngle(0);        // Flip it back around for failure state
     }
 
