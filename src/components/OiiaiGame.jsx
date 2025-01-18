@@ -19,6 +19,7 @@ class MainScene extends Phaser.Scene {
     this.onGameOver = null;
     this.sounds = {};
     this.isMuted = false;
+    this.catProjectiles = [];  // Track active projectiles
     // Fixed column positions for spawning
     this.columnPositions = [80, 160, 240, 320];
     this.lastUsedColumns = [];
@@ -29,33 +30,8 @@ class MainScene extends Phaser.Scene {
     this.load.audio("sound-a", "/sounds/a.wav");
     this.load.audio("sound-o", "/sounds/o.wav");
     this.load.audio("sound-i", "/sounds/i.wav");
-  }
-
-  getAvailableSpawnPosition() {
-    // Filter out recently used columns
-    let availableColumns = this.columnPositions.filter(
-      (pos) => !this.lastUsedColumns.includes(pos),
-    );
-
-    // If all columns were recently used, reset the tracking
-    if (availableColumns.length === 0) {
-      availableColumns = [...this.columnPositions];
-      this.lastUsedColumns = [];
-    }
-
-    // Get a random available column
-    const index = Math.floor(Math.random() * availableColumns.length);
-    const position = availableColumns[index];
-
-    // Track this column as recently used
-    this.lastUsedColumns.push(position);
-
-    // Keep only the last 2 used columns in memory
-    if (this.lastUsedColumns.length > 2) {
-      this.lastUsedColumns.shift();
-    }
-
-    return position;
+    // Load cat image for cannon and projectiles
+    this.load.image('cat', '/cat_game.png');
   }
 
   create() {
@@ -69,35 +45,13 @@ class MainScene extends Phaser.Scene {
     // Create a starfield background effect
     this.createStarfield();
 
+    // Create the cat cannon
+    this.createCatCannon();
+
     // Create the danger zone at bottom
     const dangerGradient = this.add.graphics();
     dangerGradient.fillGradientStyle(0xff6b6b, 0xff8787, 0xffa5a5, 0xffbebe, 1);
     dangerGradient.fillRect(0, 500, 400, 100);
-
-    // Add pulsing effect to danger zone
-    this.tweens.add({
-      targets: dangerGradient,
-      alpha: 0.8,
-      duration: 1000,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    });
-
-    // Create danger line
-    this.dangerLine = this.add.graphics();
-    this.dangerLine.lineStyle(3, 0xef5350, 1);
-    this.dangerLine.lineBetween(0, 500, 400, 500);
-
-    // Add pulsing glow to danger line
-    this.tweens.add({
-      targets: this.dangerLine,
-      alpha: 0.6,
-      duration: 800,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    });
 
     // Add score display
     this.scoreText = this.add.text(20, 20, "Score: 0", {
@@ -124,11 +78,42 @@ class MainScene extends Phaser.Scene {
     this.input.keyboard.on("keydown", this.handleKeyPress, this);
   }
 
-  createStarfield() {
+  createCatCannon() {
+    // Create the cannon base (semi-circle with platform)
+    this.cannon = this.add.graphics();
+
+    // Add platform base
+    this.cannon.fillStyle(0x2563eb);
+    this.cannon.fillRect(160, 560, 80, 10);
+
+    // Add dome/cannon part
+    this.cannon.lineStyle(3, 0x4287f5);
+    this.cannon.fillStyle(0x2563eb);
+    this.cannon.beginPath();
+    this.cannon.arc(200, 560, 40, Math.PI, 0, false);
+    this.cannon.closePath();
+    this.cannon.fillPath();
+    this.cannon.strokePath();
+
+    // Add cat sprite on the cannon
+    this.catSprite = this.add.image(200, 530, 'cat');
+    this.catSprite.setScale(0.2);
+    this.catSprite.setOrigin(0.5, 0.5);
+
+    // Add subtle bobbing animation to the cat
+    this.tweens.add({
+      targets: this.catSprite,
+      y: 535,
+      duration: 1000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+  }
+
+createStarfield() {
     // Create graphics for stars
     const stars = this.add.graphics();
-
-    // Create an array to store star positions and properties
     this.starField = [];
 
     // Initialize stars
@@ -142,7 +127,7 @@ class MainScene extends Phaser.Scene {
         color: Phaser.Display.Color.GetColor(
           155 + Math.random() * 100,
           155 + Math.random() * 100,
-          255,
+          255
         ),
       });
     }
@@ -152,20 +137,37 @@ class MainScene extends Phaser.Scene {
       stars.clear();
 
       this.starField.forEach((star) => {
-        // Update star position
         star.y += star.speed * (this.game.loop.delta / 1000);
-
-        // Reset star if it goes off screen
         if (star.y > 600) {
           star.y = 0;
           star.x = Math.random() * 400;
         }
-
-        // Draw star
         stars.fillStyle(star.color, star.alpha);
         stars.fillCircle(star.x, star.y, star.size);
       });
     });
+  }
+
+  getAvailableSpawnPosition() {
+    let availableColumns = this.columnPositions.filter(
+      (pos) => !this.lastUsedColumns.includes(pos)
+    );
+
+    if (availableColumns.length === 0) {
+      availableColumns = [...this.columnPositions];
+      this.lastUsedColumns = [];
+    }
+
+    const index = Math.floor(Math.random() * availableColumns.length);
+    const position = availableColumns[index];
+
+    this.lastUsedColumns.push(position);
+
+    if (this.lastUsedColumns.length > 2) {
+      this.lastUsedColumns.shift();
+    }
+
+    return position;
   }
 
   createHexagon(x, y, size, color) {
@@ -203,10 +205,7 @@ class MainScene extends Phaser.Scene {
       A: 0x1d4ed8,
     };
 
-    // Get spawn position using fixed columns
     const newX = this.getAvailableSpawnPosition();
-
-    // Create letter container
     const container = this.add.container(newX, -50);
 
     // Create hexagonal background
@@ -219,9 +218,9 @@ class MainScene extends Phaser.Scene {
         const angle = (i * Math.PI) / 3 + Math.PI / 6;
         return new Phaser.Geom.Point(
           hexSize * Math.cos(angle),
-          hexSize * Math.sin(angle),
+          hexSize * Math.sin(angle)
         );
-      }),
+      })
     );
 
     container.setInteractive(hitArea, Phaser.Geom.Polygon.Contains);
@@ -256,78 +255,204 @@ class MainScene extends Phaser.Scene {
     this.totalLetters++;
   }
 
-  handleCorrectLetter() {
-    const lowestLetter = this.getLowestLetter();
-    if (lowestLetter) {
-      // Play the corresponding sound if not muted
-      if (!this.isMuted && this.sounds[lowestLetter.value]) {
-        this.sounds[lowestLetter.value].play();
+  update() {
+    if (!this.gameStarted) return;
+
+    // Update letters position
+    this.letters.forEach((letter) => {
+      letter.y += this.speed * (this.game.loop.delta / 1000);
+
+      if (letter.y >= 500) {
+        this.gameOver(false);
       }
+    });
 
-      // Increment combo
-      this.combo++;
-      this.maxCombo = Math.max(this.maxCombo, this.combo);
-
-      // Calculate bonus points based on combo
-      const comboBonus = Math.floor(this.combo / 2) * 2;
-      const points = 2 + comboBonus;
-
-      // Show floating score text
-      this.showFloatingScore(lowestLetter.x, lowestLetter.y, points);
-
-      // Update combo display
-      this.comboText.setText(`Combo: x${this.combo}`);
-      this.comboText.setAlpha(1);
-
-      // Add particles
-      this.addSuccessParticles(lowestLetter.x, lowestLetter.y);
-
-      // Remove letter with animation
-      this.tweens.add({
-        targets: lowestLetter,
-        alpha: 0,
-        scale: 1.5,
-        duration: 200,
-        ease: "Back.easeIn",
-        onComplete: () => {
-          this.letters = this.letters.filter((l) => l !== lowestLetter);
-          lowestLetter.destroy();
-        },
-      });
-
-      this.score += points;
-      this.correctLetters++;
-
-      // Update difficulty every 5 correct letters
-      if (this.correctLetters % 5 === 0) {
-        this.difficultyLevel++;
-
-        // Gradually increase speed
-        this.speed = Math.min(
-          this.maxSpeed,
-          this.baseSpeed * (1 + Math.log1p(this.difficultyLevel * 0.3)),
-        );
-
-        // Gradually decrease spawn delay
-        this.currentSpawnDelay = Math.max(
-          this.minSpawnDelay,
-          this.baseSpawnDelay * Math.pow(0.95, this.difficultyLevel),
-        );
-
-        if (this.spawnTimer) {
-          this.spawnTimer.delay = this.currentSpawnDelay;
-        }
+    // Update projectiles if any
+    this.catProjectiles.forEach((projectile) => {
+      if (projectile.active) {
+        // Check for collisions with letters
+        this.letters.forEach((letter) => {
+          if (Phaser.Geom.Intersects.RectangleToRectangle(
+            projectile.getBounds(),
+            letter.getBounds()
+          )) {
+            this.handleProjectileHit(projectile, letter);
+          }
+        });
       }
+    });
+  }
 
-      this.scoreText.setText(`Score: ${this.score}`);
+  handleKeyPress(event) {
+    if (!this.gameStarted || this.letters.length === 0) return;
+
+    const pressedKey = event.key.toUpperCase();
+    if (!["O", "I", "A"].includes(pressedKey)) return;
+
+    // Find any letter matching the pressed key
+    const matchingLetters = this.letters
+      .filter(letter => letter.value === pressedKey)
+      .sort((a, b) => b.y - a.y); // Sort by y position, lowest (highest y value) first
+
+    if (matchingLetters.length > 0) {
+      // Take the lowest matching letter
+      this.handleCorrectLetter(matchingLetters[0]);
     }
+    // If no matching letter is found, do nothing - no penalty
+}
+
+  handleLetterClick(clickedLetter) {
+    if (!this.gameStarted) return;
+
+    // Simply handle the letter if clicked
+    if (clickedLetter && clickedLetter.value) {
+      this.handleCorrectLetter(clickedLetter);
+    }
+}
+
+  handleCorrectLetter(targetLetter) {
+    // Play sound if not muted
+    if (!this.isMuted && this.sounds[targetLetter.value]) {
+        this.sounds[targetLetter.value].play();
+    }
+
+    // Increment combo
+    this.combo++;
+    this.maxCombo = Math.max(this.maxCombo, this.combo);
+
+    // Calculate bonus points
+    const comboBonus = Math.floor(this.combo / 2) * 2;
+    const points = 2 + comboBonus;
+
+    // Show floating score
+    this.showFloatingScore(targetLetter.x, targetLetter.y, points);
+
+    // Update combo display
+    this.comboText.setText(`Combo: x${this.combo}`);
+    this.comboText.setAlpha(1);
+
+    // Shoot cat projectile at the letter
+    this.shootCatProjectile(targetLetter);
+
+    // Update score and stats
+    this.score += points;
+    this.correctLetters++;
+
+    // Update difficulty
+    if (this.correctLetters % 5 === 0) {
+        this.difficultyLevel++;
+        this.speed = Math.min(
+            this.maxSpeed,
+            this.baseSpeed * (1 + Math.log1p(this.difficultyLevel * 0.3))
+        );
+        this.currentSpawnDelay = Math.max(
+            this.minSpawnDelay,
+            this.baseSpawnDelay * Math.pow(0.95, this.difficultyLevel)
+        );
+        if (this.spawnTimer) {
+            this.spawnTimer.delay = this.currentSpawnDelay;
+        }
+    }
+
+    this.scoreText.setText(`Score: ${this.score}`);
+}
+
+  shootCatProjectile(targetLetter) {
+    // Create cat projectile
+    const projectile = this.add.image(this.catSprite.x, this.catSprite.y, 'cat');
+    projectile.setScale(0.15);
+    projectile.active = true;
+
+    // Calculate angle to target
+    const angle = Phaser.Math.Angle.Between(
+      projectile.x, projectile.y,
+      targetLetter.x, targetLetter.y
+    );
+
+    // Rotate projectile
+    projectile.setRotation(angle - Math.PI/2);
+
+    // Add to projectiles array
+    this.catProjectiles.push(projectile);
+
+    // Create shooting animation
+    const distance = Phaser.Math.Distance.Between(
+      projectile.x, projectile.y,
+      targetLetter.x, targetLetter.y
+    );
+
+    // Add trail effect
+    const trail = this.add.particles(0, 0, {
+      speed: 20,
+      scale: { start: 0.2, end: 0 },
+      blendMode: 'ADD',
+      lifespan: 200,
+      follow: projectile
+    });
+
+    // Shoot animation
+    this.tweens.add({
+      targets: projectile,
+      x: targetLetter.x,
+      y: targetLetter.y,
+      duration: distance * 2,
+      ease: 'Linear',
+      onComplete: () => {
+        this.handleProjectileHit(projectile, targetLetter);
+        trail.destroy();
+      }
+    });
+
+    // Add recoil animation to cannon cat
+    this.tweens.add({
+      targets: this.catSprite,
+      y: this.catSprite.y + 10,
+      duration: 50,
+      yoyo: true,
+      ease: 'Quad.easeOut'
+    });
   }
 
-  setMuted(muted) {
-    this.isMuted = muted;
+  handleProjectileHit(projectile, letter) {
+    // Create impact effect
+    this.addImpactEffect(letter.x, letter.y);
+
+    // Remove letter with animation
+    this.tweens.add({
+      targets: letter,
+      alpha: 0,
+      scale: 1.5,
+      duration: 200,
+      ease: 'Back.easeIn',
+      onComplete: () => {
+        this.letters = this.letters.filter(l => l !== letter);
+        letter.destroy();
+      }
+    });
+
+    // Remove projectile
+    projectile.active = false;
+    projectile.destroy();
+    this.catProjectiles = this.catProjectiles.filter(p => p.active);
   }
 
-  showFloatingScore(x, y, points) {
+  addImpactEffect(x, y) {
+    // Create star burst effect
+    const particles = this.add.particles(x, y, {
+      speed: { min: 50, max: 150 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 0.4, end: 0 },
+      blendMode: 'ADD',
+      tint: [0x3b82f6, 0x60a5fa, 0x93c5fd],
+      lifespan: 500,
+      quantity: 20
+    });
+
+    // Auto-destroy particle emitter
+    this.time.delayedCall(500, () => particles.destroy());
+  }
+
+showFloatingScore(x, y, points) {
     const floatingText = this.add
       .text(x, y, `+${points}`, {
         fontFamily: "Orbitron",
@@ -346,318 +471,114 @@ class MainScene extends Phaser.Scene {
     });
   }
 
-  addSuccessParticles(x, y) {
-    const particles = [];
-    const totalParticles = 10;
-
-    for (let i = 0; i < totalParticles; i++) {
-      const angle = ((Math.PI * 2) / totalParticles) * i;
-      const speed = Phaser.Math.Between(50, 150);
-      const particle = this.add.circle(x, y, 3, 0x60a5fa);
-
-      particles.push({
-        gameObject: particle,
-        velocityX: Math.cos(angle) * speed,
-        velocityY: Math.sin(angle) * speed,
-        gravity: 200,
-        alpha: 1,
-        scale: 1,
-      });
-    }
-
-    // Create update event for particle animation
-    const particleEvent = this.events.addListener("update", (time, delta) => {
-      const dt = delta / 1000;
-
-      particles.forEach((particle) => {
-        // Update position
-        particle.velocityY += particle.gravity * dt;
-        particle.gameObject.x += particle.velocityX * dt;
-        particle.gameObject.y += particle.velocityY * dt;
-
-        // Update appearance
-        particle.alpha -= dt;
-        particle.scale -= dt;
-
-        particle.gameObject.setAlpha(Math.max(0, particle.alpha));
-        particle.gameObject.setScale(Math.max(0, particle.scale));
-      });
-
-      // Check if all particles are invisible
-      if (particles.every((p) => p.alpha <= 0)) {
-        // Clean up
-        particles.forEach((p) => p.gameObject.destroy());
-        this.events.removeListener("update", particleEvent);
-      }
-    });
-  }
-
-  handleKeyPress(event) {
-    if (!this.gameStarted || this.letters.length === 0) return;
-
-    // Convert to uppercase for consistency
-    const pressedKey = event.key.toUpperCase();
-
-    // Only respond to O, I, and A keys
-    if (!["O", "I", "A"].includes(pressedKey)) {
-      return; // Ignore any other key press
-    }
-
-    const lowestLetter = this.getLowestLetter();
-    if (lowestLetter && lowestLetter.value === pressedKey) {
-      this.handleCorrectLetter();
-    } else if (lowestLetter) {
-      // Wrong key pressed - game over
-      this.combo = 0;
-      this.comboText.setAlpha(0.5);
-      this.gameOver(false);
-    }
-  }
-
-  handleLetterClick(clickedLetter) {
-    if (!this.gameStarted) return;
-
-    const lowestLetter = this.getLowestLetter();
-    if (clickedLetter === lowestLetter) {
-      // Only handle as correct if clicking the right letter value
-      if (clickedLetter.value === lowestLetter.value) {
-        this.handleCorrectLetter();
-      } else {
-        // Wrong letter clicked - game over
-        this.combo = 0;
-        this.comboText.setAlpha(0.5);
-        this.gameOver(false);
-      }
-    } else {
-      // Clicking wrong position - game over
-      this.combo = 0;
-      this.comboText.setAlpha(0.5);
-      this.gameOver(false);
-    }
-  }
-
-  update() {
-    if (!this.gameStarted) return;
-
-    this.letters.forEach((letter) => {
-      letter.y += this.speed * (this.game.loop.delta / 1000);
-
-      if (letter.y >= 500) {
-        this.gameOver(false);
-      }
-    });
-  }
-
   getLowestLetter() {
     return this.letters.reduce(
       (lowest, current) => (!lowest || current.y > lowest.y ? current : lowest),
-      null,
+      null
     );
   }
 
-  gameOver(success = false) {
-    if (!this.gameStarted) return;
-
-    this.gameStarted = false;
-    const endTime = this.time.now;
-    const duration = (endTime - this.startTime) / 1000;
-    const lettersPerSecond = (this.correctLetters / duration).toFixed(2);
-
-    // Clear letters with particles
-    this.letters.forEach((letter) => {
-      this.addSuccessParticles(letter.x, letter.y);
-      letter.destroy();
-    });
+  startGame() {
+    // Clear existing letters and projectiles
+    this.letters.forEach((letter) => letter.destroy());
     this.letters = [];
+    this.catProjectiles.forEach((projectile) => projectile.destroy());
+    this.catProjectiles = [];
 
-    // Show game over message
-    const centerX = this.cameras.main.centerX;
-    const centerY = this.cameras.main.centerY;
-    const messageContainer = this.add.container(centerX, centerY);
+    // Reset spawn position tracking
+    this.lastUsedColumns = [];
 
-    // Create modern glass-like background with gradient
-    const bg = this.add.graphics();
+    // Initialize game parameters
+    this.baseSpeed = 100;
+    this.maxSpeed = 400;
+    this.baseSpawnDelay = 1200;  // Adjusted for tighter letter spacing
+    this.minSpawnDelay = 400;    // Adjusted for tighter letter spacing
+    this.currentSpawnDelay = this.baseSpawnDelay;
+    this.speed = this.baseSpeed;
+    this.difficultyLevel = 1;
+    this.combo = 0;
+    this.maxCombo = 0;
+    this.score = 0;
+    this.totalLetters = 0;
+    this.correctLetters = 0;
+    this.gameStarted = true;
+    this.startTime = this.time.now;
 
-    // Add outer glow effect
-    bg.lineStyle(4, success ? 0x4ade80 : 0xef4444, 0.3);
-    bg.strokeRoundedRect(-155, -105, 310, 210, 20);
+    // Reset UI
+    this.scoreText.setText("Score: 0");
+    this.comboText.setText("Combo: x0").setAlpha(0);
 
-    // Main background with gradient
-    bg.fillGradientStyle(
-      0x1a1a2e,
-      0x1a1a2e,
-      0x2a2a3e,
-      0x2a2a3e,
-      0.95,
-      0.95,
-      0.95,
-      0.95,
-    );
-    bg.fillRoundedRect(-150, -100, 300, 200, 16);
+    // Reset cat cannon position and animation
+    this.catSprite.setPosition(200, 530);
+    this.catSprite.setRotation(0);
 
-    // Inner border
-    bg.lineStyle(2, success ? 0x4ade80 : 0xef4444, 0.8);
-    bg.strokeRoundedRect(-150, -100, 300, 200, 16);
-
-    // Add subtle inner glow
-    const innerGlow = this.add.graphics();
-    innerGlow.lineStyle(1, success ? 0x4ade80 : 0xef4444, 0.2);
-    innerGlow.strokeRoundedRect(-145, -95, 290, 190, 14);
-
-    messageContainer.add([bg, innerGlow]);
-
-    // Configure text style with enhanced visibility
-    const messageConfig = {
-      fontFamily: "Orbitron",
-      fontSize: "28px",
-      fontWeight: "bold",
-      fill: "#FFFFFF",
-      align: "center",
-      stroke: "#000000",
-      strokeThickness: 2,
-      shadow: { blur: 2, color: "#000000", fill: true, offsetX: 1, offsetY: 1 },
-    };
-
-    if (success) {
-      const messageText = this.add
-        .text(0, -60, "Perfect Run!", messageConfig)
-        .setOrigin(0.5);
-      const scoreText = this.add
-        .text(0, -10, `Score: ${this.score}`, messageConfig)
-        .setOrigin(0.5);
-      const speedText = this.add
-        .text(0, 40, `${lettersPerSecond} letters/sec`, {
-          ...messageConfig,
-          fontSize: "20px",
-        })
-        .setOrigin(0.5);
-
-      messageContainer.add([messageText, scoreText, speedText]);
-      this.addCelebrationParticles();
-    } else {
-      const messageText = this.add
-        .text(0, -70, "Game Over!", {
-          ...messageConfig,
-          fontSize: "32px",
-        })
-        .setOrigin(0.5);
-
-      const scoreText = this.add
-        .text(0, -20, `Score: ${this.score}`, {
-          ...messageConfig,
-          fontSize: "24px",
-        })
-        .setOrigin(0.5);
-
-      const comboText = this.add
-        .text(0, 20, `Max Combo: x${this.maxCombo}`, {
-          ...messageConfig,
-          fontSize: "20px",
-          fill: "#60A5FA",
-        })
-        .setOrigin(0.5);
-
-      // Create interactive retry button with modern styling
-      const buttonBg = this.add.graphics();
-
-      // Button shadow
-      buttonBg.fillStyle(0x1d4ed8, 0.3);
-      buttonBg.fillRoundedRect(-78, 52, 156, 38, 8);
-
-      // Button gradient
-      buttonBg.fillGradientStyle(0x2563eb, 0x2563eb, 0x1d4ed8, 0x1d4ed8, 1);
-      buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
-
-      // Button border with glow
-      buttonBg.lineStyle(2, 0x60a5fa, 1);
-      buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
-
-      // Add subtle inner glow
-      buttonBg.lineStyle(1, 0x93c5fd, 0.5);
-      buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
-
-      const buttonText = this.add
-        .text(0, 70, "Try Again", {
-          ...messageConfig,
-          fontSize: "20px",
-        })
-        .setOrigin(0.5);
-
-      // Make button interactive with enhanced hover effects
-      const buttonHitArea = new Phaser.Geom.Rectangle(-80, 50, 160, 40);
-      buttonBg
-        .setInteractive(buttonHitArea, Phaser.Geom.Rectangle.Contains)
-        .on("pointerover", () => {
-          buttonBg.clear();
-          // Enhanced hover effect
-          // Larger shadow
-          buttonBg.fillStyle(0x1d4ed8, 0.4);
-          buttonBg.fillRoundedRect(-77, 53, 154, 38, 8);
-          // Brighter gradient
-          buttonBg.fillGradientStyle(0x3b82f6, 0x3b82f6, 0x2563eb, 0x2563eb, 1);
-          buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
-          // Brighter border with enhanced glow
-          buttonBg.lineStyle(2, 0x93c5fd, 1);
-          buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
-          // Enhanced inner glow
-          buttonBg.lineStyle(1, 0xbfdbfe, 0.6);
-          buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
-          buttonText.setScale(1.1);
-        })
-        .on("pointerout", () => {
-          buttonBg.clear();
-          // Reset to normal state
-          buttonBg.fillStyle(0x1d4ed8, 0.3);
-          buttonBg.fillRoundedRect(-78, 52, 156, 38, 8);
-          buttonBg.fillGradientStyle(0x2563eb, 0x2563eb, 0x1d4ed8, 0x1d4ed8, 1);
-          buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
-          buttonBg.lineStyle(2, 0x60a5fa, 1);
-          buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
-          buttonBg.lineStyle(1, 0x93c5fd, 0.5);
-          buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
-          buttonText.setScale(1);
-        })
-        .on("pointerdown", () => {
-          messageContainer.destroy();
-          this.startGame();
-        });
-
-      messageContainer.add([
-        messageText,
-        scoreText,
-        comboText,
-        buttonBg,
-        buttonText,
-      ]);
+    // Start spawning letters
+    if (this.spawnTimer) {
+      this.spawnTimer.remove();
     }
 
-    // Add fade-in animation with bounce
-    messageContainer.setAlpha(0);
-    messageContainer.setScale(0.8);
-    this.tweens.add({
-      targets: messageContainer,
-      alpha: 1,
-      scale: 1,
-      duration: 500,
-      ease: "Back.easeOut",
+    this.spawnTimer = this.time.addEvent({
+      delay: this.currentSpawnDelay,
+      callback: () => {
+        this.spawnLetter();
+        // Update spawn delay for next letter
+        this.currentSpawnDelay = Math.max(
+          this.minSpawnDelay,
+          this.baseSpawnDelay * Math.pow(0.95, this.difficultyLevel)
+        );
+        this.spawnTimer.delay = this.currentSpawnDelay;
+      },
+      callbackScope: this,
+      loop: true,
     });
 
-    // Shake camera on failure
-    if (!success) {
-      this.cameras.main.shake(500, 0.01);
-    }
+    // Add start game animation
+    this.cameras.main.flash(500, 0, 0, 0, true);
+    this.addGameStartEffect();
+  }
 
-    if (this.onGameOver) {
-      this.onGameOver({
-        success,
-        score: this.score,
-        time: duration.toFixed(2),
-        speed: lettersPerSecond,
-        totalLetters: this.totalLetters,
-        correctLetters: this.correctLetters,
-        maxCombo: this.maxCombo,
-      });
-    }
+  addGameStartEffect() {
+    // Create circular wave effect
+    const circle = this.add.graphics();
+    const startX = 200;
+    const startY = 530;
+
+    this.tweens.add({
+      targets: { radius: 0, alpha: 1 },
+      radius: 300,
+      alpha: 0,
+      duration: 1000,
+      ease: 'Quad.easeOut',
+      onUpdate: (tween, target) => {
+        circle.clear();
+        circle.lineStyle(3, 0x3b82f6, target.alpha);
+        circle.strokeCircle(startX, startY, target.radius);
+      },
+      onComplete: () => {
+        circle.destroy();
+      }
+    });
+
+    // Add particles burst from cannon
+    const particles = this.add.particles(startX, startY, {
+      speed: { min: 100, max: 200 },
+      angle: { min: -30, max: 30 },
+      scale: { start: 0.4, end: 0 },
+      blendMode: 'ADD',
+      tint: [0x3b82f6, 0x60a5fa],
+      lifespan: 1000,
+      quantity: 30
+    });
+
+    this.time.delayedCall(1000, () => particles.destroy());
+  }
+
+  setMuted(muted) {
+    this.isMuted = muted;
+    // Update volume for all sound effects
+    Object.values(this.sounds).forEach(sound => {
+      sound.setVolume(muted ? 0 : 0.5);
+    });
   }
 
   addCelebrationParticles() {
@@ -688,56 +609,194 @@ class MainScene extends Phaser.Scene {
 
     this.time.delayedCall(2000, () => particles.destroy());
   }
+gameOver(success = false) {
+    if (!this.gameStarted) return;
 
-  startGame() {
-    // Clear any existing letters
-    this.letters.forEach((letter) => letter.destroy());
+    this.gameStarted = false;
+    const endTime = this.time.now;
+    const duration = (endTime - this.startTime) / 1000;
+    const lettersPerSecond = (this.correctLetters / duration).toFixed(2);
+
+    // Clear active projectiles with effects
+    this.catProjectiles.forEach(projectile => {
+      this.addImpactEffect(projectile.x, projectile.y);
+      projectile.destroy();
+    });
+    this.catProjectiles = [];
+
+    // Clear letters with effects
+    this.letters.forEach(letter => {
+      this.addImpactEffect(letter.x, letter.y);
+      letter.destroy();
+    });
     this.letters = [];
 
-    // Reset spawn position tracking
-    this.lastUsedColumns = [];
+    // Show game over message
+    const centerX = this.cameras.main.centerX;
+    const centerY = this.cameras.main.centerY;
+    const messageContainer = this.add.container(centerX, centerY);
 
-    // Initialize game parameters
-    this.baseSpeed = 80;
-    this.maxSpeed = 400;
-    this.baseSpawnDelay = 1200;
-    this.minSpawnDelay = 400;
-    this.currentSpawnDelay = this.baseSpawnDelay;
-    this.speed = this.baseSpeed;
-    this.difficultyLevel = 1;
-    this.combo = 0;
-    this.maxCombo = 0;
-    this.score = 0;
-    this.totalLetters = 0;
-    this.correctLetters = 0;
-    this.gameStarted = true;
-    this.startTime = this.time.now;
+    // Create modern glass-like background with gradient
+    const bg = this.add.graphics();
 
-    // Reset UI
-    this.scoreText.setText("Score: 0");
-    this.comboText.setText("Combo: x0").setAlpha(0);
+    // Add outer glow effect
+    bg.lineStyle(4, success ? 0x4ade80 : 0xef4444, 0.3);
+    bg.strokeRoundedRect(-155, -105, 310, 210, 20);
 
-    // Start spawning letters with fixed delay to maintain spacing
-    if (this.spawnTimer) {
-      this.spawnTimer.remove();
+    // Main background with gradient
+    bg.fillGradientStyle(
+      0x1a1a2e,
+      0x1a1a2e,
+      0x2a2a3e,
+      0x2a2a3e,
+      0.95,
+      0.95,
+      0.95,
+      0.95
+    );
+    bg.fillRoundedRect(-150, -100, 300, 200, 16);
+
+    // Add cat decoration at the top
+    const gameCat = this.add.image(0, -80, 'cat');
+    gameCat.setScale(0.2);
+    if (!success) {
+      gameCat.setTint(0xff6666);  // Red tint for failure
+      gameCat.setAngle(180);      // Upside down for failure
     }
 
-    this.spawnTimer = this.time.addEvent({
-      delay: this.currentSpawnDelay,
-      callback: () => {
-        this.spawnLetter();
-        // Update spawn delay for next letter
-        this.currentSpawnDelay = Math.max(
-          this.minSpawnDelay,
-          this.baseSpawnDelay * Math.pow(0.95, this.difficultyLevel),
-        );
-        this.spawnTimer.delay = this.currentSpawnDelay;
-      },
-      callbackScope: this,
-      loop: true,
+    // Configure text style
+    const messageConfig = {
+      fontFamily: "Orbitron",
+      fontSize: "28px",
+      fontWeight: "bold",
+      fill: "#FFFFFF",
+      align: "center",
+      stroke: "#000000",
+      strokeThickness: 2,
+      shadow: { blur: 2, color: "#000000", fill: true, offsetX: 1, offsetY: 1 },
+    };
+
+    if (success) {
+      const messageText = this.add
+        .text(0, -30, "Purrfect Run!", messageConfig)
+        .setOrigin(0.5);
+      const scoreText = this.add
+        .text(0, 20, `Score: ${this.score}`, messageConfig)
+        .setOrigin(0.5);
+      const speedText = this.add
+        .text(0, 60, `${lettersPerSecond} letters/sec`, {
+          ...messageConfig,
+          fontSize: "20px",
+        })
+        .setOrigin(0.5);
+
+      messageContainer.add([bg, gameCat, messageText, scoreText, speedText]);
+      this.addCelebrationParticles();
+    } else {
+      const messageText = this.add
+        .text(0, -30, "Game Over!", {
+          ...messageConfig,
+          fontSize: "32px",
+        })
+        .setOrigin(0.5);
+
+      const scoreText = this.add
+        .text(0, 20, `Score: ${this.score}`, {
+          ...messageConfig,
+          fontSize: "24px",
+        })
+        .setOrigin(0.5);
+
+      const comboText = this.add
+        .text(0, 60, `Max Combo: x${this.maxCombo}`, {
+          ...messageConfig,
+          fontSize: "20px",
+          fill: "#60A5FA",
+        })
+        .setOrigin(0.5);
+
+      // Create retry button
+      const buttonBg = this.add.graphics();
+      buttonBg.fillStyle(0x2563eb, 0.8);
+      buttonBg.fillRoundedRect(-80, 90, 160, 40, 8);
+      buttonBg.lineStyle(2, 0x60a5fa);
+      buttonBg.strokeRoundedRect(-80, 90, 160, 40, 8);
+
+      const buttonText = this.add
+        .text(0, 110, "Try Again", {
+          ...messageConfig,
+          fontSize: "20px",
+        })
+        .setOrigin(0.5);
+
+      // Make button interactive
+      buttonBg.setInteractive(
+        new Phaser.Geom.Rectangle(-80, 90, 160, 40),
+        Phaser.Geom.Rectangle.Contains
+      )
+      .on('pointerover', () => {
+        buttonBg.clear();
+        buttonBg.fillStyle(0x3b82f6, 0.8);
+        buttonBg.fillRoundedRect(-80, 90, 160, 40, 8);
+        buttonBg.lineStyle(2, 0x93c5fd);
+        buttonBg.strokeRoundedRect(-80, 90, 160, 40, 8);
+        buttonText.setScale(1.1);
+      })
+      .on('pointerout', () => {
+        buttonBg.clear();
+        buttonBg.fillStyle(0x2563eb, 0.8);
+        buttonBg.fillRoundedRect(-80, 90, 160, 40, 8);
+        buttonBg.lineStyle(2, 0x60a5fa);
+        buttonBg.strokeRoundedRect(-80, 90, 160, 40, 8);
+        buttonText.setScale(1);
+      })
+      .on('pointerdown', () => {
+        messageContainer.destroy();
+        this.startGame();
+      });
+
+      messageContainer.add([bg, gameCat, messageText, scoreText, comboText, buttonBg, buttonText]);
+    }
+
+    // Add container animation
+    messageContainer.setAlpha(0);
+    messageContainer.setScale(0.8);
+    this.tweens.add({
+      targets: messageContainer,
+      alpha: 1,
+      scale: 1,
+      duration: 500,
+      ease: "Back.easeOut",
     });
+
+    // Add cat spinning animation
+    this.tweens.add({
+      targets: gameCat,
+      angle: success ? 360 : 540,  // Spin once for success, 1.5 times for failure
+      duration: 1000,
+      ease: "Cubic.easeOut"
+    });
+
+    // Shake camera on failure
+    if (!success) {
+      this.cameras.main.shake(500, 0.01);
+    }
+
+    // Call game over callback with stats
+    if (this.onGameOver) {
+      this.onGameOver({
+        success,
+        score: this.score,
+        time: duration.toFixed(2),
+        speed: lettersPerSecond,
+        totalLetters: this.totalLetters,
+        correctLetters: this.correctLetters,
+        maxCombo: this.maxCombo,
+      });
+    }
   }
 }
+
 const OiiaiGame = ({ onShowLeaderboard }) => {
   const gameRef = useRef(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -796,7 +855,6 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
     };
   }, []); // Initial game setup
 
-  // Handle mute state changes
   useEffect(() => {
     if (gameRef.current) {
       const scene = gameRef.current.scene.getScene("MainScene");
@@ -891,7 +949,7 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
         {!isGameStarted && !isGameOver && (
           <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex flex-col items-center justify-center">
             <h2 className="text-2xl font-['Orbitron'] text-white mb-4">
-              OIIAI Challenge
+              OIIAI Cat Challenge
             </h2>
             <Button
               onClick={handleStartGame}
@@ -900,7 +958,7 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
               Start Game
             </Button>
             <p className="text-blue-400 mt-4 font-['Orbitron'] text-sm">
-              Press to begin the challenge!
+              Help the cat shoot down the letters!
             </p>
           </div>
         )}
@@ -911,10 +969,9 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
         <p className="text-sm mb-1">
           Type <span className="font-bold text-blue-500">O</span>,{" "}
           <span className="font-bold text-amber-500">I</span>, or{" "}
-          <span className="font-bold text-indigo-500">A</span> to match the
-          closest letter
+          <span className="font-bold text-indigo-500">A</span> to shoot the cat
         </p>
-        <p className="text-xs text-blue-600">or tap letters to remove them</p>
+        <p className="text-xs text-blue-600">or tap letters to target them</p>
       </div>
     </div>
   );
