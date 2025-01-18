@@ -18,9 +18,18 @@ class MainScene extends Phaser.Scene {
     this.combo = 0;
     this.maxCombo = 0;
     this.onGameOver = null;
+    this.sounds = {};
+    this.isMuted = false;
     // Fixed column positions for spawning
     this.columnPositions = [80, 160, 240, 320];
     this.lastUsedColumns = [];
+  }
+
+  preload() {
+    // Load sound effects
+    this.load.audio("sound-a", "/sounds/a.wav");
+    this.load.audio("sound-o", "/sounds/o.wav");
+    this.load.audio("sound-i", "/sounds/i.wav");
   }
 
   getAvailableSpawnPosition() {
@@ -51,6 +60,13 @@ class MainScene extends Phaser.Scene {
   }
 
   create() {
+    // Initialize sounds
+    this.sounds = {
+      A: this.sound.add("sound-a", { volume: 0.5 }),
+      O: this.sound.add("sound-o", { volume: 0.5 }),
+      I: this.sound.add("sound-i", { volume: 0.5 }),
+    };
+
     // Create a starfield background effect
     this.createStarfield();
 
@@ -244,6 +260,11 @@ class MainScene extends Phaser.Scene {
   handleCorrectLetter() {
     const lowestLetter = this.getLowestLetter();
     if (lowestLetter) {
+      // Play the corresponding sound if not muted
+      if (!this.isMuted && this.sounds[lowestLetter.value]) {
+        this.sounds[lowestLetter.value].play();
+      }
+
       // Increment combo
       this.combo++;
       this.maxCombo = Math.max(this.maxCombo, this.combo);
@@ -301,6 +322,10 @@ class MainScene extends Phaser.Scene {
 
       this.scoreText.setText(`Score: ${this.score}`);
     }
+  }
+
+  setMuted(muted) {
+    this.isMuted = muted;
   }
 
   showFloatingScore(x, y, points) {
@@ -369,48 +394,48 @@ class MainScene extends Phaser.Scene {
   }
 
   handleKeyPress(event) {
-  if (!this.gameStarted || this.letters.length === 0) return;
+    if (!this.gameStarted || this.letters.length === 0) return;
 
-  // Convert to uppercase for consistency
-  const pressedKey = event.key.toUpperCase();
+    // Convert to uppercase for consistency
+    const pressedKey = event.key.toUpperCase();
 
-  // Only respond to O, I, and A keys
-  if (!['O', 'I', 'A'].includes(pressedKey)) {
-    return; // Ignore any other key press
-  }
+    // Only respond to O, I, and A keys
+    if (!["O", "I", "A"].includes(pressedKey)) {
+      return; // Ignore any other key press
+    }
 
-  const lowestLetter = this.getLowestLetter();
-  if (lowestLetter && lowestLetter.value === pressedKey) {
-    this.handleCorrectLetter();
-  } else if (lowestLetter) {
-    // Wrong key pressed - game over
-    this.combo = 0;
-    this.comboText.setAlpha(0.5);
-    this.gameOver(false);
-  }
-}
-
-  handleLetterClick(clickedLetter) {
-  if (!this.gameStarted) return;
-
-  const lowestLetter = this.getLowestLetter();
-  if (clickedLetter === lowestLetter) {
-    // Only handle as correct if clicking the right letter value
-    if (clickedLetter.value === lowestLetter.value) {
+    const lowestLetter = this.getLowestLetter();
+    if (lowestLetter && lowestLetter.value === pressedKey) {
       this.handleCorrectLetter();
-    } else {
-      // Wrong letter clicked - game over
+    } else if (lowestLetter) {
+      // Wrong key pressed - game over
       this.combo = 0;
       this.comboText.setAlpha(0.5);
       this.gameOver(false);
     }
-  } else {
-    // Clicking wrong position - game over
-    this.combo = 0;
-    this.comboText.setAlpha(0.5);
-    this.gameOver(false);
   }
-}
+
+  handleLetterClick(clickedLetter) {
+    if (!this.gameStarted) return;
+
+    const lowestLetter = this.getLowestLetter();
+    if (clickedLetter === lowestLetter) {
+      // Only handle as correct if clicking the right letter value
+      if (clickedLetter.value === lowestLetter.value) {
+        this.handleCorrectLetter();
+      } else {
+        // Wrong letter clicked - game over
+        this.combo = 0;
+        this.comboText.setAlpha(0.5);
+        this.gameOver(false);
+      }
+    } else {
+      // Clicking wrong position - game over
+      this.combo = 0;
+      this.comboText.setAlpha(0.5);
+      this.gameOver(false);
+    }
+  }
 
   update() {
     if (!this.gameStarted) return;
@@ -446,182 +471,56 @@ class MainScene extends Phaser.Scene {
     });
     this.letters = [];
 
-    // Show game over message
+    // Create message container
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
     const messageContainer = this.add.container(centerX, centerY);
 
-    // Create modern glass-like background with gradient
+    // Create white background with blue border
     const bg = this.add.graphics();
+    bg.lineStyle(4, 0x3b82f6);
+    bg.fillStyle(0xffffff, 1);
+    bg.fillRoundedRect(-150, -50, 300, 100, 20);
+    bg.strokeRoundedRect(-150, -50, 300, 100, 20);
 
-    // Add outer glow effect
-    bg.lineStyle(4, success ? 0x4ade80 : 0xef4444, 0.3);
-    bg.strokeRoundedRect(-155, -105, 310, 210, 20);
+    // Add "TRY AGAIN!" text
+    const messageText = this.add
+      .text(0, -20, "TRY AGAIN!", {
+        fontFamily: "Orbitron",
+        fontSize: "32px",
+        color: "#3B82F6",
+        align: "center",
+      })
+      .setOrigin(0.5);
 
-    // Main background with gradient
-    bg.fillGradientStyle(
-      0x1a1a2e,
-      0x1a1a2e,
-      0x2a2a3e,
-      0x2a2a3e,
-      0.95,
-      0.95,
-      0.95,
-      0.95,
-    );
-    bg.fillRoundedRect(-150, -100, 300, 200, 16);
+    // Add bee emoji
+    const beeEmoji = this.add
+      .text(85, -20, "🐝", {
+        fontSize: "24px",
+      })
+      .setOrigin(0.5);
 
-    // Inner border
-    bg.lineStyle(2, success ? 0x4ade80 : 0xef4444, 0.8);
-    bg.strokeRoundedRect(-150, -100, 300, 200, 16);
+    // Add subtitle text
+    const subtitleText = this.add
+      .text(0, 20, "Keep practicing to master the sequence", {
+        fontFamily: "Orbitron",
+        fontSize: "16px",
+        color: "#F59E0B",
+        align: "center",
+      })
+      .setOrigin(0.5);
 
-    // Add subtle inner glow
-    const innerGlow = this.add.graphics();
-    innerGlow.lineStyle(1, success ? 0x4ade80 : 0xef4444, 0.2);
-    innerGlow.strokeRoundedRect(-145, -95, 290, 190, 14);
+    // Add all elements to container
+    messageContainer.add([bg, messageText, beeEmoji, subtitleText]);
 
-    messageContainer.add([bg, innerGlow]);
-
-    // Configure text style with enhanced visibility
-    const messageConfig = {
-      fontFamily: "Orbitron",
-      fontSize: "28px",
-      fontWeight: "bold",
-      fill: "#FFFFFF",
-      align: "center",
-      stroke: "#000000",
-      strokeThickness: 2,
-      shadow: { blur: 2, color: "#000000", fill: true, offsetX: 1, offsetY: 1 },
-    };
-
-    if (success) {
-      const messageText = this.add
-        .text(0, -60, "Perfect Run!", messageConfig)
-        .setOrigin(0.5);
-      const scoreText = this.add
-        .text(0, -10, `Score: ${this.score}`, messageConfig)
-        .setOrigin(0.5);
-      const speedText = this.add
-        .text(0, 40, `${lettersPerSecond} letters/sec`, {
-          ...messageConfig,
-          fontSize: "20px",
-        })
-        .setOrigin(0.5);
-
-      messageContainer.add([messageText, scoreText, speedText]);
-      this.addCelebrationParticles();
-    } else {
-      const messageText = this.add
-        .text(0, -70, "Game Over!", {
-          ...messageConfig,
-          fontSize: "32px",
-        })
-        .setOrigin(0.5);
-
-      const scoreText = this.add
-        .text(0, -20, `Score: ${this.score}`, {
-          ...messageConfig,
-          fontSize: "24px",
-        })
-        .setOrigin(0.5);
-
-      const comboText = this.add
-        .text(0, 20, `Max Combo: x${this.maxCombo}`, {
-          ...messageConfig,
-          fontSize: "20px",
-          fill: "#60A5FA",
-        })
-        .setOrigin(0.5);
-
-      // Create interactive retry button with modern styling
-      const buttonBg = this.add.graphics();
-
-      // Button shadow
-      buttonBg.fillStyle(0x1d4ed8, 0.3);
-      buttonBg.fillRoundedRect(-78, 52, 156, 38, 8);
-
-      // Button gradient
-      buttonBg.fillGradientStyle(0x2563eb, 0x2563eb, 0x1d4ed8, 0x1d4ed8, 1);
-      buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
-
-      // Button border with glow
-      buttonBg.lineStyle(2, 0x60a5fa, 1);
-      buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
-
-      // Add subtle inner glow
-      buttonBg.lineStyle(1, 0x93c5fd, 0.5);
-      buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
-
-      const buttonText = this.add
-        .text(0, 70, "Try Again", {
-          ...messageConfig,
-          fontSize: "20px",
-        })
-        .setOrigin(0.5);
-
-      // Make button interactive with enhanced hover effects
-      const buttonHitArea = new Phaser.Geom.Rectangle(-80, 50, 160, 40);
-      buttonBg
-        .setInteractive(buttonHitArea, Phaser.Geom.Rectangle.Contains)
-        .on("pointerover", () => {
-          buttonBg.clear();
-          // Enhanced hover effect
-          // Larger shadow
-          buttonBg.fillStyle(0x1d4ed8, 0.4);
-          buttonBg.fillRoundedRect(-77, 53, 154, 38, 8);
-          // Brighter gradient
-          buttonBg.fillGradientStyle(0x3b82f6, 0x3b82f6, 0x2563eb, 0x2563eb, 1);
-          buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
-          // Brighter border with enhanced glow
-          buttonBg.lineStyle(2, 0x93c5fd, 1);
-          buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
-          // Enhanced inner glow
-          buttonBg.lineStyle(1, 0xbfdbfe, 0.6);
-          buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
-          buttonText.setScale(1.1);
-        })
-        .on("pointerout", () => {
-          buttonBg.clear();
-          // Reset to normal state
-          buttonBg.fillStyle(0x1d4ed8, 0.3);
-          buttonBg.fillRoundedRect(-78, 52, 156, 38, 8);
-          buttonBg.fillGradientStyle(0x2563eb, 0x2563eb, 0x1d4ed8, 0x1d4ed8, 1);
-          buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
-          buttonBg.lineStyle(2, 0x60a5fa, 1);
-          buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
-          buttonBg.lineStyle(1, 0x93c5fd, 0.5);
-          buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
-          buttonText.setScale(1);
-        })
-        .on("pointerdown", () => {
-          messageContainer.destroy();
-          this.startGame();
-        });
-
-      messageContainer.add([
-        messageText,
-        scoreText,
-        comboText,
-        buttonBg,
-        buttonText,
-      ]);
-    }
-
-    // Add fade-in animation with bounce
+    // Add fade-in animation
     messageContainer.setAlpha(0);
-    messageContainer.setScale(0.8);
     this.tweens.add({
       targets: messageContainer,
       alpha: 1,
-      scale: 1,
-      duration: 500,
-      ease: "Back.easeOut",
+      duration: 200,
+      ease: "Linear",
     });
-
-    // Shake camera on failure
-    if (!success) {
-      this.cameras.main.shake(500, 0.01);
-    }
 
     if (this.onGameOver) {
       this.onGameOver({
@@ -634,6 +533,12 @@ class MainScene extends Phaser.Scene {
         maxCombo: this.maxCombo,
       });
     }
+
+    // Automatically restart after a delay
+    this.time.delayedCall(2000, () => {
+      messageContainer.destroy();
+      this.startGame();
+    });
   }
 
   addCelebrationParticles() {
@@ -723,32 +628,46 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const config = {
-      type: Phaser.AUTO,
-      width: 400,
-      height: 600,
-      backgroundColor: "#1a1a2e",
-      parent: "game-container",
-      scene: MainScene,
-      physics: {
-        default: "arcade",
-        arcade: {
-          debug: false,
-          gravity: { y: 0 },
+    const initGame = async () => {
+      const config = {
+        type: Phaser.AUTO,
+        width: 400,
+        height: 600,
+        backgroundColor: "#1a1a2e",
+        parent: "game-container",
+        scene: MainScene,
+        physics: {
+          default: "arcade",
+          arcade: {
+            debug: false,
+            gravity: { y: 0 },
+          },
         },
-      },
+      };
+
+      gameRef.current = new Phaser.Game(config);
+
+      // Wait for the scene to be ready
+      await new Promise((resolve) => {
+        const checkScene = () => {
+          const scene = gameRef.current?.scene.getScene("MainScene");
+          if (scene) {
+            scene.onGameOver = (stats) => {
+              setGameStats(stats);
+              setIsGameOver(true);
+              setIsGameStarted(false);
+            };
+            scene.setMuted(isMuted);
+            resolve();
+          } else {
+            setTimeout(checkScene, 100);
+          }
+        };
+        checkScene();
+      });
     };
 
-    gameRef.current = new Phaser.Game(config);
-
-    const scene = gameRef.current.scene.getScene("MainScene");
-    if (scene) {
-      scene.onGameOver = (stats) => {
-        setGameStats(stats);
-        setIsGameOver(true);
-        setIsGameStarted(false);
-      };
-    }
+    initGame();
 
     return () => {
       if (gameRef.current) {
@@ -756,7 +675,17 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
         gameRef.current = null;
       }
     };
-  }, []);
+  }, []); // Initial game setup
+
+  // Handle mute state changes
+  useEffect(() => {
+    if (gameRef.current) {
+      const scene = gameRef.current.scene.getScene("MainScene");
+      if (scene) {
+        scene.setMuted(isMuted);
+      }
+    }
+  }, [isMuted]);
 
   const handleStartGame = () => {
     const scene = gameRef.current?.scene.getScene("MainScene");
