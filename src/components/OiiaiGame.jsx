@@ -180,7 +180,7 @@ class MainScene extends Phaser.Scene {
     const container = this.add.container(newX, -50);
 
     // Create hexagonal background
-    const hexSize = 30;
+    const hexSize = 35;
     const hexagon = this.createHexagon(0, 0, hexSize, colors[randomLetter]);
 
     // Make container interactive
@@ -197,17 +197,17 @@ class MainScene extends Phaser.Scene {
     container.setInteractive(hitArea, Phaser.Geom.Polygon.Contains);
     container.on("pointerdown", () => this.handleLetterClick(container));
 
-    // Add letter text
+    // Add letter text with improved visibility
     const text = this.add
       .text(0, 0, randomLetter, {
         fontFamily: "Orbitron",
-        fontSize: "32px",
+        fontSize: "40px", // Larger font size
         fill: "#FFFFFF",
+        stroke: "#000000", // Add stroke
+        strokeThickness: 4, // Make the stroke thick enough to stand out
+        shadow: { blur: 0, stroke: true, fill: true }, // Add shadow for better contrast
       })
       .setOrigin(0.5);
-
-    // Add glow effect
-    text.setPipeline("Light2D");
 
     // Add entry animation
     container.alpha = 0;
