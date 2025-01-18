@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 import { Button } from "./ui/Button";
 import { Volume2, VolumeX, Trophy } from "lucide-react";
-import GameOverMessage from "./GameOverMessage";
 
 class MainScene extends Phaser.Scene {
   constructor() {
@@ -471,56 +470,182 @@ class MainScene extends Phaser.Scene {
     });
     this.letters = [];
 
-    // Create message container
+    // Show game over message
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
     const messageContainer = this.add.container(centerX, centerY);
 
-    // Create white background with blue border
+    // Create modern glass-like background with gradient
     const bg = this.add.graphics();
-    bg.lineStyle(4, 0x3b82f6);
-    bg.fillStyle(0xffffff, 1);
-    bg.fillRoundedRect(-150, -50, 300, 100, 20);
-    bg.strokeRoundedRect(-150, -50, 300, 100, 20);
 
-    // Add "TRY AGAIN!" text
-    const messageText = this.add
-      .text(0, -20, "TRY AGAIN!", {
-        fontFamily: "Orbitron",
-        fontSize: "32px",
-        color: "#3B82F6",
-        align: "center",
-      })
-      .setOrigin(0.5);
+    // Add outer glow effect
+    bg.lineStyle(4, success ? 0x4ade80 : 0xef4444, 0.3);
+    bg.strokeRoundedRect(-155, -105, 310, 210, 20);
 
-    // Add bee emoji
-    const beeEmoji = this.add
-      .text(85, -20, "🐝", {
-        fontSize: "24px",
-      })
-      .setOrigin(0.5);
+    // Main background with gradient
+    bg.fillGradientStyle(
+      0x1a1a2e,
+      0x1a1a2e,
+      0x2a2a3e,
+      0x2a2a3e,
+      0.95,
+      0.95,
+      0.95,
+      0.95,
+    );
+    bg.fillRoundedRect(-150, -100, 300, 200, 16);
 
-    // Add subtitle text
-    const subtitleText = this.add
-      .text(0, 20, "Keep practicing to master the sequence", {
-        fontFamily: "Orbitron",
-        fontSize: "16px",
-        color: "#F59E0B",
-        align: "center",
-      })
-      .setOrigin(0.5);
+    // Inner border
+    bg.lineStyle(2, success ? 0x4ade80 : 0xef4444, 0.8);
+    bg.strokeRoundedRect(-150, -100, 300, 200, 16);
 
-    // Add all elements to container
-    messageContainer.add([bg, messageText, beeEmoji, subtitleText]);
+    // Add subtle inner glow
+    const innerGlow = this.add.graphics();
+    innerGlow.lineStyle(1, success ? 0x4ade80 : 0xef4444, 0.2);
+    innerGlow.strokeRoundedRect(-145, -95, 290, 190, 14);
 
-    // Add fade-in animation
+    messageContainer.add([bg, innerGlow]);
+
+    // Configure text style with enhanced visibility
+    const messageConfig = {
+      fontFamily: "Orbitron",
+      fontSize: "28px",
+      fontWeight: "bold",
+      fill: "#FFFFFF",
+      align: "center",
+      stroke: "#000000",
+      strokeThickness: 2,
+      shadow: { blur: 2, color: "#000000", fill: true, offsetX: 1, offsetY: 1 },
+    };
+
+    if (success) {
+      const messageText = this.add
+        .text(0, -60, "Perfect Run!", messageConfig)
+        .setOrigin(0.5);
+      const scoreText = this.add
+        .text(0, -10, `Score: ${this.score}`, messageConfig)
+        .setOrigin(0.5);
+      const speedText = this.add
+        .text(0, 40, `${lettersPerSecond} letters/sec`, {
+          ...messageConfig,
+          fontSize: "20px",
+        })
+        .setOrigin(0.5);
+
+      messageContainer.add([messageText, scoreText, speedText]);
+      this.addCelebrationParticles();
+    } else {
+      const messageText = this.add
+        .text(0, -70, "Game Over!", {
+          ...messageConfig,
+          fontSize: "32px",
+        })
+        .setOrigin(0.5);
+
+      const scoreText = this.add
+        .text(0, -20, `Score: ${this.score}`, {
+          ...messageConfig,
+          fontSize: "24px",
+        })
+        .setOrigin(0.5);
+
+      const comboText = this.add
+        .text(0, 20, `Max Combo: x${this.maxCombo}`, {
+          ...messageConfig,
+          fontSize: "20px",
+          fill: "#60A5FA",
+        })
+        .setOrigin(0.5);
+
+      // Create interactive retry button with modern styling
+      const buttonBg = this.add.graphics();
+
+      // Button shadow
+      buttonBg.fillStyle(0x1d4ed8, 0.3);
+      buttonBg.fillRoundedRect(-78, 52, 156, 38, 8);
+
+      // Button gradient
+      buttonBg.fillGradientStyle(0x2563eb, 0x2563eb, 0x1d4ed8, 0x1d4ed8, 1);
+      buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
+
+      // Button border with glow
+      buttonBg.lineStyle(2, 0x60a5fa, 1);
+      buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
+
+      // Add subtle inner glow
+      buttonBg.lineStyle(1, 0x93c5fd, 0.5);
+      buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
+
+      const buttonText = this.add
+        .text(0, 70, "Try Again", {
+          ...messageConfig,
+          fontSize: "20px",
+        })
+        .setOrigin(0.5);
+
+      // Make button interactive with enhanced hover effects
+      const buttonHitArea = new Phaser.Geom.Rectangle(-80, 50, 160, 40);
+      buttonBg
+        .setInteractive(buttonHitArea, Phaser.Geom.Rectangle.Contains)
+        .on("pointerover", () => {
+          buttonBg.clear();
+          // Enhanced hover effect
+          // Larger shadow
+          buttonBg.fillStyle(0x1d4ed8, 0.4);
+          buttonBg.fillRoundedRect(-77, 53, 154, 38, 8);
+          // Brighter gradient
+          buttonBg.fillGradientStyle(0x3b82f6, 0x3b82f6, 0x2563eb, 0x2563eb, 1);
+          buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
+          // Brighter border with enhanced glow
+          buttonBg.lineStyle(2, 0x93c5fd, 1);
+          buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
+          // Enhanced inner glow
+          buttonBg.lineStyle(1, 0xbfdbfe, 0.6);
+          buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
+          buttonText.setScale(1.1);
+        })
+        .on("pointerout", () => {
+          buttonBg.clear();
+          // Reset to normal state
+          buttonBg.fillStyle(0x1d4ed8, 0.3);
+          buttonBg.fillRoundedRect(-78, 52, 156, 38, 8);
+          buttonBg.fillGradientStyle(0x2563eb, 0x2563eb, 0x1d4ed8, 0x1d4ed8, 1);
+          buttonBg.fillRoundedRect(-80, 50, 160, 40, 8);
+          buttonBg.lineStyle(2, 0x60a5fa, 1);
+          buttonBg.strokeRoundedRect(-80, 50, 160, 40, 8);
+          buttonBg.lineStyle(1, 0x93c5fd, 0.5);
+          buttonBg.strokeRoundedRect(-77, 53, 154, 34, 6);
+          buttonText.setScale(1);
+        })
+        .on("pointerdown", () => {
+          messageContainer.destroy();
+          this.startGame();
+        });
+
+      messageContainer.add([
+        messageText,
+        scoreText,
+        comboText,
+        buttonBg,
+        buttonText,
+      ]);
+    }
+
+    // Add fade-in animation with bounce
     messageContainer.setAlpha(0);
+    messageContainer.setScale(0.8);
     this.tweens.add({
       targets: messageContainer,
       alpha: 1,
-      duration: 200,
-      ease: "Linear",
+      scale: 1,
+      duration: 500,
+      ease: "Back.easeOut",
     });
+
+    // Shake camera on failure
+    if (!success) {
+      this.cameras.main.shake(500, 0.01);
+    }
 
     if (this.onGameOver) {
       this.onGameOver({
@@ -533,12 +658,6 @@ class MainScene extends Phaser.Scene {
         maxCombo: this.maxCombo,
       });
     }
-
-    // Automatically restart after a delay
-    this.time.delayedCall(2000, () => {
-      messageContainer.destroy();
-      this.startGame();
-    });
   }
 
   addCelebrationParticles() {
@@ -767,21 +886,6 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
       {/* Game Container */}
       <div className="relative w-full max-w-[400px] aspect-[2/3] bg-[#1a1a2e] rounded-lg overflow-hidden shadow-xl">
         <div id="game-container" className="w-full h-full" />
-
-        {/* Game Over Overlay */}
-        {isGameOver && gameStats && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
-            <GameOverMessage
-              success={gameStats.success}
-              score={gameStats.score}
-              time={gameStats.time}
-              speed={gameStats.speed}
-              maxCombo={gameStats.maxCombo}
-              onSubmitScore={handleSubmitScore}
-              submitting={submitting}
-            />
-          </div>
-        )}
 
         {/* Start Game Overlay */}
         {!isGameStarted && !isGameOver && (
