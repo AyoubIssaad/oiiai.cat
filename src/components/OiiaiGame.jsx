@@ -990,7 +990,7 @@ class MainScene extends Phaser.Scene {
 
       // Call the score submission callback
       if (this.onGameOver) {
-        this.onGameOver({
+        await this.onGameOver({
           success,
           score: this.score,
           time: duration.toFixed(2),
@@ -1194,14 +1194,58 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
         const checkScene = () => {
           const scene = gameRef.current?.scene.getScene("MainScene");
           if (scene) {
-            scene.onGameOver = (stats) => {
+            scene.onGameOver = async (stats) => {
               setGameStats(stats);
               setIsGameOver(true);
               setIsGameStarted(false);
-              if (stats.username) {
-                handleSubmitScore(stats.username);
+
+              // Add loading state
+              setSubmitting(true);
+
+              try {
+                // First verify/create user
+                const user = await verifyOrCreateUser(
+                  stats.username,
+                  stats.email,
+                );
+
+                // Submit the score
+                const scoreResponse = await fetch("/api/game/scores", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    userId: user.id,
+                    score: stats.score,
+                    time: parseFloat(stats.time),
+                    lettersPerSecond: parseFloat(stats.speed),
+                    totalLetters: stats.totalLetters,
+                    correctLetters: stats.correctLetters,
+                    maxCombo: stats.maxCombo,
+                  }),
+                });
+
+                if (!scoreResponse.ok) {
+                  throw new Error("Failed to submit score");
+                }
+
+                const result = await scoreResponse.json();
+
+                // Show success message
+                scene.showSuccess(result.rank, result.isNewBest);
+
+                if (onShowLeaderboard) {
+                  onShowLeaderboard();
+                }
+              } catch (error) {
+                console.error("Error submitting score:", error);
+                scene.showError(error.message);
+              } finally {
+                setSubmitting(false);
               }
             };
+
             scene.setMuted(isMuted);
             resolve();
           } else {
@@ -1238,62 +1282,6 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
       setIsGameStarted(true);
       setGameStats(null);
       scene.startGame();
-    }
-  };
-
-  const handleSubmitScore = async (username) => {
-    if (!gameStats) return;
-
-    setSubmitting(true);
-    setErrorMessage("");
-
-    try {
-      // First verify/create user
-      const user = await verifyOrCreateUser(username, userEmail);
-
-      // Then submit the score
-      const response = await fetch("/api/game/scores", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          score: gameStats.score,
-          time: parseFloat(gameStats.time),
-          lettersPerSecond: parseFloat(gameStats.speed),
-          totalLetters: gameStats.totalLetters,
-          correctLetters: gameStats.correctLetters,
-          maxCombo: gameStats.maxCombo,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit score");
-      }
-
-      const result = await response.json();
-
-      // Show success message with rank
-      const scene = gameRef.current?.scene.getScene("MainScene");
-      if (scene) {
-        scene.showSuccess(result.rank, result.isNewBest);
-      }
-
-      if (onShowLeaderboard) {
-        onShowLeaderboard();
-      }
-    } catch (error) {
-      console.error("Error submitting score:", error);
-      setErrorMessage(error.message);
-
-      // Show error in the game scene
-      const scene = gameRef.current?.scene.getScene("MainScene");
-      if (scene) {
-        scene.showError(error.message);
-      }
-    } finally {
-      setSubmitting(false);
     }
   };
 
