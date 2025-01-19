@@ -763,14 +763,14 @@ class MainScene extends Phaser.Scene {
     // Create the game over UI with higher depth
     const uiDepth = 1000;
 
-    // Background - made taller to accommodate username input
-    const bg = this.add.rectangle(200, 250, 300, 280, 0x1a1a2e);
+    // Background - made taller to accommodate email input
+    const bg = this.add.rectangle(200, 250, 300, 320, 0x1a1a2e);
     bg.setStrokeStyle(2, 0x3b82f6);
     bg.setDepth(uiDepth);
 
     // Game Over text
     const messageText = this.add
-      .text(200, 160, "Game Over!", {
+      .text(200, 130, "Game Over!", {
         fontFamily: "Orbitron",
         fontSize: "32px",
         fill: "#FFFFFF",
@@ -780,7 +780,7 @@ class MainScene extends Phaser.Scene {
 
     // Score text
     const scoreText = this.add
-      .text(200, 200, `Score: ${this.score}`, {
+      .text(200, 170, `Score: ${this.score}`, {
         fontFamily: "Orbitron",
         fontSize: "24px",
         fill: "#60A5FA",
@@ -790,7 +790,7 @@ class MainScene extends Phaser.Scene {
 
     // Max combo text
     const comboText = this.add
-      .text(200, 230, `Max Combo: x${this.maxCombo}`, {
+      .text(200, 200, `Max Combo: x${this.maxCombo}`, {
         fontFamily: "Orbitron",
         fontSize: "20px",
         fill: "#60A5FA",
@@ -799,12 +799,12 @@ class MainScene extends Phaser.Scene {
     comboText.setDepth(uiDepth);
 
     // Username input background
-    const inputBg = this.add.rectangle(200, 280, 240, 40, 0x2a2a3e);
+    const inputBg = this.add.rectangle(200, 250, 240, 40, 0x2a2a3e);
     inputBg.setDepth(uiDepth);
 
     // Username input text
     let username = "";
-    const inputText = this.add.text(85, 270, "", {
+    const inputText = this.add.text(85, 240, "", {
       fontFamily: "Orbitron",
       fontSize: "16px",
       fill: "#FFFFFF",
@@ -814,7 +814,7 @@ class MainScene extends Phaser.Scene {
 
     // Username placeholder
     const placeholderText = this.add
-      .text(200, 280, "Enter username", {
+      .text(200, 250, "Enter username", {
         fontFamily: "Orbitron",
         fontSize: "16px",
         fill: "#6B7280",
@@ -822,37 +822,60 @@ class MainScene extends Phaser.Scene {
       .setOrigin(0.5);
     placeholderText.setDepth(uiDepth + 1);
 
-    // Make input interactive
-    inputBg.setInteractive();
-    let inputActive = false;
+    // Email input background
+    const emailInputBg = this.add.rectangle(200, 300, 240, 40, 0x2a2a3e);
+    emailInputBg.setDepth(uiDepth);
 
+    // Email input text
+    let email = "";
+    const emailInputText = this.add.text(85, 290, "", {
+      fontFamily: "Orbitron",
+      fontSize: "16px",
+      fill: "#FFFFFF",
+      fixedWidth: 230,
+    });
+    emailInputText.setDepth(uiDepth + 1);
+
+    // Email placeholder
+    const emailPlaceholder = this.add
+      .text(200, 300, "Enter email", {
+        fontFamily: "Orbitron",
+        fontSize: "16px",
+        fill: "#6B7280",
+      })
+      .setOrigin(0.5);
+    emailPlaceholder.setDepth(uiDepth + 1);
+
+    // Make inputs interactive
+    inputBg.setInteractive();
+    emailInputBg.setInteractive();
+    let inputActive = false;
+    let emailInputActive = false;
+
+    // Input focus handlers
     inputBg.on("pointerdown", () => {
       inputActive = true;
+      emailInputActive = false;
       placeholderText.setVisible(false);
-      // Add visual feedback
       inputBg.setStrokeStyle(2, 0x3b82f6);
+      emailInputBg.setStrokeStyle(0);
     });
 
-    // Handle keyboard input
-    this.input.keyboard.on("keydown", (event) => {
-      if (!inputActive) return;
-
-      if (event.key === "Backspace") {
-        username = username.slice(0, -1);
-      } else if (event.key.length === 1 && username.length < 20) {
-        username += event.key;
-      }
-
-      inputText.setText(username);
+    emailInputBg.on("pointerdown", () => {
+      emailInputActive = true;
+      inputActive = false;
+      emailPlaceholder.setVisible(false);
+      emailInputBg.setStrokeStyle(2, 0x3b82f6);
+      inputBg.setStrokeStyle(0);
     });
 
     // Submit Score button
-    const submitBg = this.add.rectangle(200, 330, 160, 40, 0x3b82f6);
+    const submitBg = this.add.rectangle(200, 350, 160, 40, 0x3b82f6);
     submitBg.setDepth(uiDepth);
     submitBg.setInteractive();
 
     const submitText = this.add
-      .text(200, 330, "Submit Score", {
+      .text(200, 350, "Submit Score", {
         fontFamily: "Orbitron",
         fontSize: "16px",
         fill: "#FFFFFF",
@@ -861,12 +884,12 @@ class MainScene extends Phaser.Scene {
     submitText.setDepth(uiDepth);
 
     // Try Again button
-    const tryAgainBg = this.add.rectangle(200, 380, 160, 40, 0x2563eb);
+    const tryAgainBg = this.add.rectangle(200, 400, 160, 40, 0x2563eb);
     tryAgainBg.setDepth(uiDepth);
     tryAgainBg.setInteractive();
 
     const tryAgainText = this.add
-      .text(200, 380, "Try Again", {
+      .text(200, 400, "Try Again", {
         fontFamily: "Orbitron",
         fontSize: "16px",
         fill: "#FFFFFF",
@@ -875,7 +898,7 @@ class MainScene extends Phaser.Scene {
     tryAgainText.setDepth(uiDepth);
 
     // Add game cat
-    const gameCat = this.add.image(200, 110, "cat");
+    const gameCat = this.add.image(200, 80, "cat");
     gameCat.setScale(0.18);
     gameCat.setRotation(Math.PI);
     gameCat.setDepth(uiDepth);
@@ -885,7 +908,7 @@ class MainScene extends Phaser.Scene {
 
     // Status message text (for showing submission status)
     const statusText = this.add
-      .text(200, 420, "", {
+      .text(200, 440, "", {
         fontFamily: "Orbitron",
         fontSize: "14px",
         fill: "#4ADE80",
@@ -893,7 +916,60 @@ class MainScene extends Phaser.Scene {
       .setOrigin(0.5);
     statusText.setDepth(uiDepth);
 
-    // Add button functionality
+    // Keyboard input handler
+    this.input.keyboard.off("keydown"); // Remove any existing handlers
+    this.input.keyboard.on("keydown", (event) => {
+      if (!inputActive && !emailInputActive) return;
+
+      if (event.key === "Backspace") {
+        if (inputActive) {
+          username = username.slice(0, -1);
+          inputText.setText(username);
+          if (username.length === 0) placeholderText.setVisible(true);
+        } else if (emailInputActive) {
+          email = email.slice(0, -1);
+          emailInputText.setText(email);
+          if (email.length === 0) emailPlaceholder.setVisible(true);
+        }
+      } else if (event.key === "Tab") {
+        event.preventDefault();
+        if (inputActive) {
+          inputActive = false;
+          emailInputActive = true;
+          inputBg.setStrokeStyle(0);
+          emailInputBg.setStrokeStyle(2, 0x3b82f6);
+        } else {
+          inputActive = true;
+          emailInputActive = false;
+          inputBg.setStrokeStyle(2, 0x3b82f6);
+          emailInputBg.setStrokeStyle(0);
+        }
+      } else if (event.key.length === 1) {
+        if (inputActive && username.length < 20) {
+          username += event.key;
+          inputText.setText(username);
+          placeholderText.setVisible(false);
+        } else if (emailInputActive && email.length < 50) {
+          email += event.key;
+          emailInputText.setText(email);
+          emailPlaceholder.setVisible(false);
+        }
+      }
+    });
+
+    // Button hover effects
+    [submitBg, tryAgainBg].forEach((button) => {
+      button.on("pointerover", () => {
+        button.setFillStyle(0x2563eb);
+        this.game.canvas.style.cursor = "pointer";
+      });
+      button.on("pointerout", () => {
+        button.setFillStyle(button === submitBg ? 0x3b82f6 : 0x2563eb);
+        this.game.canvas.style.cursor = "default";
+      });
+    });
+
+    // Submit button handler
     submitBg.on("pointerdown", async () => {
       if (!username.trim()) {
         statusText.setText("Please enter a username");
@@ -901,9 +977,16 @@ class MainScene extends Phaser.Scene {
         return;
       }
 
-      // Disable submit button
+      if (!email.trim() || !email.includes("@")) {
+        statusText.setText("Please enter a valid email");
+        statusText.setFill("#EF4444");
+        return;
+      }
+
+      // Disable submit button and show loading state
       submitBg.disableInteractive();
       submitText.setText("Submitting...");
+      statusText.setText("");
 
       // Call the score submission callback
       if (this.onGameOver) {
@@ -916,18 +999,12 @@ class MainScene extends Phaser.Scene {
           correctLetters: this.correctLetters,
           maxCombo: this.maxCombo,
           username: username.trim(),
+          email: email.trim(),
         });
       }
-
-      // Show success message
-      statusText.setText("Score submitted!");
-      statusText.setFill("#4ADE80");
-
-      // Re-enable submit button
-      submitBg.setInteractive();
-      submitText.setText("Submit Score");
     });
 
+    // Try Again button handler
     tryAgainBg.on("pointerdown", () => {
       // Clean up all UI elements
       [
@@ -939,6 +1016,9 @@ class MainScene extends Phaser.Scene {
         inputBg,
         inputText,
         placeholderText,
+        emailInputBg,
+        emailInputText,
+        emailPlaceholder,
         submitBg,
         submitText,
         tryAgainBg,
@@ -947,16 +1027,6 @@ class MainScene extends Phaser.Scene {
         gameCat,
       ].forEach((obj) => obj.destroy());
       this.startGame();
-    });
-
-    // Add hover effects
-    [submitBg, tryAgainBg].forEach((button) => {
-      button.on("pointerover", () => {
-        button.setFillStyle(0x2563eb);
-      });
-      button.on("pointerout", () => {
-        button.setFillStyle(button === submitBg ? 0x3b82f6 : 0x2563eb);
-      });
     });
   }
 
@@ -1064,6 +1134,40 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [gameStats, setGameStats] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const verifyOrCreateUser = async (username, email) => {
+    try {
+      // First check if user exists with this email
+      const userResponse = await fetch(
+        `/api/game/user/${encodeURIComponent(email)}`,
+      );
+      const userData = await userResponse.json();
+
+      if (userData.exists) {
+        return userData.user;
+      }
+
+      // If user doesn't exist, create new user
+      const createResponse = await fetch("/api/game/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, email }),
+      });
+
+      if (!createResponse.ok) {
+        const error = await createResponse.json();
+        throw new Error(error.error || "Failed to create user");
+      }
+
+      return await createResponse.json();
+    } catch (error) {
+      throw new Error("Failed to verify or create user: " + error.message);
+    }
+  };
 
   useEffect(() => {
     const initGame = async () => {
@@ -1137,24 +1241,30 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
     }
   };
 
-  const handleSubmitScore = async (playerName) => {
+  const handleSubmitScore = async (username) => {
     if (!gameStats) return;
 
     setSubmitting(true);
+    setErrorMessage("");
+
     try {
-      const response = await fetch("/api/leaderboard", {
+      // First verify/create user
+      const user = await verifyOrCreateUser(username, userEmail);
+
+      // Then submit the score
+      const response = await fetch("/api/game/scores", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          player_name: playerName,
+          userId: user.id,
           score: gameStats.score,
           time: parseFloat(gameStats.time),
-          letters_per_second: parseFloat(gameStats.speed),
-          total_letters: gameStats.totalLetters,
-          correct_letters: gameStats.correctLetters,
-          max_combo: gameStats.maxCombo,
+          lettersPerSecond: parseFloat(gameStats.speed),
+          totalLetters: gameStats.totalLetters,
+          correctLetters: gameStats.correctLetters,
+          maxCombo: gameStats.maxCombo,
         }),
       });
 
@@ -1162,12 +1272,26 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
         throw new Error("Failed to submit score");
       }
 
+      const result = await response.json();
+
+      // Show success message with rank
+      const scene = gameRef.current?.scene.getScene("MainScene");
+      if (scene) {
+        scene.showSuccess(result.rank, result.isNewBest);
+      }
+
       if (onShowLeaderboard) {
         onShowLeaderboard();
       }
     } catch (error) {
       console.error("Error submitting score:", error);
-      alert("Failed to submit score. Please try again.");
+      setErrorMessage(error.message);
+
+      // Show error in the game scene
+      const scene = gameRef.current?.scene.getScene("MainScene");
+      if (scene) {
+        scene.showError(error.message);
+      }
     } finally {
       setSubmitting(false);
     }
