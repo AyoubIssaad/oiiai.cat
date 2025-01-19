@@ -983,24 +983,33 @@ class MainScene extends Phaser.Scene {
         return;
       }
 
-      // Disable submit button and show loading state
+      // Update UI to show loading state
       submitBg.disableInteractive();
       submitText.setText("Submitting...");
       statusText.setText("");
 
-      // Call the score submission callback
-      if (this.onGameOver) {
-        await this.onGameOver({
-          success,
-          score: this.score,
-          time: duration.toFixed(2),
-          speed: lettersPerSecond,
-          totalLetters: this.totalLetters,
-          correctLetters: this.correctLetters,
-          maxCombo: this.maxCombo,
-          username: username.trim(),
-          email: email.trim(),
-        });
+      try {
+        // Call the score submission callback
+        if (this.onGameOver) {
+          await this.onGameOver({
+            success: false,
+            score: this.score,
+            time: duration.toFixed(2),
+            speed: lettersPerSecond,
+            totalLetters: this.totalLetters,
+            correctLetters: this.correctLetters,
+            maxCombo: this.maxCombo,
+            username: username.trim(),
+            email: email.trim(),
+          });
+        }
+      } catch (error) {
+        // Reset submit button state
+        submitBg.setInteractive();
+        submitText.setText("Submit Score");
+
+        // Show error message with higher visibility
+        this.showError("Failed to submit score. Please try again.");
       }
     });
 
@@ -1031,37 +1040,55 @@ class MainScene extends Phaser.Scene {
   }
 
   showError(message) {
-    const centerX = this.cameras.main.centerX;
-    const centerY = this.cameras.main.centerY - 200;
+    // First remove any existing error messages
+    this.children.list
+      .filter((child) => child.getData("isErrorMessage"))
+      .forEach((child) => child.destroy());
 
+    const centerX = this.cameras.main.centerX;
+    const centerY = this.cameras.main.centerY - 50;
+
+    // Create background for error message
+    const errorBg = this.add
+      .rectangle(centerX, centerY, 300, 40, 0x991b1b)
+      .setDepth(2000);
+    errorBg.setData("isErrorMessage", true);
+
+    // Add error text
     const errorText = this.add
       .text(centerX, centerY, message, {
         fontFamily: "Orbitron",
         fontSize: "16px",
-        fill: "#EF4444",
-        backgroundColor: "#991B1B",
-        padding: { x: 15, y: 8 },
-        borderRadius: 4,
+        fill: "#FFFFFF",
+        align: "center",
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(2001);
+    errorText.setData("isErrorMessage", true);
 
     // Add fade out animation
     this.tweens.add({
-      targets: errorText,
+      targets: [errorBg, errorText],
       alpha: 0,
-      y: centerY - 50,
-      duration: 2000,
+      duration: 3000, // Show for longer
       ease: "Power2",
-      onComplete: () => errorText.destroy(),
+      onComplete: () => {
+        errorBg.destroy();
+        errorText.destroy();
+      },
     });
   }
 
   showSuccess(rank, isNewBest) {
+    this.children.list
+      .filter((child) => child.type === "Text" || child.type === "Rectangle")
+      .forEach((child) => child.destroy());
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
 
     // Create container for success message
     const container = this.add.container(centerX, centerY);
+    container.setDepth(2000);
 
     // Background
     const bg = this.add.graphics();
@@ -1199,15 +1226,40 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
               setIsGameOver(true);
               setIsGameStarted(false);
 
-              // Add loading state
-              setSubmitting(true);
-
               try {
                 // First verify/create user
-                const user = await verifyOrCreateUser(
-                  stats.username,
-                  stats.email,
+                const userResponse = await fetch(
+                  `/api/game/user/${encodeURIComponent(stats.email)}`,
                 );
+                if (!userResponse.ok) {
+                  throw new Error("Failed to verify user");
+                }
+                const userData = await userResponse.json();
+
+                let userId;
+
+                if (userData.exists) {
+                  userId = userData.user.id;
+                } else {
+                  // Create new user if doesn't exist
+                  const createResponse = await fetch("/api/game/users", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      username: stats.username,
+                      email: stats.email,
+                    }),
+                  });
+
+                  if (!createResponse.ok) {
+                    throw new Error("Failed to create user");
+                  }
+
+                  const newUser = await createResponse.json();
+                  userId = newUser.id;
+                }
 
                 // Submit the score
                 const scoreResponse = await fetch("/api/game/scores", {
@@ -1216,7 +1268,7 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    userId: user.id,
+                    userId: userId,
                     score: stats.score,
                     time: parseFloat(stats.time),
                     lettersPerSecond: parseFloat(stats.speed),
@@ -1232,17 +1284,42 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
 
                 const result = await scoreResponse.json();
 
-                // Show success message
-                scene.showSuccess(result.rank, result.isNewBest);
+                // Get the current scene again to ensure it exists
+                const currentScene =
+                  gameRef.current?.scene.getScene("MainScene");
+                if (currentScene) {
+                  currentScene.showSuccess(result.rank, result.isNewBest);
+                }
 
                 if (onShowLeaderboard) {
                   onShowLeaderboard();
                 }
               } catch (error) {
                 console.error("Error submitting score:", error);
-                scene.showError(error.message);
-              } finally {
-                setSubmitting(false);
+                const currentScene =
+                  gameRef.current?.scene.getScene("MainScene");
+                if (currentScene) {
+                  // Re-enable submit button in the scene
+                  const submitText = currentScene.children.list.find(
+                    (child) =>
+                      child.type === "Text" && child.text === "Submitting...",
+                  );
+                  if (submitText) {
+                    submitText.setText("Submit Score");
+                    // Find and re-enable the corresponding button
+                    const submitBg = currentScene.children.list.find(
+                      (child) =>
+                        child.type === "Rectangle" && child.y === submitText.y,
+                    );
+                    if (submitBg) {
+                      submitBg.setInteractive();
+                    }
+                  }
+
+                  currentScene.showError(
+                    error.message || "Failed to submit score",
+                  );
+                }
               }
             };
 
