@@ -767,7 +767,7 @@ class MainScene extends Phaser.Scene {
 
     // Create background with blue border
     const bg = this.add.graphics();
-    bg.lineStyle(3, 0x3b82f6, 1);
+    bg.lineStyle(2, 0x3b82f6, 1);
     bg.fillStyle(0x1a1a2e, 0.95);
     bg.fillRoundedRect(-155, -125, 310, 250, 16);
     bg.strokeRoundedRect(-155, -125, 310, 250, 16);
@@ -810,10 +810,18 @@ class MainScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    // Create Try Again button
+    // Create Try Again button with proper colors and style
     const tryAgainBg = this.add.graphics();
-    tryAgainBg.fillStyle(0x3b82f6, 1);
+    tryAgainBg.fillGradientStyle(
+      0x3b82f6, // top
+      0x3b82f6, // top
+      0x2563eb, // bottom
+      0x2563eb, // bottom
+      1,
+    );
     tryAgainBg.fillRoundedRect(-80, 70, 160, 40, 8);
+    tryAgainBg.lineStyle(2, 0x60a5fa);
+    tryAgainBg.strokeRoundedRect(-80, 70, 160, 40, 8);
 
     const tryAgainText = this.add
       .text(0, 90, "Try Again", {
@@ -843,15 +851,25 @@ class MainScene extends Phaser.Scene {
     // Add hover effects
     tryAgainBg.on("pointerover", () => {
       tryAgainBg.clear();
-      tryAgainBg.fillStyle(0x2563eb, 1);
+      tryAgainBg.fillGradientStyle(
+        0x2563eb, // darker blue
+        0x2563eb,
+        0x1d4ed8, // even darker blue
+        0x1d4ed8,
+        1,
+      );
       tryAgainBg.fillRoundedRect(-80, 70, 160, 40, 8);
+      tryAgainBg.lineStyle(2, 0x93c5fd);
+      tryAgainBg.strokeRoundedRect(-80, 70, 160, 40, 8);
       tryAgainText.setScale(1.05);
     });
 
     tryAgainBg.on("pointerout", () => {
       tryAgainBg.clear();
-      tryAgainBg.fillStyle(0x3b82f6, 1);
+      tryAgainBg.fillGradientStyle(0x3b82f6, 0x3b82f6, 0x2563eb, 0x2563eb, 1);
       tryAgainBg.fillRoundedRect(-80, 70, 160, 40, 8);
+      tryAgainBg.lineStyle(2, 0x60a5fa);
+      tryAgainBg.strokeRoundedRect(-80, 70, 160, 40, 8);
       tryAgainText.setScale(1);
     });
 
@@ -919,460 +937,6 @@ class MainScene extends Phaser.Scene {
       });
     }
   }
-
-  showGameOverScreen(stats) {
-    const centerX = this.cameras.main.centerX;
-    const centerY = this.cameras.main.centerY;
-
-    // Create container for game over screen
-    const container = this.add.container(centerX, centerY);
-
-    // Create modern glass-like background with gradient
-    const bg = this.add.graphics();
-
-    // Add outer glow effect
-    bg.lineStyle(4, 0x3b82f6, 0.3);
-    bg.strokeRoundedRect(-190, -140, 380, 280, 20);
-
-    // Main background with gradient and blue border
-    bg.lineStyle(2, 0x3b82f6, 1);
-    bg.fillGradientStyle(0x1a1a2e, 0x1a1a2e, 0x2a2a3e, 0x2a2a3e, 0.95);
-    bg.fillRoundedRect(-180, -130, 360, 260, 16);
-    bg.strokeRoundedRect(-180, -130, 360, 260, 16);
-
-    // Title text
-    const titleText = this.add
-      .text(0, -100, "Submit Your Score", {
-        fontFamily: "Orbitron",
-        fontSize: "28px",
-        fill: "#3B82F6",
-        align: "center",
-      })
-      .setOrigin(0.5);
-
-    // Game Over text
-    const gameOverText = this.add
-      .text(0, -50, "Game Over!", {
-        fontFamily: "Orbitron",
-        fontSize: "32px",
-        fill: "#FFFFFF",
-        align: "center",
-      })
-      .setOrigin(0.5);
-
-    // Score text
-    const scoreText = this.add
-      .text(0, 0, `Score: ${stats.score}`, {
-        fontFamily: "Orbitron",
-        fontSize: "24px",
-        fill: "#60A5FA",
-        align: "center",
-      })
-      .setOrigin(0.5);
-
-    // Max combo text
-    const comboText = this.add
-      .text(0, 40, `Max Combo: x${stats.maxCombo}`, {
-        fontFamily: "Orbitron",
-        fontSize: "20px",
-        fill: "#60A5FA",
-        align: "center",
-      })
-      .setOrigin(0.5);
-
-    // Add game cat decoration
-    const gameCat = this.add.image(0, -160, "cat");
-    gameCat.setScale(0.2);
-    gameCat.setAngle(180);
-    if (!stats.success) {
-      gameCat.setTint(0xff6666);
-    }
-
-    // Try Again button with blue gradient
-    const tryAgainButton = this.add.graphics();
-    tryAgainButton.fillGradientStyle(0x3b82f6, 0x3b82f6, 0x2563eb, 0x2563eb, 1);
-    tryAgainButton.fillRoundedRect(-100, 80, 200, 40, 8);
-    tryAgainButton.lineStyle(2, 0x60a5fa);
-    tryAgainButton.strokeRoundedRect(-100, 80, 200, 40, 8);
-
-    const tryAgainText = this.add
-      .text(0, 100, "Try Again", {
-        fontFamily: "Orbitron",
-        fontSize: "20px",
-        fill: "#FFFFFF",
-      })
-      .setOrigin(0.5);
-
-    // Cancel button with darker style
-    const cancelButton = this.add.graphics();
-    cancelButton.fillStyle(0x4b5563, 0.8);
-    cancelButton.fillRoundedRect(-60, 130, 120, 30, 6);
-
-    const cancelText = this.add
-      .text(0, 145, "Cancel", {
-        fontFamily: "Orbitron",
-        fontSize: "16px",
-        fill: "#9CA3AF",
-      })
-      .setOrigin(0.5);
-
-    // Make buttons interactive
-    tryAgainButton.setInteractive(
-      new Phaser.Geom.Rectangle(-100, 80, 200, 40),
-      Phaser.Geom.Rectangle.Contains,
-    );
-
-    cancelButton.setInteractive(
-      new Phaser.Geom.Rectangle(-60, 130, 120, 30),
-      Phaser.Geom.Rectangle.Contains,
-    );
-
-    // Add hover effects
-    tryAgainButton.on("pointerover", () => {
-      tryAgainButton.clear();
-      tryAgainButton.fillGradientStyle(
-        0x2563eb,
-        0x2563eb,
-        0x1d4ed8,
-        0x1d4ed8,
-        1,
-      );
-      tryAgainButton.fillRoundedRect(-100, 80, 200, 40, 8);
-      tryAgainButton.lineStyle(2, 0x93c5fd);
-      tryAgainButton.strokeRoundedRect(-100, 80, 200, 40, 8);
-      tryAgainText.setScale(1.1);
-    });
-
-    tryAgainButton.on("pointerout", () => {
-      tryAgainButton.clear();
-      tryAgainButton.fillGradientStyle(
-        0x3b82f6,
-        0x3b82f6,
-        0x2563eb,
-        0x2563eb,
-        1,
-      );
-      tryAgainButton.fillRoundedRect(-100, 80, 200, 40, 8);
-      tryAgainButton.lineStyle(2, 0x60a5fa);
-      tryAgainButton.strokeRoundedRect(-100, 80, 200, 40, 8);
-      tryAgainText.setScale(1);
-    });
-
-    // Add button handlers
-    tryAgainButton.on("pointerdown", () => {
-      container.destroy();
-      this.startGame();
-    });
-
-    cancelButton.on("pointerdown", () => {
-      container.destroy();
-    });
-
-    // Add all elements to container
-    container.add([
-      bg,
-      gameCat,
-      titleText,
-      gameOverText,
-      scoreText,
-      comboText,
-      tryAgainButton,
-      tryAgainText,
-      cancelButton,
-      cancelText,
-    ]);
-
-    // Get stored user data
-    const storedData = localStorage.getItem("gameUserData");
-    if (storedData) {
-      // If user exists, show username
-      const userData = JSON.parse(storedData);
-      const userText = this.add
-        .text(0, -160, userData.username, {
-          fontFamily: "Orbitron",
-          fontSize: "16px",
-          fill: "#60A5FA",
-        })
-        .setOrigin(0.5);
-      container.add(userText);
-    }
-
-    // Add entry animation
-    container.setAlpha(0);
-    container.setScale(0.8);
-    this.tweens.add({
-      targets: container,
-      alpha: 1,
-      scale: 1,
-      duration: 300,
-      ease: "Back.easeOut",
-    });
-
-    // Add cat spinning animation
-    this.tweens.add({
-      targets: gameCat,
-      angle: stats.success ? 360 : 540,
-      duration: 1000,
-      ease: "Cubic.easeOut",
-    });
-
-    // Shake camera on failure
-    if (!stats.success) {
-      this.cameras.main.shake(500, 0.01);
-    }
-  }
-
-  // async showScoreSubmission(stats) {
-  //   const centerX = this.cameras.main.centerX;
-  //   const centerY = this.cameras.main.centerY;
-  //
-  //   // Create submission container
-  //   const container = this.add.container(centerX, centerY);
-  //
-  //   // Background
-  //   const bg = this.add.graphics();
-  //   bg.fillStyle(0x1a1a2e, 0.95);
-  //   bg.fillRoundedRect(-200, -150, 400, 300, 16);
-  //   bg.lineStyle(2, 0x3b82f6);
-  //   bg.strokeRoundedRect(-200, -150, 400, 300, 16);
-  //
-  //   // Title
-  //   const title = this.add
-  //     .text(0, -120, "Submit Your Score", {
-  //       fontFamily: "Orbitron",
-  //       fontSize: "24px",
-  //       fill: "#FFFFFF",
-  //       align: "center",
-  //     })
-  //     .setOrigin(0.5);
-  //
-  //   // Get stored user data
-  //   const storedData = localStorage.getItem("gameUserData");
-  //   let userData = null;
-  //   if (storedData) {
-  //     userData = JSON.parse(storedData);
-  //   }
-  //
-  //   // Score display
-  //   const scoreText = this.add
-  //     .text(0, -80, `Score: ${stats.score}`, {
-  //       fontFamily: "Orbitron",
-  //       fontSize: "20px",
-  //       fill: "#60A5FA",
-  //     })
-  //     .setOrigin(0.5);
-  //
-  //   // Input fields
-  //   let usernameInput, emailInput;
-  //
-  //   if (!userData) {
-  //     // Username input
-  //     const usernameField = this.add.graphics();
-  //     usernameField.fillStyle(0x2a2a3e);
-  //     usernameField.fillRoundedRect(-150, -40, 300, 40, 8);
-  //
-  //     usernameInput = this.add.text(-140, -30, "", {
-  //       fontFamily: "Arial",
-  //       fontSize: "16px",
-  //       fill: "#FFFFFF",
-  //     });
-  //
-  //     const usernamePlaceholder = this.add.text(-140, -30, "Username", {
-  //       fontFamily: "Arial",
-  //       fontSize: "16px",
-  //       fill: "#6B7280",
-  //     });
-  //
-  //     // Email input
-  //     const emailField = this.add.graphics();
-  //     emailField.fillStyle(0x2a2a3e);
-  //     emailField.fillRoundedRect(-150, 10, 300, 40, 8);
-  //
-  //     emailInput = this.add.text(-140, 20, "", {
-  //       fontFamily: "Arial",
-  //       fontSize: "16px",
-  //       fill: "#FFFFFF",
-  //     });
-  //
-  //     const emailPlaceholder = this.add.text(-140, 20, "Email", {
-  //       fontFamily: "Arial",
-  //       fontSize: "16px",
-  //       fill: "#6B7280",
-  //     });
-  //
-  //     // Make fields interactive
-  //     usernameField.setInteractive();
-  //     emailField.setInteractive();
-  //
-  //     let activeInput = null;
-  //     const keyboard = this.input.keyboard.addKey(
-  //       Phaser.Input.Keyboard.KeyCodes.BACKSPACE,
-  //     );
-  //
-  //     usernameField.on("pointerdown", () => {
-  //       activeInput = usernameInput;
-  //       usernamePlaceholder.setVisible(false);
-  //     });
-  //
-  //     emailField.on("pointerdown", () => {
-  //       activeInput = emailInput;
-  //       emailPlaceholder.setVisible(false);
-  //     });
-  //
-  //     this.input.keyboard.on("keydown", (event) => {
-  //       if (!activeInput) return;
-  //
-  //       if (event.key === "Backspace") {
-  //         activeInput.text = activeInput.text.slice(0, -1);
-  //       } else if (event.key.length === 1) {
-  //         activeInput.text += event.key;
-  //       }
-  //     });
-  //
-  //     container.add([
-  //       bg,
-  //       title,
-  //       scoreText,
-  //       usernameField,
-  //       usernamePlaceholder,
-  //       usernameInput,
-  //       emailField,
-  //       emailPlaceholder,
-  //       emailInput,
-  //     ]);
-  //   } else {
-  //     const userText = this.add
-  //       .text(0, -30, `Submit as: ${userData.username}`, {
-  //         fontFamily: "Orbitron",
-  //         fontSize: "18px",
-  //         fill: "#FFFFFF",
-  //       })
-  //       .setOrigin(0.5);
-  //
-  //     container.add([bg, title, scoreText, userText]);
-  //   }
-  //
-  //   // Submit button
-  //   const submitButton = this.add.graphics();
-  //   submitButton.fillStyle(0x3b82f6);
-  //   submitButton.fillRoundedRect(-100, 70, 200, 40, 8);
-  //
-  //   const submitText = this.add
-  //     .text(0, 90, "Submit Score", {
-  //       fontFamily: "Orbitron",
-  //       fontSize: "16px",
-  //       fill: "#FFFFFF",
-  //     })
-  //     .setOrigin(0.5);
-  //
-  //   submitButton.setInteractive();
-  //
-  //   // Cancel button
-  //   const cancelButton = this.add.graphics();
-  //   cancelButton.fillStyle(0x4b5563);
-  //   cancelButton.fillRoundedRect(-100, 120, 200, 40, 8);
-  //
-  //   const cancelText = this.add
-  //     .text(0, 140, "Cancel", {
-  //       fontFamily: "Orbitron",
-  //       fontSize: "16px",
-  //       fill: "#FFFFFF",
-  //     })
-  //     .setOrigin(0.5);
-  //
-  //   cancelButton.setInteractive();
-  //
-  //   container.add([submitButton, submitText, cancelButton, cancelText]);
-  //
-  //   // Button handlers
-  //   submitButton.on("pointerdown", async () => {
-  //     if (!userData) {
-  //       const username = usernameInput.text.trim();
-  //       const email = emailInput.text.trim();
-  //
-  //       if (!username || !email) {
-  //         this.showError("Please fill in all fields");
-  //         return;
-  //       }
-  //
-  //       if (!email.includes("@")) {
-  //         this.showError("Please enter a valid email");
-  //         return;
-  //       }
-  //
-  //       try {
-  //         // Check if email exists
-  //         const emailCheck = await fetch(
-  //           `/api/game/user/${encodeURIComponent(email)}`,
-  //         ).then((r) => r.json());
-  //
-  //         if (emailCheck.exists) {
-  //           this.showError(
-  //             "Email already registered. Please use a different email.",
-  //           );
-  //           return;
-  //         }
-  //
-  //         // Check if username is available
-  //         const usernameCheck = await fetch(
-  //           `/api/game/check-username/${encodeURIComponent(username)}`,
-  //         ).then((r) => r.json());
-  //
-  //         if (usernameCheck.exists) {
-  //           this.showError("Username already taken. Please choose another.");
-  //           return;
-  //         }
-  //
-  //         // Create new user
-  //         const user = await fetch("/api/game/users", {
-  //           method: "POST",
-  //           headers: { "Content-Type": "application/json" },
-  //           body: JSON.stringify({ username, email }),
-  //         }).then((r) => r.json());
-  //
-  //         userData = user;
-  //         localStorage.setItem("gameUserData", JSON.stringify(user));
-  //       } catch (error) {
-  //         this.showError("Error creating user. Please try again.");
-  //         return;
-  //       }
-  //     }
-  //
-  //     try {
-  //       // Submit score
-  //       const scoreResult = await fetch("/api/game/scores", {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({
-  //           userId: userData.id,
-  //           ...stats,
-  //         }),
-  //       }).then((r) => r.json());
-  //
-  //       // Show success message with rank
-  //       this.showSuccess(scoreResult.rank, scoreResult.isNewBest);
-  //     } catch (error) {
-  //       this.showError("Error submitting score. Please try again.");
-  //     }
-  //
-  //     container.destroy();
-  //   });
-  //
-  //   cancelButton.on("pointerdown", () => {
-  //     container.destroy();
-  //   });
-  //
-  //   // Add entry animation
-  //   container.setAlpha(0);
-  //   container.setScale(0.8);
-  //   this.tweens.add({
-  //     targets: container,
-  //     alpha: 1,
-  //     scale: 1,
-  //     duration: 300,
-  //     ease: "Back.easeOut",
-  //   });
-  // }
 
   showError(message) {
     const centerX = this.cameras.main.centerX;
