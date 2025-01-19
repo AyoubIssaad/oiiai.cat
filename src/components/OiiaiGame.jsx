@@ -763,17 +763,17 @@ class MainScene extends Phaser.Scene {
     // Create game over UI
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
-    const messageContainer = this.add.container(centerX, centerY);
+    const messageContainer = this.add.container(centerX, centerY - 50);
 
     // Create background with blue border
     const bg = this.add.graphics();
     bg.lineStyle(2, 0x3b82f6, 1);
     bg.fillStyle(0x1a1a2e, 0.95);
-    bg.fillRoundedRect(-155, -125, 310, 250, 16);
-    bg.strokeRoundedRect(-155, -125, 310, 250, 16);
+    bg.fillRoundedRect(-155, -85, 310, 210, 16); // Adjusted height and y position
+    bg.strokeRoundedRect(-155, -85, 310, 210, 16);
 
     // Add cat decoration
-    const gameCat = this.add.image(0, -85, "cat");
+    const gameCat = this.add.image(0, -45, "cat");
     gameCat.setScale(0.18);
     gameCat.setRotation(Math.PI);
     if (!success) {
@@ -782,7 +782,7 @@ class MainScene extends Phaser.Scene {
 
     // Game Over text
     const messageText = this.add
-      .text(0, -30, "Game Over!", {
+      .text(0, 0, "Game Over!", {
         fontFamily: "Orbitron",
         fontSize: "32px",
         fill: "#FFFFFF",
@@ -792,7 +792,7 @@ class MainScene extends Phaser.Scene {
 
     // Score text
     const scoreText = this.add
-      .text(0, 10, `Score: ${this.score}`, {
+      .text(0, 40, `Score: ${this.score}`, {
         fontFamily: "Orbitron",
         fontSize: "24px",
         fill: "#60A5FA",
@@ -802,7 +802,7 @@ class MainScene extends Phaser.Scene {
 
     // Max combo text
     const comboText = this.add
-      .text(0, 45, `Max Combo: x${this.maxCombo}`, {
+      .text(0, 70, `Max Combo: x${this.maxCombo}`, {
         fontFamily: "Orbitron",
         fontSize: "20px",
         fill: "#60A5FA",
@@ -819,12 +819,12 @@ class MainScene extends Phaser.Scene {
       0x2563eb, // bottom
       1,
     );
-    tryAgainBg.fillRoundedRect(-80, 70, 160, 40, 8);
+    tryAgainBg.fillRoundedRect(-80, 95, 160, 40, 8); // Adjusted y position
     tryAgainBg.lineStyle(2, 0x60a5fa);
-    tryAgainBg.strokeRoundedRect(-80, 70, 160, 40, 8);
+    tryAgainBg.strokeRoundedRect(-80, 95, 160, 40, 8);
 
     const tryAgainText = this.add
-      .text(0, 90, "Try Again", {
+      .text(0, 115, "Try Again", {
         fontFamily: "Orbitron",
         fontSize: "20px",
         fill: "#FFFFFF",
@@ -834,7 +834,7 @@ class MainScene extends Phaser.Scene {
 
     // Create Cancel button
     const cancelText = this.add
-      .text(0, 135, "Cancel", {
+      .text(0, 155, "Cancel", {
         fontFamily: "Orbitron",
         fontSize: "16px",
         fill: "#9CA3AF",
@@ -844,7 +844,7 @@ class MainScene extends Phaser.Scene {
 
     // Make Try Again button interactive
     tryAgainBg.setInteractive(
-      new Phaser.Geom.Rectangle(-80, 70, 160, 40),
+      new Phaser.Geom.Rectangle(-80, 95, 160, 40),
       Phaser.Geom.Rectangle.Contains,
     );
 
