@@ -735,207 +735,229 @@ class MainScene extends Phaser.Scene {
     if (!this.gameStarted) return;
 
     this.gameStarted = false;
-    const endTime = this.time.now;
-    const duration = (endTime - this.startTime) / 1000;
-    const lettersPerSecond = (this.correctLetters / duration).toFixed(2);
 
-    // Clear all letters and targets
+    // Clear all game objects
     this.letters.forEach((letter) => {
       this.targetedLetters.delete(letter);
-      this.addImpactEffect(letter.x, letter.y);
       letter.destroy();
     });
     this.letters = [];
+    this.catProjectiles.forEach((projectile) => projectile.destroy());
+    this.catProjectiles = [];
     this.targetedLetters.clear();
 
-    // Clear active projectiles with effects
-    this.catProjectiles.forEach((projectile) => {
-      this.addImpactEffect(projectile.x, projectile.y);
-      projectile.destroy();
-    });
-    this.catProjectiles = [];
-
-    // Stop any ongoing game systems
     if (this.spawnTimer) {
       this.spawnTimer.remove();
     }
 
-    // Create game over UI
-    const centerX = this.cameras.main.centerX;
-    const centerY = this.cameras.main.centerY;
-    const messageContainer = this.add.container(centerX, centerY - 50);
+    // Store end game stats
+    const endTime = this.time.now;
+    const duration = (endTime - this.startTime) / 1000;
+    const lettersPerSecond = (this.correctLetters / duration).toFixed(2);
 
-    // Create background with blue border
-    const bg = this.add.graphics();
-    bg.lineStyle(2, 0x3b82f6, 1);
-    bg.fillStyle(0x1a1a2e, 0.95);
-    bg.fillRoundedRect(-155, -85, 310, 210, 16); // Adjusted height and y position
-    bg.strokeRoundedRect(-155, -85, 310, 210, 16);
+    // Create a semi-transparent overlay
+    const overlay = this.add.rectangle(0, 0, 400, 600, 0x000000, 0.5);
+    overlay.setOrigin(0, 0);
+    overlay.setDepth(999);
 
-    // Add cat decoration
-    const gameCat = this.add.image(0, -45, "cat");
+    // Create the game over UI with higher depth
+    const uiDepth = 1000;
+
+    // Background - made taller to accommodate username input
+    const bg = this.add.rectangle(200, 250, 300, 280, 0x1a1a2e);
+    bg.setStrokeStyle(2, 0x3b82f6);
+    bg.setDepth(uiDepth);
+
+    // Game Over text
+    const messageText = this.add
+      .text(200, 160, "Game Over!", {
+        fontFamily: "Orbitron",
+        fontSize: "32px",
+        fill: "#FFFFFF",
+      })
+      .setOrigin(0.5);
+    messageText.setDepth(uiDepth);
+
+    // Score text
+    const scoreText = this.add
+      .text(200, 200, `Score: ${this.score}`, {
+        fontFamily: "Orbitron",
+        fontSize: "24px",
+        fill: "#60A5FA",
+      })
+      .setOrigin(0.5);
+    scoreText.setDepth(uiDepth);
+
+    // Max combo text
+    const comboText = this.add
+      .text(200, 230, `Max Combo: x${this.maxCombo}`, {
+        fontFamily: "Orbitron",
+        fontSize: "20px",
+        fill: "#60A5FA",
+      })
+      .setOrigin(0.5);
+    comboText.setDepth(uiDepth);
+
+    // Username input background
+    const inputBg = this.add.rectangle(200, 280, 240, 40, 0x2a2a3e);
+    inputBg.setDepth(uiDepth);
+
+    // Username input text
+    let username = "";
+    const inputText = this.add.text(85, 270, "", {
+      fontFamily: "Orbitron",
+      fontSize: "16px",
+      fill: "#FFFFFF",
+      fixedWidth: 230,
+    });
+    inputText.setDepth(uiDepth + 1);
+
+    // Username placeholder
+    const placeholderText = this.add
+      .text(200, 280, "Enter username", {
+        fontFamily: "Orbitron",
+        fontSize: "16px",
+        fill: "#6B7280",
+      })
+      .setOrigin(0.5);
+    placeholderText.setDepth(uiDepth + 1);
+
+    // Make input interactive
+    inputBg.setInteractive();
+    let inputActive = false;
+
+    inputBg.on("pointerdown", () => {
+      inputActive = true;
+      placeholderText.setVisible(false);
+      // Add visual feedback
+      inputBg.setStrokeStyle(2, 0x3b82f6);
+    });
+
+    // Handle keyboard input
+    this.input.keyboard.on("keydown", (event) => {
+      if (!inputActive) return;
+
+      if (event.key === "Backspace") {
+        username = username.slice(0, -1);
+      } else if (event.key.length === 1 && username.length < 20) {
+        username += event.key;
+      }
+
+      inputText.setText(username);
+    });
+
+    // Submit Score button
+    const submitBg = this.add.rectangle(200, 330, 160, 40, 0x3b82f6);
+    submitBg.setDepth(uiDepth);
+    submitBg.setInteractive();
+
+    const submitText = this.add
+      .text(200, 330, "Submit Score", {
+        fontFamily: "Orbitron",
+        fontSize: "16px",
+        fill: "#FFFFFF",
+      })
+      .setOrigin(0.5);
+    submitText.setDepth(uiDepth);
+
+    // Try Again button
+    const tryAgainBg = this.add.rectangle(200, 380, 160, 40, 0x2563eb);
+    tryAgainBg.setDepth(uiDepth);
+    tryAgainBg.setInteractive();
+
+    const tryAgainText = this.add
+      .text(200, 380, "Try Again", {
+        fontFamily: "Orbitron",
+        fontSize: "16px",
+        fill: "#FFFFFF",
+      })
+      .setOrigin(0.5);
+    tryAgainText.setDepth(uiDepth);
+
+    // Add game cat
+    const gameCat = this.add.image(200, 110, "cat");
     gameCat.setScale(0.18);
     gameCat.setRotation(Math.PI);
+    gameCat.setDepth(uiDepth);
     if (!success) {
       gameCat.setTint(0xff6666);
     }
 
-    // Game Over text
-    const messageText = this.add
-      .text(0, 0, "Game Over!", {
+    // Status message text (for showing submission status)
+    const statusText = this.add
+      .text(200, 420, "", {
         fontFamily: "Orbitron",
-        fontSize: "32px",
-        fill: "#FFFFFF",
-        align: "center",
+        fontSize: "14px",
+        fill: "#4ADE80",
       })
       .setOrigin(0.5);
-
-    // Score text
-    const scoreText = this.add
-      .text(0, 40, `Score: ${this.score}`, {
-        fontFamily: "Orbitron",
-        fontSize: "24px",
-        fill: "#60A5FA",
-        align: "center",
-      })
-      .setOrigin(0.5);
-
-    // Max combo text
-    const comboText = this.add
-      .text(0, 70, `Max Combo: x${this.maxCombo}`, {
-        fontFamily: "Orbitron",
-        fontSize: "20px",
-        fill: "#60A5FA",
-        align: "center",
-      })
-      .setOrigin(0.5);
-
-    // Create Try Again button with proper colors and style
-    const tryAgainBg = this.add.graphics();
-    tryAgainBg.fillGradientStyle(
-      0x3b82f6, // top
-      0x3b82f6, // top
-      0x2563eb, // bottom
-      0x2563eb, // bottom
-      1,
-    );
-    tryAgainBg.fillRoundedRect(-80, 95, 160, 40, 8); // Adjusted y position
-    tryAgainBg.lineStyle(2, 0x60a5fa);
-    tryAgainBg.strokeRoundedRect(-80, 95, 160, 40, 8);
-
-    const tryAgainText = this.add
-      .text(0, 115, "Try Again", {
-        fontFamily: "Orbitron",
-        fontSize: "20px",
-        fill: "#FFFFFF",
-        align: "center",
-      })
-      .setOrigin(0.5);
-
-    // Create Cancel button
-    const cancelText = this.add
-      .text(0, 155, "Cancel", {
-        fontFamily: "Orbitron",
-        fontSize: "16px",
-        fill: "#9CA3AF",
-        align: "center",
-      })
-      .setOrigin(0.5);
-
-    // Make Try Again button interactive
-    tryAgainBg.setInteractive(
-      new Phaser.Geom.Rectangle(-80, 95, 160, 40),
-      Phaser.Geom.Rectangle.Contains,
-    );
-
-    // Add hover effects
-    tryAgainBg.on("pointerover", () => {
-      tryAgainBg.clear();
-      tryAgainBg.fillGradientStyle(
-        0x2563eb, // darker blue
-        0x2563eb,
-        0x1d4ed8, // even darker blue
-        0x1d4ed8,
-        1,
-      );
-      tryAgainBg.fillRoundedRect(-80, 70, 160, 40, 8);
-      tryAgainBg.lineStyle(2, 0x93c5fd);
-      tryAgainBg.strokeRoundedRect(-80, 70, 160, 40, 8);
-      tryAgainText.setScale(1.05);
-    });
-
-    tryAgainBg.on("pointerout", () => {
-      tryAgainBg.clear();
-      tryAgainBg.fillGradientStyle(0x3b82f6, 0x3b82f6, 0x2563eb, 0x2563eb, 1);
-      tryAgainBg.fillRoundedRect(-80, 70, 160, 40, 8);
-      tryAgainBg.lineStyle(2, 0x60a5fa);
-      tryAgainBg.strokeRoundedRect(-80, 70, 160, 40, 8);
-      tryAgainText.setScale(1);
-    });
-
-    // Make Cancel text interactive
-    cancelText.setInteractive();
-    cancelText.on("pointerover", () => cancelText.setScale(1.05));
-    cancelText.on("pointerout", () => cancelText.setScale(1));
+    statusText.setDepth(uiDepth);
 
     // Add button functionality
+    submitBg.on("pointerdown", async () => {
+      if (!username.trim()) {
+        statusText.setText("Please enter a username");
+        statusText.setFill("#EF4444");
+        return;
+      }
+
+      // Disable submit button
+      submitBg.disableInteractive();
+      submitText.setText("Submitting...");
+
+      // Call the score submission callback
+      if (this.onGameOver) {
+        this.onGameOver({
+          success,
+          score: this.score,
+          time: duration.toFixed(2),
+          speed: lettersPerSecond,
+          totalLetters: this.totalLetters,
+          correctLetters: this.correctLetters,
+          maxCombo: this.maxCombo,
+          username: username.trim(),
+        });
+      }
+
+      // Show success message
+      statusText.setText("Score submitted!");
+      statusText.setFill("#4ADE80");
+
+      // Re-enable submit button
+      submitBg.setInteractive();
+      submitText.setText("Submit Score");
+    });
+
     tryAgainBg.on("pointerdown", () => {
-      messageContainer.destroy();
+      // Clean up all UI elements
+      [
+        overlay,
+        bg,
+        messageText,
+        scoreText,
+        comboText,
+        inputBg,
+        inputText,
+        placeholderText,
+        submitBg,
+        submitText,
+        tryAgainBg,
+        tryAgainText,
+        statusText,
+        gameCat,
+      ].forEach((obj) => obj.destroy());
       this.startGame();
     });
 
-    cancelText.on("pointerdown", () => {
-      messageContainer.destroy();
-    });
-
-    // Add all elements to container
-    messageContainer.add([
-      bg,
-      gameCat,
-      messageText,
-      scoreText,
-      comboText,
-      tryAgainBg,
-      tryAgainText,
-      cancelText,
-    ]);
-
-    // Add container animation
-    messageContainer.setAlpha(0);
-    messageContainer.setScale(0.8);
-    this.tweens.add({
-      targets: messageContainer,
-      alpha: 1,
-      scale: 1,
-      duration: 300,
-      ease: "Back.easeOut",
-    });
-
-    // Add cat spinning animation
-    this.tweens.add({
-      targets: gameCat,
-      angle: 360,
-      duration: 1000,
-      ease: "Cubic.easeOut",
-    });
-
-    // Shake camera on failure
-    if (!success) {
-      this.cameras.main.shake(500, 0.01);
-    }
-
-    // Call game over callback with stats
-    if (this.onGameOver) {
-      this.onGameOver({
-        success,
-        score: this.score,
-        time: duration.toFixed(2),
-        speed: lettersPerSecond,
-        totalLetters: this.totalLetters,
-        correctLetters: this.correctLetters,
-        maxCombo: this.maxCombo,
+    // Add hover effects
+    [submitBg, tryAgainBg].forEach((button) => {
+      button.on("pointerover", () => {
+        button.setFillStyle(0x2563eb);
       });
-    }
+      button.on("pointerout", () => {
+        button.setFillStyle(button === submitBg ? 0x3b82f6 : 0x2563eb);
+      });
+    });
   }
 
   showError(message) {
@@ -1072,6 +1094,9 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
               setGameStats(stats);
               setIsGameOver(true);
               setIsGameStarted(false);
+              if (stats.username) {
+                handleSubmitScore(stats.username);
+              }
             };
             scene.setMuted(isMuted);
             resolve();
