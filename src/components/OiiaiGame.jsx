@@ -24,6 +24,15 @@ class MainScene extends Phaser.Scene {
     this.columnPositions = [80, 160, 240, 320];
     this.lastUsedColumns = [];
     this.targetedLetters = new Set();
+    this.savedUsername = null;
+    this.savedEmail = null;
+  }
+
+  setUserData(userData) {
+    if (userData) {
+      this.savedUsername = userData.username;
+      this.savedEmail = userData.email;
+    }
   }
 
   preload() {
@@ -803,8 +812,8 @@ class MainScene extends Phaser.Scene {
     inputBg.setDepth(uiDepth);
 
     // Username input text
-    let username = "";
-    const inputText = this.add.text(85, 240, "", {
+    let username = this.savedUsername || "";
+    const inputText = this.add.text(85, 240, username, {
       fontFamily: "Orbitron",
       fontSize: "16px",
       fill: "#FFFFFF",
@@ -827,8 +836,8 @@ class MainScene extends Phaser.Scene {
     emailInputBg.setDepth(uiDepth);
 
     // Email input text
-    let email = "";
-    const emailInputText = this.add.text(85, 290, "", {
+    let email = this.savedEmail || "";
+    const emailInputText = this.add.text(85, 290, email, {
       fontFamily: "Orbitron",
       fontSize: "16px",
       fill: "#FFFFFF",
@@ -846,6 +855,10 @@ class MainScene extends Phaser.Scene {
       .setOrigin(0.5);
     emailPlaceholder.setDepth(uiDepth + 1);
 
+    // Add these lines right here, after creating both inputs and placeholders
+    placeholderText.setVisible(!username);
+    emailPlaceholder.setVisible(!email);
+
     // Make inputs interactive
     inputBg.setInteractive();
     emailInputBg.setInteractive();
@@ -856,7 +869,7 @@ class MainScene extends Phaser.Scene {
     inputBg.on("pointerdown", () => {
       inputActive = true;
       emailInputActive = false;
-      placeholderText.setVisible(false);
+      placeholderText.setVisible(!username);
       inputBg.setStrokeStyle(2, 0x3b82f6);
       emailInputBg.setStrokeStyle(0);
     });
@@ -864,10 +877,18 @@ class MainScene extends Phaser.Scene {
     emailInputBg.on("pointerdown", () => {
       emailInputActive = true;
       inputActive = false;
-      emailPlaceholder.setVisible(false);
+      emailPlaceholder.setVisible(!email);
       emailInputBg.setStrokeStyle(2, 0x3b82f6);
       inputBg.setStrokeStyle(0);
     });
+
+    // Set initial visual states for input backgrounds based on saved data
+    if (username) {
+      inputBg.setStrokeStyle(1, 0x3b82f6, 0.5);
+    }
+    if (email) {
+      emailInputBg.setStrokeStyle(1, 0x3b82f6, 0.5);
+    }
 
     // Submit Score button
     const submitBg = this.add.rectangle(200, 350, 160, 40, 0x3b82f6);
@@ -1042,7 +1063,10 @@ class MainScene extends Phaser.Scene {
   showError(message) {
     // First remove any existing error messages
     this.children.list
-      .filter((child) => child.getData("isErrorMessage"))
+       .filter(child =>
+      child.getData("isErrorMessage") ||
+      child.getData("isSuccessMessage")
+    )
       .forEach((child) => child.destroy());
 
     const centerX = this.cameras.main.centerX;
@@ -1161,8 +1185,25 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [gameStats, setGameStats] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const STORAGE_KEY = "oiiai_user_data";
+
+  const saveUserData = (username, email) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ username, email }));
+    } catch (error) {
+      console.error("Failed to save user data:", error);
+    }
+  };
+
+  const loadUserData = () => {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error("Failed to load user data:", error);
+      return null;
+    }
+  };
 
   const verifyOrCreateUser = async (username, email) => {
     try {
@@ -1196,8 +1237,10 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
     }
   };
 
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const initGame = async () => {
+      setIsLoading(true);
       const config = {
         type: Phaser.AUTO,
         width: 400,
@@ -1221,10 +1264,19 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
         const checkScene = () => {
           const scene = gameRef.current?.scene.getScene("MainScene");
           if (scene) {
+            // Load saved data from localStorage once
+            const savedUserData = loadUserData();
+            if (savedUserData) {
+              scene.setUserData(savedUserData);
+            }
+
             scene.onGameOver = async (stats) => {
               setGameStats(stats);
               setIsGameOver(true);
               setIsGameStarted(false);
+
+              // Save user data when score is submitted
+              saveUserData(stats.username, stats.email);
 
               try {
                 // First verify/create user
@@ -1234,12 +1286,11 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
                 if (!userResponse.ok) {
                   throw new Error("Failed to verify user");
                 }
-                const userData = await userResponse.json();
+                const apiUserData = await userResponse.json();
 
                 let userId;
-
-                if (userData.exists) {
-                  userId = userData.user.id;
+                if (apiUserData.exists) {
+                  userId = apiUserData.user.id;
                 } else {
                   // Create new user if doesn't exist
                   const createResponse = await fetch("/api/game/users", {
@@ -1288,6 +1339,7 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
                 const currentScene =
                   gameRef.current?.scene.getScene("MainScene");
                 if (currentScene) {
+                  // Clean up submitting state and show success
                   currentScene.showSuccess(result.rank, result.isNewBest);
                 }
 
@@ -1331,6 +1383,7 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
         };
         checkScene();
       });
+      setIsLoading(false);
     };
 
     initGame();
