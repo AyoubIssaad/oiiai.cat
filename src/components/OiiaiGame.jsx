@@ -755,142 +755,132 @@ class MainScene extends Phaser.Scene {
     });
     this.catProjectiles = [];
 
-    // Show game over message
+    // Stop any ongoing game systems
+    if (this.spawnTimer) {
+      this.spawnTimer.remove();
+    }
+
+    // Create game over UI
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
     const messageContainer = this.add.container(centerX, centerY);
 
-    // Create modern glass-like background with gradient
+    // Create background with blue border
     const bg = this.add.graphics();
+    bg.lineStyle(3, 0x3b82f6, 1);
+    bg.fillStyle(0x1a1a2e, 0.95);
+    bg.fillRoundedRect(-155, -125, 310, 250, 16);
+    bg.strokeRoundedRect(-155, -125, 310, 250, 16);
 
-    // Add outer glow effect
-    bg.lineStyle(4, success ? 0x4ade80 : 0xef4444, 0.3);
-    bg.strokeRoundedRect(-155, -105, 310, 210, 20);
-
-    // Main background with gradient
-    bg.fillGradientStyle(
-      0x1a1a2e,
-      0x1a1a2e,
-      0x2a2a3e,
-      0x2a2a3e,
-      0.95,
-      0.95,
-      0.95,
-      0.95,
-    );
-    bg.fillRoundedRect(-150, -100, 300, 200, 16);
-
-    // Add cat decoration at the top
-    const gameCat = this.add.image(0, -80, "cat");
-    gameCat.setScale(0.2);
-    gameCat.setAngle(180);
+    // Add cat decoration
+    const gameCat = this.add.image(0, -85, "cat");
+    gameCat.setScale(0.18);
+    gameCat.setRotation(Math.PI);
     if (!success) {
-      gameCat.setTint(0xff6666); // Red tint for failure
-      // gameCat.setAngle(0);        // Flip it back around for failure state
+      gameCat.setTint(0xff6666);
     }
 
-    // Configure text style
-    const messageConfig = {
-      fontFamily: "Orbitron",
-      fontSize: "28px",
-      fontWeight: "bold",
-      fill: "#FFFFFF",
-      align: "center",
-      stroke: "#000000",
-      strokeThickness: 2,
-      shadow: { blur: 2, color: "#000000", fill: true, offsetX: 1, offsetY: 1 },
-    };
+    // Game Over text
+    const messageText = this.add
+      .text(0, -30, "Game Over!", {
+        fontFamily: "Orbitron",
+        fontSize: "32px",
+        fill: "#FFFFFF",
+        align: "center",
+      })
+      .setOrigin(0.5);
 
-    if (success) {
-      const messageText = this.add
-        .text(0, -30, "Purrfect Run!", messageConfig)
-        .setOrigin(0.5);
-      const scoreText = this.add
-        .text(0, 20, `Score: ${this.score}`, messageConfig)
-        .setOrigin(0.5);
-      const speedText = this.add
-        .text(0, 60, `${lettersPerSecond} letters/sec`, {
-          ...messageConfig,
-          fontSize: "20px",
-        })
-        .setOrigin(0.5);
+    // Score text
+    const scoreText = this.add
+      .text(0, 10, `Score: ${this.score}`, {
+        fontFamily: "Orbitron",
+        fontSize: "24px",
+        fill: "#60A5FA",
+        align: "center",
+      })
+      .setOrigin(0.5);
 
-      messageContainer.add([bg, gameCat, messageText, scoreText, speedText]);
-      this.addCelebrationParticles();
-    } else {
-      const messageText = this.add
-        .text(0, -30, "Game Over!", {
-          ...messageConfig,
-          fontSize: "32px",
-        })
-        .setOrigin(0.5);
+    // Max combo text
+    const comboText = this.add
+      .text(0, 45, `Max Combo: x${this.maxCombo}`, {
+        fontFamily: "Orbitron",
+        fontSize: "20px",
+        fill: "#60A5FA",
+        align: "center",
+      })
+      .setOrigin(0.5);
 
-      const scoreText = this.add
-        .text(0, 20, `Score: ${this.score}`, {
-          ...messageConfig,
-          fontSize: "24px",
-        })
-        .setOrigin(0.5);
+    // Create Try Again button
+    const tryAgainBg = this.add.graphics();
+    tryAgainBg.fillStyle(0x3b82f6, 1);
+    tryAgainBg.fillRoundedRect(-80, 70, 160, 40, 8);
 
-      const comboText = this.add
-        .text(0, 60, `Max Combo: x${this.maxCombo}`, {
-          ...messageConfig,
-          fontSize: "20px",
-          fill: "#60A5FA",
-        })
-        .setOrigin(0.5);
+    const tryAgainText = this.add
+      .text(0, 90, "Try Again", {
+        fontFamily: "Orbitron",
+        fontSize: "20px",
+        fill: "#FFFFFF",
+        align: "center",
+      })
+      .setOrigin(0.5);
 
-      // Create retry button
-      const buttonBg = this.add.graphics();
-      buttonBg.fillStyle(0x2563eb, 0.8);
-      buttonBg.fillRoundedRect(-80, 90, 160, 40, 8);
-      buttonBg.lineStyle(2, 0x60a5fa);
-      buttonBg.strokeRoundedRect(-80, 90, 160, 40, 8);
+    // Create Cancel button
+    const cancelText = this.add
+      .text(0, 135, "Cancel", {
+        fontFamily: "Orbitron",
+        fontSize: "16px",
+        fill: "#9CA3AF",
+        align: "center",
+      })
+      .setOrigin(0.5);
 
-      const buttonText = this.add
-        .text(0, 110, "Try Again", {
-          ...messageConfig,
-          fontSize: "20px",
-        })
-        .setOrigin(0.5);
+    // Make Try Again button interactive
+    tryAgainBg.setInteractive(
+      new Phaser.Geom.Rectangle(-80, 70, 160, 40),
+      Phaser.Geom.Rectangle.Contains,
+    );
 
-      // Make button interactive
-      buttonBg
-        .setInteractive(
-          new Phaser.Geom.Rectangle(-80, 90, 160, 40),
-          Phaser.Geom.Rectangle.Contains,
-        )
-        .on("pointerover", () => {
-          buttonBg.clear();
-          buttonBg.fillStyle(0x3b82f6, 0.8);
-          buttonBg.fillRoundedRect(-80, 90, 160, 40, 8);
-          buttonBg.lineStyle(2, 0x93c5fd);
-          buttonBg.strokeRoundedRect(-80, 90, 160, 40, 8);
-          buttonText.setScale(1.1);
-        })
-        .on("pointerout", () => {
-          buttonBg.clear();
-          buttonBg.fillStyle(0x2563eb, 0.8);
-          buttonBg.fillRoundedRect(-80, 90, 160, 40, 8);
-          buttonBg.lineStyle(2, 0x60a5fa);
-          buttonBg.strokeRoundedRect(-80, 90, 160, 40, 8);
-          buttonText.setScale(1);
-        })
-        .on("pointerdown", () => {
-          messageContainer.destroy();
-          this.startGame();
-        });
+    // Add hover effects
+    tryAgainBg.on("pointerover", () => {
+      tryAgainBg.clear();
+      tryAgainBg.fillStyle(0x2563eb, 1);
+      tryAgainBg.fillRoundedRect(-80, 70, 160, 40, 8);
+      tryAgainText.setScale(1.05);
+    });
 
-      messageContainer.add([
-        bg,
-        gameCat,
-        messageText,
-        scoreText,
-        comboText,
-        buttonBg,
-        buttonText,
-      ]);
-    }
+    tryAgainBg.on("pointerout", () => {
+      tryAgainBg.clear();
+      tryAgainBg.fillStyle(0x3b82f6, 1);
+      tryAgainBg.fillRoundedRect(-80, 70, 160, 40, 8);
+      tryAgainText.setScale(1);
+    });
+
+    // Make Cancel text interactive
+    cancelText.setInteractive();
+    cancelText.on("pointerover", () => cancelText.setScale(1.05));
+    cancelText.on("pointerout", () => cancelText.setScale(1));
+
+    // Add button functionality
+    tryAgainBg.on("pointerdown", () => {
+      messageContainer.destroy();
+      this.startGame();
+    });
+
+    cancelText.on("pointerdown", () => {
+      messageContainer.destroy();
+    });
+
+    // Add all elements to container
+    messageContainer.add([
+      bg,
+      gameCat,
+      messageText,
+      scoreText,
+      comboText,
+      tryAgainBg,
+      tryAgainText,
+      cancelText,
+    ]);
 
     // Add container animation
     messageContainer.setAlpha(0);
@@ -899,14 +889,14 @@ class MainScene extends Phaser.Scene {
       targets: messageContainer,
       alpha: 1,
       scale: 1,
-      duration: 500,
+      duration: 300,
       ease: "Back.easeOut",
     });
 
     // Add cat spinning animation
     this.tweens.add({
       targets: gameCat,
-      angle: success ? 360 : 540, // Spin once for success, 1.5 times for failure
+      angle: 360,
       duration: 1000,
       ease: "Cubic.easeOut",
     });
@@ -928,6 +918,556 @@ class MainScene extends Phaser.Scene {
         maxCombo: this.maxCombo,
       });
     }
+  }
+
+  showGameOverScreen(stats) {
+    const centerX = this.cameras.main.centerX;
+    const centerY = this.cameras.main.centerY;
+
+    // Create container for game over screen
+    const container = this.add.container(centerX, centerY);
+
+    // Create modern glass-like background with gradient
+    const bg = this.add.graphics();
+
+    // Add outer glow effect
+    bg.lineStyle(4, 0x3b82f6, 0.3);
+    bg.strokeRoundedRect(-190, -140, 380, 280, 20);
+
+    // Main background with gradient and blue border
+    bg.lineStyle(2, 0x3b82f6, 1);
+    bg.fillGradientStyle(0x1a1a2e, 0x1a1a2e, 0x2a2a3e, 0x2a2a3e, 0.95);
+    bg.fillRoundedRect(-180, -130, 360, 260, 16);
+    bg.strokeRoundedRect(-180, -130, 360, 260, 16);
+
+    // Title text
+    const titleText = this.add
+      .text(0, -100, "Submit Your Score", {
+        fontFamily: "Orbitron",
+        fontSize: "28px",
+        fill: "#3B82F6",
+        align: "center",
+      })
+      .setOrigin(0.5);
+
+    // Game Over text
+    const gameOverText = this.add
+      .text(0, -50, "Game Over!", {
+        fontFamily: "Orbitron",
+        fontSize: "32px",
+        fill: "#FFFFFF",
+        align: "center",
+      })
+      .setOrigin(0.5);
+
+    // Score text
+    const scoreText = this.add
+      .text(0, 0, `Score: ${stats.score}`, {
+        fontFamily: "Orbitron",
+        fontSize: "24px",
+        fill: "#60A5FA",
+        align: "center",
+      })
+      .setOrigin(0.5);
+
+    // Max combo text
+    const comboText = this.add
+      .text(0, 40, `Max Combo: x${stats.maxCombo}`, {
+        fontFamily: "Orbitron",
+        fontSize: "20px",
+        fill: "#60A5FA",
+        align: "center",
+      })
+      .setOrigin(0.5);
+
+    // Add game cat decoration
+    const gameCat = this.add.image(0, -160, "cat");
+    gameCat.setScale(0.2);
+    gameCat.setAngle(180);
+    if (!stats.success) {
+      gameCat.setTint(0xff6666);
+    }
+
+    // Try Again button with blue gradient
+    const tryAgainButton = this.add.graphics();
+    tryAgainButton.fillGradientStyle(0x3b82f6, 0x3b82f6, 0x2563eb, 0x2563eb, 1);
+    tryAgainButton.fillRoundedRect(-100, 80, 200, 40, 8);
+    tryAgainButton.lineStyle(2, 0x60a5fa);
+    tryAgainButton.strokeRoundedRect(-100, 80, 200, 40, 8);
+
+    const tryAgainText = this.add
+      .text(0, 100, "Try Again", {
+        fontFamily: "Orbitron",
+        fontSize: "20px",
+        fill: "#FFFFFF",
+      })
+      .setOrigin(0.5);
+
+    // Cancel button with darker style
+    const cancelButton = this.add.graphics();
+    cancelButton.fillStyle(0x4b5563, 0.8);
+    cancelButton.fillRoundedRect(-60, 130, 120, 30, 6);
+
+    const cancelText = this.add
+      .text(0, 145, "Cancel", {
+        fontFamily: "Orbitron",
+        fontSize: "16px",
+        fill: "#9CA3AF",
+      })
+      .setOrigin(0.5);
+
+    // Make buttons interactive
+    tryAgainButton.setInteractive(
+      new Phaser.Geom.Rectangle(-100, 80, 200, 40),
+      Phaser.Geom.Rectangle.Contains,
+    );
+
+    cancelButton.setInteractive(
+      new Phaser.Geom.Rectangle(-60, 130, 120, 30),
+      Phaser.Geom.Rectangle.Contains,
+    );
+
+    // Add hover effects
+    tryAgainButton.on("pointerover", () => {
+      tryAgainButton.clear();
+      tryAgainButton.fillGradientStyle(
+        0x2563eb,
+        0x2563eb,
+        0x1d4ed8,
+        0x1d4ed8,
+        1,
+      );
+      tryAgainButton.fillRoundedRect(-100, 80, 200, 40, 8);
+      tryAgainButton.lineStyle(2, 0x93c5fd);
+      tryAgainButton.strokeRoundedRect(-100, 80, 200, 40, 8);
+      tryAgainText.setScale(1.1);
+    });
+
+    tryAgainButton.on("pointerout", () => {
+      tryAgainButton.clear();
+      tryAgainButton.fillGradientStyle(
+        0x3b82f6,
+        0x3b82f6,
+        0x2563eb,
+        0x2563eb,
+        1,
+      );
+      tryAgainButton.fillRoundedRect(-100, 80, 200, 40, 8);
+      tryAgainButton.lineStyle(2, 0x60a5fa);
+      tryAgainButton.strokeRoundedRect(-100, 80, 200, 40, 8);
+      tryAgainText.setScale(1);
+    });
+
+    // Add button handlers
+    tryAgainButton.on("pointerdown", () => {
+      container.destroy();
+      this.startGame();
+    });
+
+    cancelButton.on("pointerdown", () => {
+      container.destroy();
+    });
+
+    // Add all elements to container
+    container.add([
+      bg,
+      gameCat,
+      titleText,
+      gameOverText,
+      scoreText,
+      comboText,
+      tryAgainButton,
+      tryAgainText,
+      cancelButton,
+      cancelText,
+    ]);
+
+    // Get stored user data
+    const storedData = localStorage.getItem("gameUserData");
+    if (storedData) {
+      // If user exists, show username
+      const userData = JSON.parse(storedData);
+      const userText = this.add
+        .text(0, -160, userData.username, {
+          fontFamily: "Orbitron",
+          fontSize: "16px",
+          fill: "#60A5FA",
+        })
+        .setOrigin(0.5);
+      container.add(userText);
+    }
+
+    // Add entry animation
+    container.setAlpha(0);
+    container.setScale(0.8);
+    this.tweens.add({
+      targets: container,
+      alpha: 1,
+      scale: 1,
+      duration: 300,
+      ease: "Back.easeOut",
+    });
+
+    // Add cat spinning animation
+    this.tweens.add({
+      targets: gameCat,
+      angle: stats.success ? 360 : 540,
+      duration: 1000,
+      ease: "Cubic.easeOut",
+    });
+
+    // Shake camera on failure
+    if (!stats.success) {
+      this.cameras.main.shake(500, 0.01);
+    }
+  }
+
+  // async showScoreSubmission(stats) {
+  //   const centerX = this.cameras.main.centerX;
+  //   const centerY = this.cameras.main.centerY;
+  //
+  //   // Create submission container
+  //   const container = this.add.container(centerX, centerY);
+  //
+  //   // Background
+  //   const bg = this.add.graphics();
+  //   bg.fillStyle(0x1a1a2e, 0.95);
+  //   bg.fillRoundedRect(-200, -150, 400, 300, 16);
+  //   bg.lineStyle(2, 0x3b82f6);
+  //   bg.strokeRoundedRect(-200, -150, 400, 300, 16);
+  //
+  //   // Title
+  //   const title = this.add
+  //     .text(0, -120, "Submit Your Score", {
+  //       fontFamily: "Orbitron",
+  //       fontSize: "24px",
+  //       fill: "#FFFFFF",
+  //       align: "center",
+  //     })
+  //     .setOrigin(0.5);
+  //
+  //   // Get stored user data
+  //   const storedData = localStorage.getItem("gameUserData");
+  //   let userData = null;
+  //   if (storedData) {
+  //     userData = JSON.parse(storedData);
+  //   }
+  //
+  //   // Score display
+  //   const scoreText = this.add
+  //     .text(0, -80, `Score: ${stats.score}`, {
+  //       fontFamily: "Orbitron",
+  //       fontSize: "20px",
+  //       fill: "#60A5FA",
+  //     })
+  //     .setOrigin(0.5);
+  //
+  //   // Input fields
+  //   let usernameInput, emailInput;
+  //
+  //   if (!userData) {
+  //     // Username input
+  //     const usernameField = this.add.graphics();
+  //     usernameField.fillStyle(0x2a2a3e);
+  //     usernameField.fillRoundedRect(-150, -40, 300, 40, 8);
+  //
+  //     usernameInput = this.add.text(-140, -30, "", {
+  //       fontFamily: "Arial",
+  //       fontSize: "16px",
+  //       fill: "#FFFFFF",
+  //     });
+  //
+  //     const usernamePlaceholder = this.add.text(-140, -30, "Username", {
+  //       fontFamily: "Arial",
+  //       fontSize: "16px",
+  //       fill: "#6B7280",
+  //     });
+  //
+  //     // Email input
+  //     const emailField = this.add.graphics();
+  //     emailField.fillStyle(0x2a2a3e);
+  //     emailField.fillRoundedRect(-150, 10, 300, 40, 8);
+  //
+  //     emailInput = this.add.text(-140, 20, "", {
+  //       fontFamily: "Arial",
+  //       fontSize: "16px",
+  //       fill: "#FFFFFF",
+  //     });
+  //
+  //     const emailPlaceholder = this.add.text(-140, 20, "Email", {
+  //       fontFamily: "Arial",
+  //       fontSize: "16px",
+  //       fill: "#6B7280",
+  //     });
+  //
+  //     // Make fields interactive
+  //     usernameField.setInteractive();
+  //     emailField.setInteractive();
+  //
+  //     let activeInput = null;
+  //     const keyboard = this.input.keyboard.addKey(
+  //       Phaser.Input.Keyboard.KeyCodes.BACKSPACE,
+  //     );
+  //
+  //     usernameField.on("pointerdown", () => {
+  //       activeInput = usernameInput;
+  //       usernamePlaceholder.setVisible(false);
+  //     });
+  //
+  //     emailField.on("pointerdown", () => {
+  //       activeInput = emailInput;
+  //       emailPlaceholder.setVisible(false);
+  //     });
+  //
+  //     this.input.keyboard.on("keydown", (event) => {
+  //       if (!activeInput) return;
+  //
+  //       if (event.key === "Backspace") {
+  //         activeInput.text = activeInput.text.slice(0, -1);
+  //       } else if (event.key.length === 1) {
+  //         activeInput.text += event.key;
+  //       }
+  //     });
+  //
+  //     container.add([
+  //       bg,
+  //       title,
+  //       scoreText,
+  //       usernameField,
+  //       usernamePlaceholder,
+  //       usernameInput,
+  //       emailField,
+  //       emailPlaceholder,
+  //       emailInput,
+  //     ]);
+  //   } else {
+  //     const userText = this.add
+  //       .text(0, -30, `Submit as: ${userData.username}`, {
+  //         fontFamily: "Orbitron",
+  //         fontSize: "18px",
+  //         fill: "#FFFFFF",
+  //       })
+  //       .setOrigin(0.5);
+  //
+  //     container.add([bg, title, scoreText, userText]);
+  //   }
+  //
+  //   // Submit button
+  //   const submitButton = this.add.graphics();
+  //   submitButton.fillStyle(0x3b82f6);
+  //   submitButton.fillRoundedRect(-100, 70, 200, 40, 8);
+  //
+  //   const submitText = this.add
+  //     .text(0, 90, "Submit Score", {
+  //       fontFamily: "Orbitron",
+  //       fontSize: "16px",
+  //       fill: "#FFFFFF",
+  //     })
+  //     .setOrigin(0.5);
+  //
+  //   submitButton.setInteractive();
+  //
+  //   // Cancel button
+  //   const cancelButton = this.add.graphics();
+  //   cancelButton.fillStyle(0x4b5563);
+  //   cancelButton.fillRoundedRect(-100, 120, 200, 40, 8);
+  //
+  //   const cancelText = this.add
+  //     .text(0, 140, "Cancel", {
+  //       fontFamily: "Orbitron",
+  //       fontSize: "16px",
+  //       fill: "#FFFFFF",
+  //     })
+  //     .setOrigin(0.5);
+  //
+  //   cancelButton.setInteractive();
+  //
+  //   container.add([submitButton, submitText, cancelButton, cancelText]);
+  //
+  //   // Button handlers
+  //   submitButton.on("pointerdown", async () => {
+  //     if (!userData) {
+  //       const username = usernameInput.text.trim();
+  //       const email = emailInput.text.trim();
+  //
+  //       if (!username || !email) {
+  //         this.showError("Please fill in all fields");
+  //         return;
+  //       }
+  //
+  //       if (!email.includes("@")) {
+  //         this.showError("Please enter a valid email");
+  //         return;
+  //       }
+  //
+  //       try {
+  //         // Check if email exists
+  //         const emailCheck = await fetch(
+  //           `/api/game/user/${encodeURIComponent(email)}`,
+  //         ).then((r) => r.json());
+  //
+  //         if (emailCheck.exists) {
+  //           this.showError(
+  //             "Email already registered. Please use a different email.",
+  //           );
+  //           return;
+  //         }
+  //
+  //         // Check if username is available
+  //         const usernameCheck = await fetch(
+  //           `/api/game/check-username/${encodeURIComponent(username)}`,
+  //         ).then((r) => r.json());
+  //
+  //         if (usernameCheck.exists) {
+  //           this.showError("Username already taken. Please choose another.");
+  //           return;
+  //         }
+  //
+  //         // Create new user
+  //         const user = await fetch("/api/game/users", {
+  //           method: "POST",
+  //           headers: { "Content-Type": "application/json" },
+  //           body: JSON.stringify({ username, email }),
+  //         }).then((r) => r.json());
+  //
+  //         userData = user;
+  //         localStorage.setItem("gameUserData", JSON.stringify(user));
+  //       } catch (error) {
+  //         this.showError("Error creating user. Please try again.");
+  //         return;
+  //       }
+  //     }
+  //
+  //     try {
+  //       // Submit score
+  //       const scoreResult = await fetch("/api/game/scores", {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({
+  //           userId: userData.id,
+  //           ...stats,
+  //         }),
+  //       }).then((r) => r.json());
+  //
+  //       // Show success message with rank
+  //       this.showSuccess(scoreResult.rank, scoreResult.isNewBest);
+  //     } catch (error) {
+  //       this.showError("Error submitting score. Please try again.");
+  //     }
+  //
+  //     container.destroy();
+  //   });
+  //
+  //   cancelButton.on("pointerdown", () => {
+  //     container.destroy();
+  //   });
+  //
+  //   // Add entry animation
+  //   container.setAlpha(0);
+  //   container.setScale(0.8);
+  //   this.tweens.add({
+  //     targets: container,
+  //     alpha: 1,
+  //     scale: 1,
+  //     duration: 300,
+  //     ease: "Back.easeOut",
+  //   });
+  // }
+
+  showError(message) {
+    const centerX = this.cameras.main.centerX;
+    const centerY = this.cameras.main.centerY - 200;
+
+    const errorText = this.add
+      .text(centerX, centerY, message, {
+        fontFamily: "Orbitron",
+        fontSize: "16px",
+        fill: "#EF4444",
+        backgroundColor: "#991B1B",
+        padding: { x: 15, y: 8 },
+        borderRadius: 4,
+      })
+      .setOrigin(0.5);
+
+    // Add fade out animation
+    this.tweens.add({
+      targets: errorText,
+      alpha: 0,
+      y: centerY - 50,
+      duration: 2000,
+      ease: "Power2",
+      onComplete: () => errorText.destroy(),
+    });
+  }
+
+  showSuccess(rank, isNewBest) {
+    const centerX = this.cameras.main.centerX;
+    const centerY = this.cameras.main.centerY;
+
+    // Create container for success message
+    const container = this.add.container(centerX, centerY);
+
+    // Background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x1a1a2e, 0.95);
+    bg.fillRoundedRect(-200, -150, 400, 300, 16);
+    bg.lineStyle(2, 0x4ade80);
+    bg.strokeRoundedRect(-200, -150, 400, 300, 16);
+
+    // Success message
+    const title = this.add
+      .text(0, -100, isNewBest ? "New High Score!" : "Score Submitted!", {
+        fontFamily: "Orbitron",
+        fontSize: "28px",
+        fill: "#4ADE80",
+      })
+      .setOrigin(0.5);
+
+    // Rank display
+    const rankText = this.add
+      .text(0, -20, `Current Rank: #${rank}`, {
+        fontFamily: "Orbitron",
+        fontSize: "24px",
+        fill: "#FFFFFF",
+      })
+      .setOrigin(0.5);
+
+    // Add celebration particles if new best
+    if (isNewBest) {
+      this.addCelebrationParticles();
+    }
+
+    // Close button
+    const closeButton = this.add.graphics();
+    closeButton.fillStyle(0x4ade80);
+    closeButton.fillRoundedRect(-100, 70, 200, 40, 8);
+
+    const closeText = this.add
+      .text(0, 90, "Continue", {
+        fontFamily: "Orbitron",
+        fontSize: "16px",
+        fill: "#FFFFFF",
+      })
+      .setOrigin(0.5);
+
+    closeButton.setInteractive();
+    closeButton.on("pointerdown", () => {
+      container.destroy();
+      this.startGame(); // Restart the game
+    });
+
+    container.add([bg, title, rankText, closeButton, closeText]);
+
+    // Add entry animation
+    container.setAlpha(0);
+    container.setScale(0.8);
+    this.tweens.add({
+      targets: container,
+      alpha: 1,
+      scale: 1,
+      duration: 300,
+      ease: "Back.easeOut",
+    });
   }
 }
 
@@ -987,7 +1527,7 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
         gameRef.current = null;
       }
     };
-  }, []); // Initial game setup
+  }, []);
 
   useEffect(() => {
     if (gameRef.current) {

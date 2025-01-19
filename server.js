@@ -49,8 +49,29 @@ async function initDB() {
         admin_notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(platform, video_id)
+        );
+     CREATE TABLE IF NOT EXISTS game_users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(email)
       );
 
+      CREATE TABLE IF NOT EXISTS game_scores (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES game_users(id),
+        score INTEGER NOT NULL,
+        time DECIMAL(10,2) NOT NULL,
+        letters_per_second DECIMAL(10,2) NOT NULL,
+        total_letters INTEGER NOT NULL,
+        correct_letters INTEGER NOT NULL,
+        max_combo INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_game_scores_score ON game_scores(score DESC);
+      CREATE INDEX IF NOT EXISTS idx_game_scores_user ON game_scores(user_id);
       CREATE INDEX IF NOT EXISTS idx_memes_votes ON memes(votes DESC);
       CREATE INDEX IF NOT EXISTS idx_memes_platform_video ON memes(platform, video_id);
       CREATE INDEX IF NOT EXISTS idx_memes_status ON memes(status);
@@ -536,6 +557,177 @@ app.get("/api/leaderboard", async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error("Error fetching leaderboard:", error);
+    res.status(500).json({ error: "Failed to fetch leaderboard" });
+  }
+});
+
+// Check if username is available
+app.get("/api/game/check-username/:username", async (req, res) => {
+  try {
+    const { username } = req.params;
+    const result = await pool.query(
+      "SELECT EXISTS(SELECT 1 FROM game_users WHERE username = $1)",
+      [username],
+    );
+    res.json({ exists: result.rows[0].exists });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to check username" });
+  }
+});
+
+// Get user by email
+app.get("/api/game/user/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    const result = await pool.query(
+      "SELECT id, username, email FROM game_users WHERE email = $1",
+      [email],
+    );
+    if (result.rows.length === 0) {
+      res.json({ exists: false });
+    } else {
+      res.json({ exists: true, user: result.rows[0] });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to get user" });
+  }
+});
+
+// Create new user
+app.post("/api/game/users", async (req, res) => {
+  const { username, email } = req.body;
+
+  try {
+    // Check if email already exists
+    const emailCheck = await pool.query(
+      "SELECT id FROM game_users WHERE email = $1",
+      [email],
+    );
+    if (emailCheck.rows.length > 0) {
+      return res.status(409).json({ error: "Email already registered" });
+    }
+
+    // Check if username is taken
+    const usernameCheck = await pool.query(
+      "SELECT id FROM game_users WHERE username = $1",
+      [username],
+    );
+    if (usernameCheck.rows.length > 0) {
+      return res.status(409).json({ error: "Username already taken" });
+    }
+
+    const result = await pool.query(
+      "INSERT INTO game_users (username, email) VALUES ($1, $2) RETURNING id, username, email",
+      [username, email],
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create user" });
+  }
+});
+
+// Submit score
+app.post("/api/game/scores", async (req, res) => {
+  const {
+    userId,
+    score,
+    time,
+    lettersPerSecond,
+    totalLetters,
+    correctLetters,
+    maxCombo,
+  } = req.body;
+
+  try {
+    // Get user's current best score
+    const currentBest = await pool.query(
+      "SELECT score FROM game_scores WHERE user_id = $1 ORDER BY score DESC LIMIT 1",
+      [userId],
+    );
+
+    const result = await pool.query(
+      `INSERT INTO game_scores
+       (user_id, score, time, letters_per_second, total_letters, correct_letters, max_combo)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [
+        userId,
+        score,
+        time,
+        lettersPerSecond,
+        totalLetters,
+        correctLetters,
+        maxCombo,
+      ],
+    );
+
+    // Get user's rank
+    const rankResult = await pool.query(
+      `
+      WITH ranked_scores AS (
+        SELECT
+          user_id,
+          MAX(score) as max_score,
+          RANK() OVER (ORDER BY MAX(score) DESC) as rank
+        FROM game_scores
+        GROUP BY user_id
+      )
+      SELECT rank
+      FROM ranked_scores
+      WHERE user_id = $1
+    `,
+      [userId],
+    );
+
+    const response = {
+      score: result.rows[0],
+      rank: rankResult.rows[0].rank,
+      isNewBest: !currentBest.rows.length || score > currentBest.rows[0].score,
+    };
+
+    res.json(response);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to submit score" });
+  }
+});
+
+// Get leaderboard
+app.get("/api/game/leaderboard", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      WITH UserBestScores AS (
+        SELECT DISTINCT ON (gs.user_id)
+          gs.user_id,
+          gu.username,
+          gs.score,
+          gs.time,
+          gs.letters_per_second,
+          gs.total_letters,
+          gs.correct_letters,
+          gs.max_combo,
+          gs.created_at
+        FROM game_scores gs
+        JOIN game_users gu ON gs.user_id = gu.id
+        ORDER BY gs.user_id, gs.score DESC
+      )
+      SELECT
+        username,
+        score,
+        time,
+        letters_per_second,
+        total_letters,
+        correct_letters,
+        max_combo,
+        created_at,
+        RANK() OVER (ORDER BY score DESC) as rank
+      FROM UserBestScores
+      ORDER BY score DESC
+      LIMIT 50
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
     res.status(500).json({ error: "Failed to fetch leaderboard" });
   }
 });
