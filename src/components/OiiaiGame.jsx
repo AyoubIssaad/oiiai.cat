@@ -338,9 +338,25 @@ class MainScene extends Phaser.Scene {
           const targetLetter = matchingLetters[0];
           this.targetedLetters.add(targetLetter); // Mark as targeted
           this.handleCorrectLetter(targetLetter);
+        } else {
+          this.handleIncorrectInput();
         }
       });
     });
+  }
+  handleIncorrectInput() {
+    // Create a red flash effect
+    this.cameras.main.flash(300, 255, 0, 0, true);
+
+    // Add screen shake
+    this.cameras.main.shake(200, 0.01);
+
+    // Reset combo
+    this.combo = 0;
+    this.comboText.setText("Combo: x0").setAlpha(0);
+
+    // Game over
+    this.gameOver(false);
   }
 
   update() {
@@ -385,6 +401,9 @@ class MainScene extends Phaser.Scene {
       const targetLetter = matchingLetters[0];
       this.targetedLetters.add(targetLetter);
       this.handleCorrectLetter(targetLetter);
+    } else {
+      // No matching letters found - this is a mistake
+      this.handleIncorrectInput();
     }
   }
 
