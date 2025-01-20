@@ -1061,12 +1061,15 @@ class MainScene extends Phaser.Scene {
   }
 
   showError(message) {
+    // Log error to console
+    console.error("Game Error:", message);
+
     // First remove any existing error messages
     this.children.list
-       .filter(child =>
-      child.getData("isErrorMessage") ||
-      child.getData("isSuccessMessage")
-    )
+      .filter(
+        (child) =>
+          child.getData("isErrorMessage") || child.getData("isSuccessMessage"),
+      )
       .forEach((child) => child.destroy());
 
     const centerX = this.cameras.main.centerX;
@@ -1090,11 +1093,11 @@ class MainScene extends Phaser.Scene {
       .setDepth(2001);
     errorText.setData("isErrorMessage", true);
 
-    // Add fade out animation
+    // Add fade out animation with longer duration
     this.tweens.add({
       targets: [errorBg, errorText],
       alpha: 0,
-      duration: 3000, // Show for longer
+      duration: 5000, // Increased from 3000 to give more time to read
       ease: "Power2",
       onComplete: () => {
         errorBg.destroy();
@@ -1104,9 +1107,11 @@ class MainScene extends Phaser.Scene {
   }
 
   showSuccess(rank, isNewBest) {
+    // Clean up any existing UI elements first
     this.children.list
       .filter((child) => child.type === "Text" || child.type === "Rectangle")
       .forEach((child) => child.destroy());
+
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
 
@@ -1114,27 +1119,27 @@ class MainScene extends Phaser.Scene {
     const container = this.add.container(centerX, centerY);
     container.setDepth(2000);
 
-    // Background
+    // Background - smaller and more compact
     const bg = this.add.graphics();
     bg.fillStyle(0x1a1a2e, 0.95);
-    bg.fillRoundedRect(-200, -150, 400, 300, 16);
+    bg.fillRoundedRect(-150, -100, 300, 200, 16);
     bg.lineStyle(2, 0x4ade80);
-    bg.strokeRoundedRect(-200, -150, 400, 300, 16);
+    bg.strokeRoundedRect(-150, -100, 300, 200, 16);
 
     // Success message
     const title = this.add
-      .text(0, -100, isNewBest ? "New High Score!" : "Score Submitted!", {
+      .text(0, -60, isNewBest ? "New High Score!" : "Score Submitted!", {
         fontFamily: "Orbitron",
-        fontSize: "28px",
+        fontSize: "24px",
         fill: "#4ADE80",
       })
       .setOrigin(0.5);
 
     // Rank display
     const rankText = this.add
-      .text(0, -20, `Current Rank: #${rank}`, {
+      .text(0, 0, `Current Rank: #${rank}`, {
         fontFamily: "Orbitron",
-        fontSize: "24px",
+        fontSize: "20px",
         fill: "#FFFFFF",
       })
       .setOrigin(0.5);
@@ -1144,25 +1149,45 @@ class MainScene extends Phaser.Scene {
       this.addCelebrationParticles();
     }
 
-    // Close button
+    // Close button - smaller and repositioned
     const closeButton = this.add.graphics();
     closeButton.fillStyle(0x4ade80);
-    closeButton.fillRoundedRect(-100, 70, 200, 40, 8);
+    closeButton.fillRoundedRect(-80, 40, 160, 35, 8);
 
     const closeText = this.add
-      .text(0, 90, "Continue", {
+      .text(0, 57, "Continue", {
         fontFamily: "Orbitron",
         fontSize: "16px",
         fill: "#FFFFFF",
       })
       .setOrigin(0.5);
 
-    closeButton.setInteractive();
+    closeButton.setInteractive(
+      new Phaser.Geom.Rectangle(-80, 40, 160, 35),
+      Phaser.Geom.Rectangle.Contains,
+    );
+
+    // Add hover effects for the button
+    closeButton.on("pointerover", () => {
+      closeButton.clear();
+      closeButton.fillStyle(0x3d9970); // Darker shade on hover
+      closeButton.fillRoundedRect(-80, 40, 160, 35, 8);
+      this.game.canvas.style.cursor = "pointer";
+    });
+
+    closeButton.on("pointerout", () => {
+      closeButton.clear();
+      closeButton.fillStyle(0x4ade80); // Original color
+      closeButton.fillRoundedRect(-80, 40, 160, 35, 8);
+      this.game.canvas.style.cursor = "default";
+    });
+
     closeButton.on("pointerdown", () => {
       container.destroy();
       this.startGame(); // Restart the game
     });
 
+    // Add all elements to the container
     container.add([bg, title, rankText, closeButton, closeText]);
 
     // Add entry animation
@@ -1280,19 +1305,30 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
 
               try {
                 // First verify/create user
+                console.log("Verifying user:", stats.email);
                 const userResponse = await fetch(
                   `/api/game/user/${encodeURIComponent(stats.email)}`,
                 );
+
                 if (!userResponse.ok) {
+                  const errorData = await userResponse.json();
+                  console.error("User verification failed:", {
+                    status: userResponse.status,
+                    statusText: userResponse.statusText,
+                    error: errorData,
+                  });
                   throw new Error("Failed to verify user");
                 }
+
                 const apiUserData = await userResponse.json();
+                console.log("User verification response:", apiUserData);
 
                 let userId;
                 if (apiUserData.exists) {
                   userId = apiUserData.user.id;
+                  console.log("Existing user found:", userId);
                 } else {
-                  // Create new user if doesn't exist
+                  console.log("Creating new user:", stats.username);
                   const createResponse = await fetch("/api/game/users", {
                     method: "POST",
                     headers: {
@@ -1305,14 +1341,22 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
                   });
 
                   if (!createResponse.ok) {
+                    const errorData = await createResponse.json();
+                    console.error("User creation failed:", {
+                      status: createResponse.status,
+                      statusText: createResponse.statusText,
+                      error: errorData,
+                    });
                     throw new Error("Failed to create user");
                   }
 
                   const newUser = await createResponse.json();
                   userId = newUser.id;
+                  console.log("New user created:", userId);
                 }
 
                 // Submit the score
+                console.log("Submitting score for user:", userId, stats);
                 const scoreResponse = await fetch("/api/game/scores", {
                   method: "POST",
                   headers: {
@@ -1330,16 +1374,22 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
                 });
 
                 if (!scoreResponse.ok) {
+                  const errorData = await scoreResponse.json();
+                  console.error("Score submission failed:", {
+                    status: scoreResponse.status,
+                    statusText: scoreResponse.statusText,
+                    error: errorData,
+                  });
                   throw new Error("Failed to submit score");
                 }
 
                 const result = await scoreResponse.json();
+                console.log("Score submission successful:", result);
 
                 // Get the current scene again to ensure it exists
                 const currentScene =
                   gameRef.current?.scene.getScene("MainScene");
                 if (currentScene) {
-                  // Clean up submitting state and show success
                   currentScene.showSuccess(result.rank, result.isNewBest);
                 }
 
@@ -1347,7 +1397,12 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
                   onShowLeaderboard();
                 }
               } catch (error) {
-                console.error("Error submitting score:", error);
+                console.error("Error in score submission flow:", {
+                  error: error,
+                  message: error.message,
+                  stack: error.stack,
+                });
+
                 const currentScene =
                   gameRef.current?.scene.getScene("MainScene");
                 if (currentScene) {
@@ -1369,7 +1424,7 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
                   }
 
                   currentScene.showError(
-                    error.message || "Failed to submit score",
+                    `Error: ${error.message || "Failed to submit score"}`,
                   );
                 }
               }
