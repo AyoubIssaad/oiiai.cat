@@ -1184,7 +1184,41 @@ class MainScene extends Phaser.Scene {
 
     closeButton.on("pointerdown", () => {
       container.destroy();
-      this.startGame(); // Restart the game
+      // Reset game state without starting
+      this.gameStarted = false;
+      this.score = 0;
+      this.combo = 0;
+      this.maxCombo = 0;
+      this.totalLetters = 0;
+      this.correctLetters = 0;
+      this.difficultyLevel = 1;
+
+      // Reset UI elements
+      this.scoreText.setText("Score: 0");
+      this.comboText.setText("Combo: x0").setAlpha(0);
+
+      // Reset cat cannon position
+      this.catSprite.setPosition(200, 520);
+      this.catSprite.setRotation(Math.PI);
+
+      // Clear any remaining letters or projectiles
+      this.letters.forEach((letter) => {
+        this.targetedLetters.delete(letter);
+        letter.destroy();
+      });
+      this.letters = [];
+      this.catProjectiles.forEach((projectile) => projectile.destroy());
+      this.catProjectiles = [];
+      this.targetedLetters.clear();
+
+      if (this.spawnTimer) {
+        this.spawnTimer.remove();
+      }
+
+      // Trigger game over event to ensure React component updates its state
+      if (this.onGameOver) {
+        this.onGameOver({ success: true, resetToStart: true });
+      }
     });
 
     // Add all elements to the container
