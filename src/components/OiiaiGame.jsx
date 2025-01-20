@@ -803,16 +803,6 @@ class MainScene extends Phaser.Scene {
       .setOrigin(0.5);
     scoreText.setDepth(uiDepth);
 
-    // Max combo text
-    const comboText = this.add
-      .text(200, 200, `Max Combo: x${this.maxCombo}`, {
-        fontFamily: "Orbitron",
-        fontSize: "20px",
-        fill: "#60A5FA",
-      })
-      .setOrigin(0.5);
-    comboText.setDepth(uiDepth);
-
     // Username input background
     const inputBg = this.add.rectangle(200, 250, 240, 40, 0x2a2a3e);
     inputBg.setDepth(uiDepth);
@@ -1048,7 +1038,6 @@ class MainScene extends Phaser.Scene {
         bg,
         messageText,
         scoreText,
-        comboText,
         inputBg,
         inputText,
         placeholderText,
