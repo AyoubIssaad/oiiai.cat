@@ -1178,7 +1178,15 @@ class MainScene extends Phaser.Scene {
     });
 
     closeButton.on("pointerdown", () => {
+      // First destroy all children explicitly
+      container.each((child) => child.destroy());
+      // Then destroy the container itself
       container.destroy();
+
+      // Find and destroy any remaining game over UI elements
+      this.children.list
+        .filter((child) => child.getData("gameOverUI"))
+        .forEach((child) => child.destroy());
 
       // Reset game state
       this.gameStarted = false;
@@ -1215,7 +1223,7 @@ class MainScene extends Phaser.Scene {
       if (this.onGameOver) {
         this.onGameOver({
           success: true,
-          resetToStart: true, // Add this flag
+          resetToStart: true,
         });
       }
     });
