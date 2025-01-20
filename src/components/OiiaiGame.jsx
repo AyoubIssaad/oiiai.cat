@@ -496,7 +496,7 @@ class MainScene extends Phaser.Scene {
     // Add to projectiles array
     this.catProjectiles.push(projectile);
 
-    // Calculate distance for speed calculation
+    // Calculate distance for timing
     const distance = Phaser.Math.Distance.Between(
       projectile.x,
       projectile.y,
@@ -509,16 +509,22 @@ class MainScene extends Phaser.Scene {
       speed: 20,
       scale: { start: 0.2, end: 0 },
       blendMode: "ADD",
-      lifespan: 100, // Shorter trail for faster projectile
+      lifespan: 100,
       follow: projectile,
     });
 
-    // Shoot animation - much faster now
+    // Calculate the position slightly before the target
+    const targetPoint = {
+      x: targetLetter.x - Math.cos(angle) * 5, // Stop 5 pixels before target
+      y: targetLetter.y - Math.sin(angle) * 5,
+    };
+
+    // Shoot animation with adjusted endpoint
     this.tweens.add({
       targets: projectile,
-      x: targetLetter.x,
-      y: targetLetter.y,
-      duration: distance * 0.8, // Reduced from 2 to 0.8 for faster movement
+      x: targetPoint.x,
+      y: targetPoint.y,
+      duration: distance * 0.8,
       ease: "Linear",
       onComplete: () => {
         this.handleProjectileHit(projectile, targetLetter);
@@ -530,7 +536,7 @@ class MainScene extends Phaser.Scene {
     this.tweens.add({
       targets: this.catSprite,
       y: this.catSprite.y + 10,
-      duration: 30, // Faster recoil
+      duration: 30,
       yoyo: true,
       ease: "Quad.easeOut",
     });
@@ -1184,7 +1190,8 @@ class MainScene extends Phaser.Scene {
 
     closeButton.on("pointerdown", () => {
       container.destroy();
-      // Reset game state without starting
+
+      // Reset game state
       this.gameStarted = false;
       this.score = 0;
       this.combo = 0;
@@ -1215,9 +1222,12 @@ class MainScene extends Phaser.Scene {
         this.spawnTimer.remove();
       }
 
-      // Trigger game over event to ensure React component updates its state
+      // Notify React component to reset game state
       if (this.onGameOver) {
-        this.onGameOver({ success: true, resetToStart: true });
+        this.onGameOver({
+          success: true,
+          resetToStart: true, // Add this flag
+        });
       }
     });
 
@@ -1330,6 +1340,13 @@ const OiiaiGame = ({ onShowLeaderboard }) => {
             }
 
             scene.onGameOver = async (stats) => {
+              if (stats.resetToStart) {
+                setIsGameOver(false);
+                setIsGameStarted(false);
+                setGameStats(null);
+                return;
+              }
+
               setGameStats(stats);
               setIsGameOver(true);
               setIsGameStarted(false);
