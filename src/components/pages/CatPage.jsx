@@ -213,7 +213,7 @@ export function CatPage() {
                   <img
                     src="/cat.png"
                     alt="Static Banana Cat"
-                    className="w-[70%] md:w-[80%] h-auto md:h-auto object-contain"
+                    className="w-[80%] md:w-[80%] h-auto md:h-auto object-contain"
                   />
                 )}
               </div>
