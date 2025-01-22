@@ -204,7 +204,7 @@ export function CatPage() {
                   <video
                     ref={videoRef}
                     src="/cat.webm"
-                    className="w-[280px] h-[280px] object-cover"
+                    className="w-[170px] h-auto object-cover"
                     playsInline
                     loop
                     muted
