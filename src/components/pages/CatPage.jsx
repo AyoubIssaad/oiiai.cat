@@ -213,7 +213,7 @@ export function CatPage() {
                   <img
                     src="/cat.png"
                     alt="Static Banana Cat"
-                    className="w-[160px] h-auto"
+                    className="w-[160px] h-auto object-cover"
                   />
                 )}
               </div>
