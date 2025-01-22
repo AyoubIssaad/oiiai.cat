@@ -199,23 +199,26 @@ export function CatPage() {
           >
             <div className="flex flex-col items-center p-4">
               {/* Cat Animation Container */}
-              <div className="relative h-64 md:h-80 flex items-center justify-center">
-                {isPlaying ? (
-                  <video
-                    ref={videoRef}
-                    src="/cat.webm"
-                    className="w-[80%] md:w-[90%] h-auto md:h-auto object-contain"
-                    playsInline
-                    loop
-                    muted
-                  />
-                ) : (
-                  <img
-                    src="/cat.png"
-                    alt="Static Banana Cat"
-                    className="w-[80%] md:w-[80%] h-auto md:h-auto object-contain"
-                  />
-                )}
+              <div className="relative w-full h-64 md:h-80 flex items-center justify-center">
+                {/* Inner fixed-size container to enforce consistent dimensions */}
+                <div className="relative w-[70%] md:w-[60%] h-[70%] md:h-[60%]">
+                  {isPlaying ? (
+                    <video
+                      ref={videoRef}
+                      src="/cat.webm"
+                      className="absolute inset-0 w-full h-full object-contain"
+                      playsInline
+                      loop
+                      muted
+                    />
+                  ) : (
+                    <img
+                      src="/cat.png"
+                      alt="Static Banana Cat"
+                      className="absolute inset-0 w-full h-full object-contain"
+                    />
+                  )}
+                </div>
               </div>
               {/* Controls Section */}
               <div className="w-full space-y-8">
