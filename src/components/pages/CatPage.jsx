@@ -192,19 +192,19 @@ export function CatPage() {
         <div className="flex justify-center mb-8"></div>
 
         {/* Main Controller Section */}
-        <div className="max-w-2xl mx-auto">
+        <div className="w-11/12 md:w-1/2 mx-auto">
           <div
             className="rounded-3xl border-4 border-blue-500"
             style={{ backgroundColor: "#0bf70a" }}
           >
             <div className="flex flex-col items-center p-4">
               {/* Cat Animation Container */}
-              <div className="relative w-64 sm:w-96 h-64 sm:h-96 flex items-center justify-center">
+              <div className="relative h-64 md:h-80 flex items-center justify-center">
                 {isPlaying ? (
                   <video
                     ref={videoRef}
                     src="/cat.webm"
-                    className="w-40 sm:w-60 h-40 sm:h-60 object-cover"
+                    className="w-[80%] md:w-[90%] h-auto md:h-auto object-contain"
                     playsInline
                     loop
                     muted
@@ -213,11 +213,10 @@ export function CatPage() {
                   <img
                     src="/cat.png"
                     alt="Static Banana Cat"
-                    className="w-40 sm:w-60 h-auto"
+                    className="w-[70%] md:w-[80%] h-auto md:h-auto object-contain"
                   />
                 )}
               </div>
-
               {/* Controls Section */}
               <div className="w-full space-y-8">
                 {/* Play/Pause and Mute Controls */}
