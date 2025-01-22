@@ -203,8 +203,8 @@ export function CatPage() {
                 {isPlaying ? (
                   <video
                     ref={videoRef}
-                    src="/cat.webm"
-                    className="w-[280px] h-[280px] object-cover"
+                    src="/cat7.webm"
+                    className="w-full h-full object-contain max-w-[280px] max-h-[280px]"
                     playsInline
                     loop
                     muted
@@ -213,7 +213,7 @@ export function CatPage() {
                   <img
                     src="/cat.png"
                     alt="Static Banana Cat"
-                    className="w-[160px] h-auto object-cover"
+                    className="w-full h-full object-contain max-w-[280px] max-h-[280px]"
                   />
                 )}
               </div>
