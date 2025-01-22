@@ -192,98 +192,94 @@ export function CatPage() {
         <div className="flex justify-center mb-8"></div>
 
         {/* Main Controller Section */}
-        <div className="kawaii-card p-8 max-w-2xl mx-auto">
-          <div className="flex flex-col items-center gap-8 mb-8">
-            {/* Cat Animation Container */}
-            <div
-              className="kawaii-cat-container relative w-64 h-64 flex items-center justify-center rounded-full overflow-hidden"
-              style={{ backgroundColor: "#0bf70a" }}
-            >
-              {isPlaying ? (
-                <video
-                  ref={videoRef}
-                  src="/cat.webm"
-                  className="w-48 h-48 rounded-full object-cover"
-                  playsInline
-                  loop
-                  muted
-                />
-              ) : (
-                <img
-                  src="/cat.png"
-                  alt="Static Banana Cat"
-                  className="w-48 h-48 rounded-full"
-                />
-              )}
-            </div>
-
-            {/* Controls Section */}
-            <div className="w-full space-y-8">
-              {/* Play/Pause and Mute Controls */}
-              <div className="flex justify-center gap-4">
-                <Button
-                  onClick={togglePlay}
-                  className="kawaii-button accent w-24 h-12"
-                  aria-label={isPlaying ? "Pause rotation" : "Start rotation"}
-                >
-                  {isPlaying ? (
-                    <>
-                      <Pause className="w-6 h-6" />
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-6 h-6" />
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={() => setIsMuted(!isMuted)}
-                  className="kawaii-button w-12 h-12"
-                  aria-label={isMuted ? "Unmute music" : "Mute music"}
-                >
-                  {isMuted ? (
-                    <VolumeX className="w-6 h-6" />
-                  ) : (
-                    <Volume2 className="w-6 h-6" />
-                  )}
-                </Button>
-                {/* <ShareButton */}
-                {/*   speed={speed} */}
-                {/*   type="speed" */}
-                {/* /> */}
+        <div className="max-w-2xl mx-auto">
+          <div
+            className="rounded-3xl border-4 border-blue-500"
+            style={{ backgroundColor: "#0bf70a" }}
+          >
+            <div className="flex flex-col items-center p-4">
+              {/* Cat Animation Container */}
+              <div className="relative w-[300px] h-[300px] flex items-center justify-center">
+                {isPlaying ? (
+                  <video
+                    ref={videoRef}
+                    src="/cat.webm"
+                    className="w-[280px] h-[280px] object-cover"
+                    playsInline
+                    loop
+                    muted
+                  />
+                ) : (
+                  <img
+                    src="/cat.png"
+                    alt="Static Banana Cat"
+                    className="w-[160px] h-auto"
+                  />
+                )}
               </div>
 
-              {/* Speed Controls with Fun Labels */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="kawaii-text text-sm font-medium text-blue-700">
-                    Speed: {getSpeedLabel(speed)}
-                  </label>
-                  <div className="flex gap-2">
-                    {speedPresets.map((speedValue) => (
-                      <Button
-                        key={speedValue}
-                        onClick={() => handleSpeedChange(speedValue)}
-                        className="kawaii-button text-xs h-8 px-3"
-                      >
-                        {speedValue}x
-                      </Button>
-                    ))}
+              {/* Controls Section */}
+              <div className="w-full space-y-8">
+                {/* Play/Pause and Mute Controls */}
+                <div className="flex justify-center gap-4">
+                  <Button
+                    onClick={togglePlay}
+                    className="kawaii-button accent w-24 h-12"
+                    aria-label={isPlaying ? "Pause rotation" : "Start rotation"}
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-6 h-6" />
+                    ) : (
+                      <Play className="w-6 h-6" />
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => setIsMuted(!isMuted)}
+                    className="kawaii-button w-12 h-12"
+                    aria-label={isMuted ? "Unmute music" : "Mute music"}
+                  >
+                    {isMuted ? (
+                      <VolumeX className="w-4 h-4" />
+                    ) : (
+                      <Volume2 className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+
+                {/* Speed Controls with Fun Labels */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <label className="kawaii-text text-sm font-medium text-blue-700">
+                      Speed: {getSpeedLabel(speed)}
+                    </label>
+                    <div className="flex gap-2">
+                      {speedPresets.map((speedValue) => (
+                        <Button
+                          key={speedValue}
+                          onClick={() => handleSpeedChange(speedValue)}
+                          className="kawaii-button text-xs h-8 px-3"
+                        >
+                          {speedValue}x
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="kawaii-slider-track">
-                  <Slider
-                    value={[speed]}
-                    onValueChange={([newSpeed]) => handleSpeedChange(newSpeed)}
-                    min={0}
-                    max={10}
-                    step={0.1}
-                    className="w-full"
-                  />
-                </div>
-                <div className="kawaii-text flex justify-between text-xs text-blue-600">
-                  <span>Pause</span>
-                  <span>Max Speed (10x)</span>
+                  <div className="kawaii-slider-track">
+                    <Slider
+                      value={[speed]}
+                      onValueChange={([newSpeed]) =>
+                        handleSpeedChange(newSpeed)
+                      }
+                      min={0}
+                      max={10}
+                      step={0.1}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="kawaii-text flex justify-between text-xs text-blue-600">
+                    <span>Pause</span>
+                    <span>Max Speed (10x)</span>
+                  </div>
                 </div>
               </div>
             </div>
