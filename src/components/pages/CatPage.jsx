@@ -199,12 +199,12 @@ export function CatPage() {
           >
             <div className="flex flex-col items-center p-4">
               {/* Cat Animation Container */}
-              <div className="relative w-[300px] h-[300px] flex items-center justify-center">
+              <div className="relative w-64 sm:w-96 h-64 sm:h-96 flex items-center justify-center">
                 {isPlaying ? (
                   <video
                     ref={videoRef}
                     src="/cat.webm"
-                    className="w-[170px] h-auto"
+                    className="w-40 sm:w-60 h-40 sm:h-60 object-cover"
                     playsInline
                     loop
                     muted
@@ -213,7 +213,7 @@ export function CatPage() {
                   <img
                     src="/cat.png"
                     alt="Static Banana Cat"
-                    className="w-[170px] h-auto"
+                    className="w-40 sm:w-60 h-auto"
                   />
                 )}
               </div>
