@@ -4,8 +4,10 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 const STOREFRONT_ACCESS_TOKEN = process.env.REACT_APP_SHOPIFY_PUBLIC_TOKEN;
 const SHOP_DOMAIN = "kuzc0a-kz.myshopify.com";
 
-const FEATURED_PRODUCTS_QUERY = `{
-  products(first: 10) {
+// Updated query with sorting and randomization
+const FEATURED_PRODUCTS_QUERY = `
+query GetProducts($sortKey: ProductSortKeys!, $reverse: Boolean!) {
+  products(first: 12, sortKey: $sortKey, reverse: $reverse) {
     edges {
       node {
         id
@@ -30,6 +32,13 @@ const FEATURED_PRODUCTS_QUERY = `{
   }
 }`;
 
+// Available sort options
+const sortOptions = [
+  { key: "BEST_SELLING", reverse: true },
+  { key: "CREATED_AT", reverse: true },
+  { key: "UPDATED_AT", reverse: true },
+];
+
 function FeaturedProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,9 +56,23 @@ function FeaturedProducts() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Function to shuffle array
+  const shuffleArray = (array) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+
   useEffect(() => {
     async function fetchProducts() {
       try {
+        // Randomly select a sort option
+        const randomSortOption =
+          sortOptions[Math.floor(Math.random() * sortOptions.length)];
+
         const response = await fetch(
           `https://${SHOP_DOMAIN}/api/2023-10/graphql.json`,
           {
@@ -59,7 +82,13 @@ function FeaturedProducts() {
               "X-Shopify-Storefront-Access-Token": STOREFRONT_ACCESS_TOKEN,
               Accept: "application/json",
             },
-            body: JSON.stringify({ query: FEATURED_PRODUCTS_QUERY }),
+            body: JSON.stringify({
+              query: FEATURED_PRODUCTS_QUERY,
+              variables: {
+                sortKey: randomSortOption.key,
+                reverse: randomSortOption.reverse,
+              },
+            }),
           },
         );
 
@@ -68,7 +97,11 @@ function FeaturedProducts() {
         }
 
         const data = await response.json();
-        setProducts(data.data.products.edges.map((edge) => edge.node));
+        // Shuffle the products before setting them
+        const shuffledProducts = shuffleArray(
+          data.data.products.edges.map((edge) => edge.node),
+        );
+        setProducts(shuffledProducts);
       } catch (err) {
         console.error("Error fetching products:", err);
         setError(err.message);
@@ -78,7 +111,7 @@ function FeaturedProducts() {
     }
 
     fetchProducts();
-  }, []);
+  }, []); // Only run on mount
 
   const nextSlide = () => {
     const maxIndex = isMobile ? products.length - 1 : products.length - 3;
@@ -109,7 +142,7 @@ function FeaturedProducts() {
       <div className="max-w-5xl mx-auto px-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-6 px-4 sm:px-0">
           <h2 className="kawaii-title text-xl sm:text-2xl text-blue-700">
-            Gifts & Giggles 🎁😆
+            Gifts & Giggles ≡ƒÄü≡ƒÿå
           </h2>
           <a
             href="https://store.oiiai.cat"
