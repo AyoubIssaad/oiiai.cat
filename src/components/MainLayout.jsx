@@ -31,8 +31,26 @@ export function MainLayout({ children }) {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Store
+                    Buy Oiiai Merch
                   </a>
+                </li>
+                <li>
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.binarypax.oiiaicat"
+                    className="text-blue-600 hover:text-blue-800"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Get the App
+                  </a>
+                </li>
+                <li>
+                  <Link
+                    to="/memes"
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Discover Memes
+                  </Link>
                 </li>
                 <li>
                   <Link
@@ -70,7 +88,7 @@ export function MainLayout({ children }) {
 
           <div className="text-center pt-8 border-t border-blue-200">
             <p className="kawaii-text mb-4">
-              Made with <span className="animate-pulse inline-block">🩶</span>{" "}
+              Made with <span className="animate-pulse inline-block">❤️</span>{" "}
               by{" "}
               <a
                 className="text-blue-500 hover:text-blue-600 underline"

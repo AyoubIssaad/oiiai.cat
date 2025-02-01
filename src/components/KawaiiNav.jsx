@@ -7,8 +7,7 @@ import {
   Info,
   Menu,
   X,
-  Film,
-  Search,
+  Download,
   ShoppingCart,
 } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -93,9 +92,17 @@ export function KawaiiNav() {
               <ShoppingCart className="w-5 h-5" />
               Store
             </a>
-            <NavLink to="/memes" icon={Search} label="Discover">
-              Discover Memes
-            </NavLink>
+            <a
+              href="https://play.google.com/store/apps/details?id=com.binarypax.oiiaicat"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300
+                hover:bg-blue-100 hover:text-blue-700 hover:transform hover:scale-105
+                font-['Orbitron'] font-bold text-sm md:text-base text-blue-600"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Download className="w-5 h-5" />
+              Get the App
+            </a>
             <NavLink
               to="/secret-messages"
               icon={MessageSquare}
@@ -131,6 +138,18 @@ export function KawaiiNav() {
                 <ShoppingCart className="w-5 h-5" />
                 Store
               </a>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.binarypax.oiiaicat"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300
+                  hover:bg-blue-100 hover:text-blue-700
+                  font-['Orbitron'] font-bold text-sm md:text-base text-blue-600"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMenu}
+              >
+                <Download className="w-5 h-5" />
+                Get the App
+              </a>
               <NavLink
                 to="/secret-messages"
                 icon={MessageSquare}
@@ -138,14 +157,6 @@ export function KawaiiNav() {
                 onClick={closeMenu}
               >
                 Encode Messages!
-              </NavLink>
-              <NavLink
-                to="/memes"
-                icon={Search}
-                label="Discover Memes"
-                onClick={closeMenu}
-              >
-                Discover Memes
               </NavLink>
               <NavLink
                 to="/games"
