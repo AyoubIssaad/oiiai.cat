@@ -11,6 +11,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import { MainLayout } from "./components/MainLayout";
 import KawaiiNav from "./components/KawaiiNav";
 import MemeDiscoveryPage from "./components/MemeDiscoveryPage";
+import KittyCallPrivacy from "./components/KittyCallPrivacy";
 import AdminPanel from "./components/AdminPanel";
 
 function App() {
@@ -30,6 +31,10 @@ function App() {
           <Route path="/games" element={<GamesPage />} />
           <Route path="/memes" element={<MemeDiscoveryPage />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route
+            path="/apps/kittycall/privacy"
+            element={<KittyCallPrivacy />}
+          />
 
           {/* Legacy routes with redirects */}
           <Route path="/cat" element={<Navigate to="/" replace />} />
