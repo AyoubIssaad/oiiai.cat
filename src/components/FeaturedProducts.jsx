@@ -142,7 +142,7 @@ function FeaturedProducts() {
       <div className="max-w-5xl mx-auto px-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-6 px-4 sm:px-0">
           <h2 className="kawaii-title text-xl sm:text-2xl text-blue-700">
-            Gifts & Giggles 🎁😆
+            Official Merch 🎁😆
           </h2>
           <a
             href="https://store.oiiai.cat"
