@@ -118,9 +118,7 @@ const RandomPromotion = () => {
               className={`w-full h-full object-contain ${selectedPromo.id === "app" ? "rounded-xl" : ""}`}
             />
           </div>
-          <h2 className="font-['Orbitron'] text-xl font-bold mb-2">
-            {selectedPromo.name}
-          </h2>
+          <h2 className="text-xl font-bold mb-2">{selectedPromo.name}</h2>
           <p className={getThemeClasses(selectedPromo.theme, "text")}>
             {selectedPromo.description}
           </p>
