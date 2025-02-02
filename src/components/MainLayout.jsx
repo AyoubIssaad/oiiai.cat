@@ -1,12 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FloatingActionButton } from "./FloatingActionButton";
-import AppPromotion from "./AppPromotion";
+import RandomPromotion from "./RandomPromotion";
 
 export function MainLayout({ children }) {
   return (
     <div className="min-h-screen kawaii-theme">
-      <AppPromotion />
+      <RandomPromotion />
       {children}
 
       <FloatingActionButton />
